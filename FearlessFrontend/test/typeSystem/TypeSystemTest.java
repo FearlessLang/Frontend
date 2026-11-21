@@ -4917,7 +4917,7 @@ U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): B -> this.both(y, z) }
    |                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred from the arguments: some need "Y", some need "Z".
+The generic type argument "T" of ".both" can not be inferred: it is needed as "Y", as "Z".
 "T" could be "A" or "B": each is a supertype of "Y" and "Z". The choice is ambiguous.
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
@@ -4929,12 +4929,34 @@ U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
    |                                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred from the arguments: some need "mut Y[A]", some need "mut Z[A]".
+The generic type argument "T" of ".both" can not be inferred: it is needed as "mut Y[A]", as "mut Z[A]".
 "T" could be "mut G[A]" or "mut H[A]": each is a supertype of "mut Y[A]" and "mut Z[A]". The choice is ambiguous.
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
 A:{} G[X:*]:{} H[X:*]:{} Y[X:*]:G[X],H[X]{} Z[X:*]:G[X],H[X]{}
 U:{ .both[T:*](a: T, b: T): A -> A; .use(y: mut Y[A], z: mut Z[A]): A -> this.both(y, z) }
+"""));}
+@Test void aRepeatedTypeIsListedOnce(){failWf("""
+002| U:{ .three[T](a: T, b: T, c: T): A -> A; .use(y: Y, z: Z): A -> this.three(y, z, y) }
+   |                                                                 ^^^^^^^^^^^^^^^^^^^
+
+While inspecting method call ".three(_,_,_)"
+The generic type argument "T" of ".three" can not be inferred: it is needed as "Y", as "Z".
+Write the generic type argument explicitly, in place of "_" in "this.three[_](y, z, y)".
+""", List.of("""
+A:{} Y:{} Z:{}
+U:{ .three[T](a: T, b: T, c: T): A -> A; .use(y: Y, z: Z): A -> this.three(y, z, y) }
+"""));}
+@Test void commonSupertypesOutsideTheBoundAreNotListed(){failWf("""
+002| U:{ .both[T](a: T, b: T): A -> A; .use(y: mut Y, z: mut Z): A -> this.both(y, z) }
+   |                                                                  ^^^^^^^^^^^^^^^
+
+While inspecting method call ".both(_,_)"
+The generic type argument "T" of ".both" can not be inferred: it is needed as "mut Y", as "mut Z".
+Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
+""", List.of("""
+A:{} S1:{} S2:{} Y:S1,S2{} Z:S1,S2{}
+U:{ .both[T](a: T, b: T): A -> A; .use(y: mut Y, z: mut Z): A -> this.both(y, z) }
 """));}
 @Test void siblingsWithOneCommonSupertypeInferIt(){ok(List.of("""
 A:{ .k: A -> this } Y:A{} Z:A{}
@@ -4945,8 +4967,7 @@ U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
    |                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred from the arguments: some need "Y", some need "Z".
-No type is a supertype of all of them.
+The generic type argument "T" of ".both" can not be inferred: it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
 A:{} Y:{} Z:{}
@@ -4957,8 +4978,7 @@ U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "base.ThenElse[_]"
-The generic type argument "R" of "base.ThenElse[_]" can not be inferred from the method bodies: some need "Y", some need "Z".
-No type is a supertype of all of them.
+The generic type argument "R" of "base.ThenElse[_]" can not be inferred: it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "base.ThenElse[_]{...}".
 """, List.of("""
 A:{} Y:{} Z:{}
@@ -4970,7 +4990,7 @@ U:{ .use(c: base.Bool, y: Y, z: Z): A -> Sink#(c ? { .then -> y; .else -> z }) }
    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "base.ThenElse[_]"
-The generic type argument "R" of "base.ThenElse[_]" can not be inferred from the method bodies: some need "Y", some need "Z".
+The generic type argument "R" of "base.ThenElse[_]" can not be inferred: it is needed as "Y", as "Z".
 "R" could be "S1" or "S2": each is a supertype of "Y" and "Z". The choice is ambiguous.
 Write the generic type argument explicitly, in place of "_" in "base.ThenElse[_]{...}".
 """, List.of("""
@@ -5019,8 +5039,7 @@ App:{ .m: base.Nat -> {.b:base.Void->base.Void;}.a }
    |                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred from the arguments: some need "Y", some need "Z".
-No type is a supertype of all of them.
+The generic type argument "T" of ".both" can not be inferred: it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
 A:{} B:{} Sup[T]:{ .k: T } Y:Sup[A]{ .k -> A } Z:Sup[B]{ .k -> B }
@@ -5031,8 +5050,7 @@ U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
    |                                                               ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred from the arguments: some need "Sup[A]", some need "Z".
-No type is a supertype of all of them.
+The generic type argument "T" of ".both" can not be inferred: it is needed as "Sup[A]", as "Z".
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
 A:{} B:{} Sup[T]:{ .k: T } Z:Sup[B]{ .k -> B }
@@ -5812,8 +5830,7 @@ Use:{ .go: N -> Take#{ .m(x) -> Wrap#(x) } }
    |                                                                          ^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".two(_,_,_)"
-The generic type argument "T" of ".two" can not be inferred from the arguments: some need "Y", some need "Z".
-No type is a supertype of all of them.
+The generic type argument "T" of ".two" can not be inferred: it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "this.two[_](y, z, this.mk)".
 """, List.of("""
 A:{} Y:{} Z:{} Box[X]:{}
@@ -5824,8 +5841,7 @@ U:{ .mk[R]: R; .two[T](a: T, b: T, c: Box[T]): A; .use(y: Y, z: Z): A -> this.tw
    |                              ^^^^^^^^^^^^^^^^^
 
 While inspecting method call "#(_)"
-The generic type argument "T" of "#" can not be inferred from the arguments: some need "Bar[A]", some need "Bar[B]".
-No type is a supertype of all of them.
+The generic type argument "T" of "#" can not be inferred: it is needed as "Bar[A]", as "Bar[B]".
 Write the generic type argument explicitly, in place of "_" in "Ign#[_](Mk#.m(a, b))".
 """, List.of("""
 A:{}
@@ -5841,8 +5857,7 @@ User:{ .go(a: A, b: B): A -> Ign#(Mk#.m(a, b)) }
    |                                    ^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".choose(_,_)"
-The generic type argument "V" of ".choose" can not be inferred from the arguments: some need "Y", some need "Z".
-No type is a supertype of all of them.
+The generic type argument "V" of ".choose" can not be inferred: it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "Left.choose[_](y, z)".
 """, List.of("""
 A:{} Y:{} Z:{}
@@ -5857,8 +5872,7 @@ Use:{ .go(y: Y, z: Z): A -> Take#{ Left.choose(y, z) } }
    |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".choose(_,_)"
-The generic type argument "Val" of ".choose" can not be inferred from the arguments: some need "base.Str", some need "TankNN".
-No type is a supertype of all of them.
+The generic type argument "Val" of ".choose" can not be inferred: it is needed as "base.Str", as "TankNN".
 Write the generic type argument explicitly, in place of "_" in `Left.choose[_]("Hello", TankNN)`.
 """, List.of("""
 Fork:{ .choose[Val](leftVal: Val, rightVal: Val): Val }
@@ -6388,8 +6402,7 @@ U:{ .m: A -> Foo:A,base.CaptureFree{'s .k -> s; .v -> G#(s, {}) } }
    |                                           ^^^^^^^^
 
 While inspecting method call "#(_,_)"
-The generic type argument "X" of "#" can not be inferred from the arguments: some need the anonymous type of the object literal at line 3, column 22, some need "B".
-No type is a supertype of all of them.
+The generic type argument "X" of "#" can not be inferred: it is needed as the anonymous type of the object literal at line 3, column 22, as "B".
 Write the generic type argument explicitly, in place of "_" in "G#[_](s, B)".
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
@@ -6529,8 +6542,7 @@ A:{ .m[X](x: X, y: X): X -> y; .k: Box[A] -> this.m(C, D) }
    |                                                                          ^^^^^^^^^^^^
 
 While inspecting method call ".m(_,_)"
-The generic type argument "X" of ".m" can not be inferred from the arguments: some need "C", some need "D".
-No type is a supertype of all of them.
+The generic type argument "X" of ".m" can not be inferred: it is needed as "C", as "D".
 Write the generic type argument explicitly, in place of "_" in "this.m[_](C, D)".
 """, List.of("""
 Box[T]:{}
@@ -6543,8 +6555,7 @@ A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(
    |                                                                          ^^^^^^^^^^^^
 
 While inspecting method call ".m(_,_)"
-The generic type argument "X" of ".m" can not be inferred from the arguments: some need "C", some need "D".
-No type is a supertype of all of them.
+The generic type argument "X" of ".m" can not be inferred: it is needed as "C", as "D".
 Write the generic type argument explicitly, in place of "_" in "this.m[_](C, D)".
 """, List.of("""
 Box[T]:{}
@@ -6684,7 +6695,7 @@ U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
    |                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred from the arguments: some need "Y", some need "Z".
+The generic type argument "T" of ".both" can not be inferred: it is needed as "Y", as "Z".
 "T" could be "A" or "B": each is a supertype of "Y" and "Z". The choice is ambiguous.
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
