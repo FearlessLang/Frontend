@@ -4958,6 +4958,23 @@ Write the generic type argument explicitly, in place of "_" in "this.both[_](y, 
 A:{} S1:{} S2:{} Y:S1,S2{} Z:S1,S2{}
 U:{ .both[T](a: T, b: T): A -> A; .use(y: mut Y, z: mut Z): A -> this.both(y, z) }
 """));}
+@Test void footerListsThreeIntroducedTypes(){fail("""
+004| U:{ .m: D -> Need#(Mk#(A,B,C)) }
+   |     ---------~~~~~~^^^^^^^^^^~
+
+While inspecting method "U.m" (line 4)
+This call to method "Need#(_)" cannot typecheck.
+Argument 1 has type "A".
+That is not a subtype of "D" (the type required by the method signature).
+
+See inferred typing context below for how "A", "B" and "C" were introduced:
+Need#(Mk#[imm,A,B,C](A,B,C))
+""", List.of("""
+A:{} B:{} C:{} D:{}
+Mk:{ #[X:*,Y:*,Z:*](x:X,y:Y,z:Z): X -> x }
+Need:{ #(d:D): D -> d }
+U:{ .m: D -> Need#(Mk#(A,B,C)) }
+"""));}
 @Test void siblingsWithOneCommonSupertypeInferIt(){ok(List.of("""
 A:{ .k: A -> this } Y:A{} Z:A{}
 U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }

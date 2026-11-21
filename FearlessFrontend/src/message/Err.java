@@ -215,7 +215,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var body= text();
     var cp= _cp.apply(true);
     var footer= cp.limit(footerE, focus, 120).stripTrailing();
-    var what= Join.of(ts.stream(), "", " and ", "")+(ts.size() == 1 ? " was" : " were");
+    var what= ts.size() == 1 ? ts.getFirst()+" was" : Join.of(ts.subList(0, ts.size()-1).stream(), "", ", ", "")+" and "+ts.getLast()+" were";
     var header= "See inferred typing context below for how "+what+" introduced"+(cp.omitted ? " (\"...\" marks omitted code):\n" : ":\n");
     return Code.TypeError.of(() -> withNotes(body)+"\n\n"+header+footer);
   }

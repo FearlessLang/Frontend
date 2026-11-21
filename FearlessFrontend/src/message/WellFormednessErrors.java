@@ -427,14 +427,13 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     }
     e.line("Cannot infer signature of method "+name+".")
       .line("No supertype has a method named "+name+" with "+count(s.ts().size(), "parameter")+".");
-    if (m.impl().filter(i -> usesImplicit(i.e(), m.xs())).isPresent()){ e.line("\"::\" in the body is the parameter of "+name+"."); }
+    if (m.impl().filter(i -> usesImplicit(i.e())).isPresent()){ e.line("\"::\" in the body is the parameter of "+name+"."); }
     return e;
   }
-  private static boolean usesImplicit(E e, List<String> xs){ return switch (e){
-    case E.X x -> xs.contains(x.name()) && x.src().inner instanceof fearlessFullGrammar.E.Implicit;
-    case E.Type _ -> false;
-    case E.Call c -> Stream.concat(Stream.of(c.e()), c.es().stream()).anyMatch(ei -> usesImplicit(ei, xs));
-    case E.Literal l -> l.ms().stream().flatMap(mi -> mi.impl().stream()).anyMatch(i -> usesImplicit(i.e(), xs));
+  private static boolean usesImplicit(E e){ return switch (e){
+    case E.X x -> x.src().inner instanceof fearlessFullGrammar.E.Implicit;
+    case E.Type _, E.Literal _ -> false;
+    case E.Call c -> Stream.concat(Stream.of(c.e()), c.es().stream()).anyMatch(WellFormednessErrors::usesImplicit);
   };}
   private Err unnamedNotInferred(E.Literal origin, M.Sig s, List<core.Sig> sup){
     var n= s.ts().size();

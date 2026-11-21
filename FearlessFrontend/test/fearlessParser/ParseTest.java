@@ -961,7 +961,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-A "[" must come right after a type name or a method name, with no space or comment in between.
+A "[" must come right after a type name or a method name.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -976,7 +976,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-A "[" must come right after a type name or a method name, with no space or comment in between.
+A "[" must come right after a type name or a method name.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -991,7 +991,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-A "[" must come right after a type name or a method name, with no space or comment in between.
+A "[" must come right after a type name or a method name.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -1006,7 +1006,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-A "[" must come right after a type name or a method name, with no space or comment in between.
+A "[" must come right after a type name or a method name.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -1021,7 +1021,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-A "[" must come right after a type name or a method name, with no space or comment in between.
+A "[" must come right after a type name or a method name.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -1036,7 +1036,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-A "[" must come right after a type name or a method name, with no space or comment in between.
+A "[" must come right after a type name or a method name.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -1052,7 +1052,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-A "[" must come right after a type name or a method name, with no space or comment in between.
+A "[" must come right after a type name or a method name.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -1067,7 +1067,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-A "[" must come right after a type name or a method name, with no space or comment in between.
+A "[" must come right after a type name or a method name.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -1082,7 +1082,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-A "[" must come right after a type name or a method name, with no space or comment in between.
+A "[" must come right after a type name or a method name.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
