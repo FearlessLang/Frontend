@@ -57,7 +57,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .typeErr().addSpan(span);
     }
     return e
-      .line("The body "+disp(x+".as{...}")+" of "+err().methodSig(m.sig().m())+" is the identity function only when parameter "+disp(x)+" has a type implementing "+err().tNameADisp(LiteralDeclarations.baseContainer)+".")
+      .line("The body of "+err().methodSig(m.sig().m())+" calls "+err().methodSig(new MName(".as", 1))+" on parameter "+disp(x)+".")
+      .line("Calling "+err().methodSig(new MName(".as", 1))+" is the identity function only when the receiver has a type implementing "+err().tNameADisp(LiteralDeclarations.baseContainer)+".")
       .line("Parameter "+disp(x)+" has type "+err().typeRepr(true, m.sig().ts().getFirst())+".")
       .typeErr().addSpan(span);
   }

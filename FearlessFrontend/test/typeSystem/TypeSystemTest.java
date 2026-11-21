@@ -6126,7 +6126,8 @@ Impl:{ #(x:I):I -> x }
 
 While inspecting the file
 Type declaration "I" implements "base.BaseId[_,_]".
-The body "x.as{...}" of "#(_)" is the identity function only when parameter "x" has a type implementing "base.BaseContainer[_]".
+The body of "#(_)" calls ".as(_)" on parameter "x".
+Calling ".as(_)" is the identity function only when the receiver has a type implementing "base.BaseContainer[_]".
 Parameter "x" has type "Box".
 """, List.of("""
 Box:{ .as(f: base.BaseId[Box,Box]):Box -> this }
@@ -6203,7 +6204,8 @@ I: base.BaseId[I,I]{ #(x)->x#(x) }
 
 While inspecting the file
 Type declaration "I[_]" implements "base.BaseId[_,_]".
-The body "x.as{...}" of "#(_)" is the identity function only when parameter "x" has a type implementing "base.BaseContainer[_]".
+The body of "#(_)" calls ".as(_)" on parameter "x".
+Calling ".as(_)" is the identity function only when the receiver has a type implementing "base.BaseContainer[_]".
 Parameter "x" has type "X".
 """, List.of("""
 I[X:*]: base.BaseId[X,I[X]]{ #(x)->x.as[I[X]](this) }
