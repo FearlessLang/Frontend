@@ -1062,6 +1062,24 @@ IfM[R]:{ .then: R; .else: R }
 B:{ .if[R](m: IfM[R]): R -> m.then }
 U:{ .u: A -> B.if{ .then -> A; .els -> A } }
 """));}
+@Test void aMisspelledMethodSuggestsEachMethodOfTheSupertypeWithThatName(){failWf("""
+004| U:{ .u: A -> B.if{ .then -> A; .els -> A } }
+   |                  --------------^^^^^^^^^--
+
+While inspecting object literal instance of "IfM[_]"
+Missing return type for method ".els".
+Cannot infer signature of method ".els".
+No supertype has a method named ".els" with 0 parameters.
+Did you mean one of the following?
+- ".else(_)"
+- "read .else"
+Methods of the supertypes: ".else(_)", ".then", "read .else".
+""", List.of("""
+A:{}
+IfM[R]:{ .then: R; .else(r: R): R; read .else: R }
+B:{ .if[R](m: IfM[R]): R -> m.then }
+U:{ .u: A -> B.if{ .then -> A; .els -> A } }
+"""));}
 @Test void aMethodNameWithoutTheDotIsReadAsAParameterName(){failWf("""
 003| West:Direction{ turn -> North }
    | ----------------^^^^^^^^^^^^^--
