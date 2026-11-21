@@ -402,7 +402,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var s= m.sig();
     var names= sup.stream().map(si -> si.m().s()).distinct().sorted().toList();
     var best= s.m().filter(_ -> !names.isEmpty()).flatMap(n -> NameSuggester.bestName(n.s(), names));
-    var e= s.m().isEmpty() ? unnamedNotInferred(origin, s, sup) : missingTypes(s, best.isEmpty());
+    var e= s.m().isEmpty() ? unnamedNotInferred(origin, s, sup) : missingTypes(m, best.isEmpty());
     var asName= m.names().stream().filter(x -> s.m().isEmpty() && names.contains("."+x)).findFirst();
     var suggested= best.or(() -> asName.map(x -> "."+x)).map(b -> sup.stream().filter(si -> si.m().s().equals(b)).map(WellFormednessErrors::supSig).distinct().toList()).orElse(List.of());
     best.ifPresent(_ -> e.didYouMean(suggested));
@@ -414,13 +414,14 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return wf(e, s, origin);
   }
   private static String supSig(core.Sig s){ return methodSig(s.rc().toStrSpace(), s.m()); }
-  private Err missingTypes(M.Sig s, boolean addReturnType){
+  private Err missingTypes(M m, boolean addReturnType){
+    var s= m.sig();
     var name= methodSig(s.rc().map(r -> r.toStrSpace(false)).orElse(""), s.m().get());
     var allParHasType= s.ts().stream().allMatch(Optional::isPresent);
     var e= err();
     if (allParHasType){ e.line("Missing return type for method "+name+"."); }
     if (allParHasType && addReturnType){ e
-      .line("Add an explicit return type before \"->\".")
+      .line(m.impl().isPresent() ? "Add an explicit return type before \"->\"." : "Add an explicit return type at the end of the signature.")
       .line("Alternatively (less common), if you intended to override and omit the signature,")
       .line("the signature must be inherited from a supertype.");
     }
