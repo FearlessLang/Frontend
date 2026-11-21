@@ -352,6 +352,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     };
   }
   private String whyDropMutInImm(String subject, Change.NoT why){
+    if (why.atDrop() instanceof T.X && !why.l().infName()){ return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
+      +"The generic type parameters of "+err().expRepr(why.l())+" (line "+why.l().span().inner.startLine()+") are "+disp(Join.of(why.l().bs(), "", ", ", "", ""))+".\n"
+      +"Under those bounds, "+subject+" can observe mutation.\n"
+      +"Thus "+subject+" cannot be captured in that "+disp(why.l().rc())+" object literal.";
+    }
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
     +up(subject)+" can observe mutation; thus it cannot be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n"
