@@ -774,7 +774,9 @@ A:{ .m[X:imm,mut](x: X): iso Box[X] -> iso Box[X]{ .get -> x } }
 
 While inspecting parameter "x" > method "Fresh[_].get" (line 2) > method "A.m(_)" (line 2)
 Parameter "x" has type "X".
-The generic type parameters of object literal "Fresh[_]" (line 2) are "X:imm,mut,read": under them, parameter "x" can observe mutation, and thus it cannot be captured in that "iso" object literal.
+The generic type parameters of object literal "Fresh[_]" (line 2) are "X:imm,mut,read".
+Under those bounds, parameter "x" can observe mutation.
+Thus parameter "x" cannot be captured in that "iso" object literal.
 The bounds declared by the object literal are all it knows about its generic type parameters.
 """, List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
@@ -818,7 +820,9 @@ A:{ .m[X:imm](b: Box[X]): mut Get[X] -> mut Fresh[X:imm]:Get[X]{ .get -> b.get }
 
 While inspecting parameter "x" > method "Fresh[_].get" (line 2) > method "A.m(_)" (line 2)
 Parameter "x" has type "X".
-The generic type parameters of object literal "Fresh[_]" (line 2) are "X:imm,mut,read": under them, parameter "x" can observe mutation, and thus it cannot be captured in that "iso" object literal.
+The generic type parameters of object literal "Fresh[_]" (line 2) are "X:imm,mut,read".
+Under those bounds, parameter "x" can observe mutation.
+Thus parameter "x" cannot be captured in that "iso" object literal.
 The bounds declared by the object literal are all it knows about its generic type parameters.
 """, List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
