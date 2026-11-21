@@ -2983,9 +2983,9 @@ While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameters redeclared.
 A method with the inferred name and the same parameter count is already present above.
 Likely cause: method declaration missing "." before the name.
-Found unnamed methods with parameters: "a", "b".
-To declare a method named "a", write ".a" (dot a).
-Without the dot, "a" is interpreted as a parameter name for an anonymous method.
+Found unnamed methods with parameters: "b".
+To declare a method named "b", write ".b" (dot b).
+Without the dot, "b" is interpreted as a parameter name for an anonymous method.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2999,6 +2999,19 @@ A:{
  }
 """); }
 
+@Test void redeclaredMethAnonWithParenthesesHasNoLikelyCause(){ fail("""
+In file: [###].fear
+
+001| A:{ (a,b)->a; (c,d)->c }
+   | --~~~~~~~~~~~~^^^^^^^^~~
+
+While inspecting type declaration body > type declaration > full file
+Method with inferred name and 2 parameters redeclared.
+A method with the inferred name and the same parameter count is already present above.
+Error 7 WellFormedness
+""", """
+A:{ (a,b)->a; (c,d)->c }
+"""); }
 @Test void redeclaredMethAnon3(){ fail("""
 In file: [###].fear
 
@@ -3013,7 +3026,7 @@ While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameters redeclared.
 A method with the inferred name and the same parameter count is already present above.
 Likely cause: method declaration missing "." before the name.
-Found unnamed methods with parameters: "b", "a".
+Found unnamed methods with parameters: "b".
 To declare a method named "b", write ".b" (dot b).
 Without the dot, "b" is interpreted as a parameter name for an anonymous method.
 Error 7 WellFormedness
@@ -3634,7 +3647,6 @@ This is not a top level type declaration.
 Top level code can only contain type declarations.
 A type declaration starts with a type name, like "Point:{..}".
 Found instead: "(...)".
-Likely cause: an extra "}" closed a type declaration unintentionally.
 Error 2 UnexpectedToken
 """, """
 ()
