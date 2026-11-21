@@ -507,19 +507,18 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line(Err.funnel(missing, owner.name().simpleName(), xs)), x);
   }
   public FearlessException typeArgAmbiguous(E.Call at, String x, List<IT> cands, List<IT.RCC> common, String example, Function<TName,core.E.Literal> decs){
-    return typeArgAmbiguous(at, x, disp(at.name().s())+" can not be inferred from the arguments", cands, common, example, decs);
+    return typeArgAmbiguous(at, x, disp(at.name().s()), cands, common, example, decs);
   }
   public FearlessException literalHeadAmbiguous(E.Literal at, IT.C c, int i, String x, List<IT> cands, List<IT.RCC> common, Function<TName,core.E.Literal> decs){
     var ts= IntStream.range(0, c.ts().size()).mapToObj(j -> j == i ? "_" : err().typeReprRaw(c.ts().get(j))).toList();
     var lit= err().cp().t.of(c.name())+Join.of(ts, "[", ",", "]")+"{...}";
-    return typeArgAmbiguous(at, x, err().tNameADisp(c.name())+" can not be inferred from the method bodies", cands, common, lit, decs);
+    return typeArgAmbiguous(at, x, err().tNameADisp(c.name()), cands, common, lit, decs);
   }
-  private FearlessException typeArgAmbiguous(E at, String x, String ofFrom, List<IT> cands, List<IT.RCC> common, String example, Function<TName,core.E.Literal> decs){
-    var cs= cands.stream().map(err(h -> h, n -> n, decs, List.of())::typeRepr).toList();
+  private FearlessException typeArgAmbiguous(E at, String x, String of, List<IT> cands, List<IT.RCC> common, String example, Function<TName,core.E.Literal> decs){
+    var cs= cands.stream().map(err(h -> h, n -> n, decs, List.of())::typeRepr).distinct().toList();
     var xs= Err.disp(x);
-    var e= err().line("The generic type argument "+xs+" of "+ofFrom+": some need "+Join.of(cs, "", ", some need ", "")+".");
-    if (common.isEmpty()){ e.line("No type is a supertype of all of them."); }
-    else{ e.line(up(xs)+" could be "+Join.of(common.stream().map(err()::typeRepr), "", " or ", "")+": each is a supertype of "+Join.of(cs, "", " and ", "")+". The choice is ambiguous."); }
+    var e= err().line("The generic type argument "+xs+" of "+of+" can not be inferred: it is needed "+Join.of(cs, "as ", ", as ", "")+".");
+    if (!common.isEmpty()){ e.line(up(xs)+" could be "+Join.of(common.stream().map(err()::typeRepr), "", " or ", "")+": each is a supertype of "+Join.of(cs, "", " and ", "")+". The choice is ambiguous."); }
     return wf(e.line("Write the generic type argument explicitly, in place of \"_\" in "+disp(example)+"."), at);
   }
   public String callWithTargs(E.Call c, List<IT> targs, int k){

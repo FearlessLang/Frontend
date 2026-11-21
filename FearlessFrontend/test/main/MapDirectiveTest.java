@@ -2276,7 +2276,7 @@ In file: [###].fear
    |                                                              ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred from the arguments: some need "a.Y", some need "a.Z".
+The generic type argument "T" of ".both" can not be inferred: it is needed as "a.Y", as "a.Z".
 "T" could be "a.A" or "a.B2": each is a supertype of "a.Y" and "a.Z". The choice is ambiguous.
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 
@@ -2292,7 +2292,7 @@ In file: [###].fear
    |                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "bb.ThenElse[_]"
-The generic type argument "R" of "bb.ThenElse[_]" can not be inferred from the method bodies: some need "a.Y", some need "a.Z".
+The generic type argument "R" of "bb.ThenElse[_]" can not be inferred: it is needed as "a.Y", as "a.Z".
 "R" could be "a.S1" or "a.S2": each is a supertype of "a.Y" and "a.Z". The choice is ambiguous.
 Write the generic type argument explicitly, in place of "_" in "bb.ThenElse[_]{...}".
 
@@ -2734,7 +2734,7 @@ In file: [###].fear
    |                                                                           ^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".two(_,_,_)"
-The generic type argument "T" of ".two" can not be inferred from the arguments: some need "a.Y", some need "a.Z".
+The generic type argument "T" of ".two" can not be inferred: it is needed as "a.Y", as "a.Z".
 "T" could be "a.A" or "a.B2": each is a supertype of "a.Y" and "a.Z". The choice is ambiguous.
 Write the generic type argument explicitly, in place of "_" in "this.two[d.Q,_](q, y, z)".
 
