@@ -30,7 +30,7 @@ public final class BadTokens{
       .put(BadUnopenedBlockCommentClose, BadTokens::strayBlockCommentCloser)
       .put(OSquareArg, BadTokens::squareAfterLiteral)
       .putStr(BadOSquare, Code.UnexpectedToken::of, """
-No space is allowed before "[".
+A "[" must come right after a type name or a method name, with no space or comment in between.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 """, "common ambiguities")

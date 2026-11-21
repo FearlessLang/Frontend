@@ -917,7 +917,7 @@ In file: [###].fear
 
 While inspecting type declaration "E"
 Invalid method signature for "E.m(_,_)".
-The method ".m(_,_)" declares 1 generic type parameter, but supertypes declare 2.
+The method ".m(_,_)" declares 1 generic type parameter, but supertype "A" declares 2.
 Error 7 WellFormedness
 """, List.of("""
 A:{.m[X,Y](x:X,y:Y):X}
