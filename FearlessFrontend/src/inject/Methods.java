@@ -303,7 +303,7 @@ public record Methods(
     var superBsList= ss.stream().map(e -> e.bs().get()).toList();
     var superArities= superBsList.stream().map(List::size).distinct().toList();
     if (superArities.size() != 1){ throw arityDisagreement(at, ss); }
-    if (superArities.getFirst() != userBs.size()){ throw p.err().methodGenericArityDisagreesWithSupers(at, userBs, superBsList.getFirst()); }
+    if (superArities.getFirst() != userBs.size()){ throw p.err().methodGenericArityDisagreesWithSupers(at, userBs, ss); }
     var supBs= agreementBs(at, ss);
     assert supBs.size() == userBs.size();
     var supRCs= supBs.stream().map(B::rcs).toList();

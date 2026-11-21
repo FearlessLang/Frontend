@@ -2227,7 +2227,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "a.Sup"
 Invalid method signature for "a.Sup.f(_)".
-The method ".f(_)" declares 2 generic type parameters, but supertypes declare 1.
+The method ".f(_)" declares 2 generic type parameters, but supertype "a.Sup" declares 1.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness

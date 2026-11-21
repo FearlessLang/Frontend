@@ -447,7 +447,7 @@ for generic type parameter "Y" in "Util.m(_)".
 Here "Y" can only use capability "imm".
 But generic type argument "Z" can only use capability "mut".
 
-See inferred typing context below for how type "Z" was introduced:
+See inferred typing context below for how "Z" was introduced:
 Util.m[imm,Z](z)
 """, List.of("""
 Foo:{}
@@ -470,7 +470,7 @@ for generic type parameter "Y" in "Util.m(_)".
 Here "Y" can only use capability "imm".
 But generic type argument "Z" can only use capability "mut".
 
-See inferred typing context below for how type "Z" was introduced:
+See inferred typing context below for how "Z" was introduced:
 Util.m[imm,Z](z)
 """, List.of("""
 Foo:{}
@@ -500,7 +500,7 @@ Type required by each promotion:
 - "mut Foo" (As declared)
 - "iso Foo" (Strengthen result)
 
-See inferred typing context below for how type "mut Foo" was introduced:
+See inferred typing context below for how "mut Foo" was introduced:
 Break:{.m(f:Foo):Foo->A#[imm,mut Foo](f)}
 """, List.of("""
 Foo:{}

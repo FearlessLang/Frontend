@@ -425,10 +425,16 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("Alternatively (less common), if you intended to override and omit the signature,")
       .line("the signature must be inherited from a supertype.");
     }
-    return e
-      .line("Cannot infer signature of method "+name+".")
+    e.line("Cannot infer signature of method "+name+".")
       .line("No supertype has a method named "+name+" with "+count(s.ts().size(), "parameter")+".");
+    if (m.impl().filter(i -> usesImplicit(i.e())).isPresent()){ e.line("\"::\" in the body is the parameter of "+name+"."); }
+    return e;
   }
+  private static boolean usesImplicit(E e){ return switch (e){
+    case E.X x -> x.src().inner instanceof fearlessFullGrammar.E.Implicit;
+    case E.Type _, E.Literal _ -> false;
+    case E.Call c -> Stream.concat(Stream.of(c.e()), c.es().stream()).anyMatch(WellFormednessErrors::usesImplicit);
+  };}
   private Err unnamedNotInferred(E.Literal origin, M.Sig s, List<core.Sig> sup){
     var n= s.ts().size();
     var taken= sup.stream().anyMatch(si -> si.m().arity() == n);
@@ -464,9 +470,13 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     Streams.zip(declared, ss).filterMap((d,s) -> renamed(err().methodSig("", d.origin(), d.m()), d.bs(), s.bs().get())).distinct().forEach(e::line);
     return wf(e.line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes."), at);
   }
-  public FearlessException methodGenericArityDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
-    return wf(invalidMethImpl(at)
-      .line("The method "+err().methodSig(at.mName())+" declares "+count(userBs.size(), "generic type parameter")+", but supertypes declare "+superBs.size()+"."), at);
+  public FearlessException methodGenericArityDisagreesWithSupers(Agreement at, List<B> userBs, List<M.Sig> ss){
+    var n= ss.getFirst().bs().get().size();
+    var sups= ss.stream().map(s -> err().tNameADisp(s.origin().get())).distinct().sorted().toList();
+    var e= invalidMethImpl(at).line("The method "+err().methodSig(at.mName())+" declares "+count(userBs.size(), "generic type parameter")+", but "
+      +(sups.size() == 1 ? "supertype "+sups.getFirst()+" declares "+n+"." : "these supertypes declare "+n+":"));
+    if (sups.size() > 1){ sups.forEach(e::bullet); }
+    return wf(e, at);
   }
   public FearlessException methodBsDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     assert res.size() >= 2;

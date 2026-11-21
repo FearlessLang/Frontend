@@ -297,13 +297,49 @@ Foo:{}
 A:B{ .m(x: X): Foo }
 B:{ .m[X:*](x: X): Foo }
 """));}
+@Test void overrideDeclaresTooManyTypeParametersForTwoSupertypes(){failWf("""
+002| A:B,C{ .m[X:*,Y:*]: Foo }
+   |        ^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Invalid method signature for "A.m".
+The method ".m" declares 2 generic type parameters, but these supertypes declare 1:
+- "B"
+- "C"
+""", List.of("""
+Foo:{}
+A:B,C{ .m[X:*,Y:*]: Foo }
+B:{ .m[X:*]: Foo }
+C:{ .m[Z:*]: Foo }
+"""));}
+@Test void aMethodUsingTheImplicitParameterWithNoSupertype(){failWf("""
+001| A:{ .m -> ::.foo }
+   | ----^^^^^^^^^^^^--
+
+While inspecting type declaration "A"
+Cannot infer signature of method ".m(_)".
+No supertype has a method named ".m(_)" with 1 parameter.
+"::" in the body is the parameter of ".m(_)".
+""", List.of("""
+A:{ .m -> ::.foo }
+"""));}
+@Test void aMethodUsingAWrittenParameterWithNoSupertype(){failWf("""
+001| A:{ .m(x) -> { .k -> ::.foo } }
+   | ----^^^^^^^^^^^^^^^^^^^^^^^^^--
+
+While inspecting type declaration "A"
+Cannot infer signature of method ".m(_)".
+No supertype has a method named ".m(_)" with 1 parameter.
+""", List.of("""
+A:{ .m(x) -> { .k -> ::.foo } }
+"""));}
 @Test void overrideDeclaresTooManyTypeParameters(){failWf("""
 002| A:B{ .m[X:*,Y:*]: Foo }
    |      ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
 Invalid method signature for "A.m".
-The method ".m" declares 2 generic type parameters, but supertypes declare 1.
+The method ".m" declares 2 generic type parameters, but supertype "B" declares 1.
 """, List.of("""
 Foo:{}
 A:B{ .m[X:*,Y:*]: Foo }
