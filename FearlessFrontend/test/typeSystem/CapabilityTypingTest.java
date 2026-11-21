@@ -142,7 +142,7 @@ This call requires a receiver with capability "mut" or "iso".
 Capturing changes the type of parameter "b":
 - "iso B" becomes "imm B" inside the "mut" method "#" (line 3).
 Capture adaptation trace:
-"iso B" --strengthenToImm(line 3)--> "B".
+"iso B" --strengthenToImm(line 3)--> "imm B".
 
 Receiver required by each promotion:
 - "mut" (As declared)
@@ -546,7 +546,7 @@ B:A{ .m1 -> this; .m2 -> this.m1 }
 
 While inspecting parameter "this" > method "B.m1" (line 2)
 The body of method ".m1" of type declaration "B" is an expression returning "mut B".
-Parameter "this" has type "mut B" instead of a subtype of "A".
+Parameter "this" has type "mut B" instead of a subtype of "imm A".
 Method ".m1" inherited the signature from "A.m1" as follows:
 mut .m1: A
 Method ".m1" is overloaded; to implement a specific overload only, write one of the following:

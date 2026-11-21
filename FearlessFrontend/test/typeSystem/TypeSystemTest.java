@@ -1017,7 +1017,7 @@ Capturing changes the type of parameter "loooooong":
 - "mut A" becomes "read A" inside the "read" method ".wrap" (line 6).
 - "read A" becomes "imm A" inside the "imm" method ".get" (line 6).
 Capture adaptation trace:
-"mut A" --setToRead(line 6)--> "read A" --strengthenToImm(line 6)--> "A".
+"mut A" --setToRead(line 6)--> "read A" --strengthenToImm(line 6)--> "imm A".
 Method ".get" inherited the signature from "Get.get" as follows:
 .get: iso A
 """, List.of("""
@@ -2085,7 +2085,7 @@ This call requires a receiver with capability "mut" or "iso".
 The capability of the methods changes the type of parameter "this":
 - "mut A" becomes "imm A" inside the "imm" method ".bar" (line 1).
 Capture adaptation trace:
-"mut A" --strengthenToImm(line 1)--> "A".
+"mut A" --strengthenToImm(line 1)--> "imm A".
 
 Receiver required by each promotion:
 - "mut" (As declared)
@@ -2768,8 +2768,8 @@ Hint: add an implementation for ".foo" inside the object literal.
    |                        ------^^^^
 
 While inspecting parameter "this" > method "B.get" (line 2)
-The body of method ".get" of type declaration "B" is an expression returning "B".
-Parameter "this" has type "B" instead of a subtype of "mut A".
+The body of method ".get" of type declaration "B" is an expression returning "imm B".
+Parameter "this" has type "imm B" instead of a subtype of "mut A".
 Method ".get" inherited the signature from "A.get" as follows:
 mut .get: mut A
 Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
@@ -2785,8 +2785,8 @@ Method ".get" is overloaded; to implement a specific overload only, write one of
    |                        ------^^^^
 
 While inspecting parameter "this" > method "B.get" (line 2)
-The body of method ".get" of type declaration "B" is an expression returning "B".
-Parameter "this" has type "B" instead of a subtype of "mut A".
+The body of method ".get" of type declaration "B" is an expression returning "imm B".
+Parameter "this" has type "imm B" instead of a subtype of "mut A".
 Method ".get" inherited the signature from "A.get" as follows:
 mut .get: mut A
 Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
@@ -2802,8 +2802,8 @@ Method ".get" is overloaded; to implement a specific overload only, write one of
    |                        ------^^^^
 
 While inspecting parameter "this" > method "B.get" (line 2)
-The body of method ".get" of type declaration "B" is an expression returning "B".
-Parameter "this" has type "B" instead of a subtype of "mut A".
+The body of method ".get" of type declaration "B" is an expression returning "imm B".
+Parameter "this" has type "imm B" instead of a subtype of "mut A".
 Method ".get" inherited the signature from "A.get" as follows:
 mut .get: mut A
 Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
@@ -2816,8 +2816,8 @@ Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is
    |                        ------^^^^
 
 While inspecting parameter "this" > method "B.get" (line 2)
-The body of method ".get" of type declaration "B" is an expression returning "B".
-Parameter "this" has type "B" instead of a subtype of "mut A".
+The body of method ".get" of type declaration "B" is an expression returning "imm B".
+Parameter "this" has type "imm B" instead of a subtype of "mut A".
 Method ".get" inherited the signature from "A.get" as follows:
 mut .get: mut A
 Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
@@ -2834,8 +2834,8 @@ Method ".get" is overloaded; to implement a specific overload only, write one of
    |                        ----------^^^^
 
 While inspecting parameter "this" > method "B.get" (line 2)
-The body of method ".get" of type declaration "B" is an expression returning "B".
-Parameter "this" has type "B" instead of a subtype of "mut A".
+The body of method ".get" of type declaration "B" is an expression returning "imm B".
+Parameter "this" has type "imm B" instead of a subtype of "mut A".
 Method ".get" inherited the signature from "A.get" as follows:
 mut .get: mut A
 Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
@@ -4109,7 +4109,7 @@ User:{ .n(cs: mut base.MList[Customer]): base.MList[Person] -> cs.as{::} }
 While inspecting parameter "::" > method "base.BaseId[read Customer,Person]#(_)" (line 3) > method "User.n(_)" (line 3)
 Method "#(_)" inside the object literal instance of "base.BaseId[read Customer,Person]" (line 3)
 is implemented with an expression returning "read Customer".
-Parameter "::" has type "read Customer" instead of a subtype of "Person".
+Parameter "::" has type "read Customer" instead of a subtype of "imm Person".
 Method "#(_)" inherited the signature from "base.BaseId[read Customer,Person]#(_)" as follows:
 #(read Customer): Person
 """, List.of("""
