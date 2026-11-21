@@ -4947,20 +4947,16 @@ Write the generic type argument explicitly, in place of "_" in "this.three[_](y,
 A:{} Y:{} Z:{}
 U:{ .three[T](a: T, b: T, c: T): A -> A; .use(y: Y, z: Z): A -> this.three(y, z, y) }
 """));}
-@Test void aNestedAmbiguityListsNoCommonSupertype(){failWf("""
-006| User:{ .go(a: A, b: B): A -> Ign#(Mk#.m(a, b)) }
-   |                              ^^^^^^^^^^^^^^^^^
+@Test void commonSupertypesOutsideTheBoundAreNotListed(){failWf("""
+002| U:{ .both[T](a: T, b: T): A -> A; .use(y: mut Y, z: mut Z): A -> this.both(y, z) }
+   |                                                                  ^^^^^^^^^^^^^^^
 
-While inspecting method call "#(_)"
-The generic type argument "T" of "#" can not be inferred: it is needed as "Bar[A]", as "Bar[B]".
-Write the generic type argument explicitly, in place of "_" in "Ign#[_](Mk#.m(a, b))".
+While inspecting method call ".both(_,_)"
+The generic type argument "T" of ".both" can not be inferred: it is needed as "mut Y", as "mut Z".
+Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
-A:{} B:{} Q:{}
-Bar[X]:Q{}
-Foo[X]:{ .m(a: X, b: X): Bar[X] -> {} }
-Mk:{ #[X]: Foo[X] -> {} }
-Ign:{ #[T](t: T): A -> A }
-User:{ .go(a: A, b: B): A -> Ign#(Mk#.m(a, b)) }
+A:{} S1:{} S2:{} Y:S1,S2{} Z:S1,S2{}
+U:{ .both[T](a: T, b: T): A -> A; .use(y: mut Y, z: mut Z): A -> this.both(y, z) }
 """));}
 @Test void siblingsWithOneCommonSupertypeInferIt(){ok(List.of("""
 A:{ .k: A -> this } Y:A{} Z:A{}
