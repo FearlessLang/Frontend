@@ -528,7 +528,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     assert reqs.stream().allMatch(r -> canon(r.t()).equals(canon(declared)));
     if (isWrongUnderlyingType(ts, bs, canon(declared), res)){ return wrongUnderlyingTypeErr(ts, bs, d, c, argi, declared, res); }
     var gotHdr= headerBest(res);
-    var r= Streams.zip(res, reqs).filter((ri,q) -> rcOnlyMismatch(ri.best, q.t())).map((ri,_) -> ri).findFirst().orElse(res.getFirst());
+    var r= res.stream().filter(ri -> ri.showImm).findFirst().orElse(res.getFirst());
     var e= err()
       .pCallCantBeSatisfied(d, c)
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(false, gotHdr)+".")
