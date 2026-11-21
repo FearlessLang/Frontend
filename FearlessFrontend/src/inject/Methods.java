@@ -147,11 +147,12 @@ public record Methods(
     throw p.err().baseIdInheritedHash(d, origin);
   }
   private void checkFileLogName(E.Literal d){
-    var file= Fs.fileNameOfType(d.name().simpleName()).orElseThrow(() -> p.err().fileLogWithoutFileName(d));
+    var name= d.name().simpleName();
+    var file= Fs.fileNameOfType(name)
+      .filter(f -> !Fs.winReserved.contains(f) && !name.startsWith("_Rank"))
+      .orElseThrow(() -> p.err().fileLogNameNotAllowed(d));
     var path= ".out/logs/_"+d.name().pkgName()+"/"+file+".log";
-    if (Fs.winReserved.contains(file)){ throw p.err().fileLogFileNameNotAllowed(d, path, "\""+file+"\" is a Windows reserved device name."); }
-    if (file.startsWith("_rank_")){ throw p.err().fileLogFileNameNotAllowed(d, path, "Only rank files can start with \"_rank_\"."); }
-    if (path.length() > 200){ throw p.err().fileLogFileNameNotAllowed(d, path, "The path is longer than 200 characters."); }
+    if (path.length() > 200){ throw p.err().fileLogPathTooLong(d, path); }
   }
   private void checkClaims(E.Literal d, List<TName> names, List<IT.C> allCs){
     var cs= allCs.stream().filter(c -> LiteralDeclarations.claims.contains(c.name())).toList();

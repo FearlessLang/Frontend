@@ -2380,9 +2380,13 @@ In file: [###].fear
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Foo_bar"
-Type declaration "Foo_bar" implements "bb.FileLog", so it writes to a log file named after it.
-Type name "Foo_bar" has no file name.
-The name of a "bb.FileLog" type can only use letters, digits and underscores, and an underscore cannot be followed by a lowercase letter.
+Type declaration "Foo_bar" implements "bb.FileLog".
+A type can only implement "bb.FileLog" when its type name corresponds to a valid log file name.
+This means that the type name:
+- does not end with "'";
+- has no "_" followed by a lowercase letter;
+- is none of "Con", "Prn", "Aux", "Nul", "Com1".."Com9", "Lpt1".."Lpt9";
+- does not start with "_Rank".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2396,9 +2400,13 @@ In file: [###].fear
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Con"
-Type declaration "Con" implements "bb.FileLog", so it writes to the log file ".out/logs/_b/con.log".
-"con" is a Windows reserved device name.
-Rename "Con", so that its log file has a name allowed in a Fearless project.
+Type declaration "Con" implements "bb.FileLog".
+A type can only implement "bb.FileLog" when its type name corresponds to a valid log file name.
+This means that the type name:
+- does not end with "'";
+- has no "_" followed by a lowercase letter;
+- is none of "Con", "Prn", "Aux", "Nul", "Com1".."Com9", "Lpt1".."Lpt9";
+- does not start with "_Rank".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
