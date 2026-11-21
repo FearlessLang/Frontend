@@ -205,7 +205,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var e= err()
       .line("This object literal is missing a required method.")
       .line("Missing: "+methodSig(s.rc()+" ", s.m())+".")
-      .line("Required by: "+err().tNameADisp(s.origin())+".");
+      .line(Join.of(requiredBy(at, s).stream().map(err()::tNameADisp), "Required by: ", " and ", "."));
     if (s.rc() == RC.mut){ e.line("This object literal is neither "+disp(RC.imm)+" nor "+disp(RC.read)+", so its "+disp(RC.mut)+" methods must be implemented."); }
     if (!(at instanceof Type t && foreignSealed(t.type().c().name()))){ return addExpFrame(at, e.line("Hint: add an implementation for "+err().methodSig(s.m())+" inside the object literal.").ex(at)); }
     var name= t.type().c().name();
@@ -213,6 +213,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("Sealed types can only be implemented in their own package.")
       .line("Type "+err().tNameADisp(name)+" is in package "+disp(Package.writtenPkg(pkg.map(), name.pkgName()))+".")
       .ex(at));
+  }
+  private List<TName> requiredBy(E at, Sig s){
+    if (!(at instanceof Literal l) || !s.origin().equals(l.name())){ return List.of(s.origin()); }
+    return l.cs().stream().flatMap(c -> decs.apply(c.name()).ms().stream()).map(M::sig)
+      .filter(si -> si.abs() && si.m().equals(s.m()) && si.rc() == s.rc()).map(Sig::origin).distinct().toList();
   }
   private boolean foreignSealed(TName name){
     return !name.pkgName().equals(pkg.name()) && LiteralDeclarations.has(decs.apply(name).cs(), LiteralDeclarations.sealed);

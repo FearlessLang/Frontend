@@ -485,7 +485,7 @@ C:B,D{}
 While inspecting object literal "C" > method "User#" (line 4)
 This object literal is missing a required method.
 Missing: "imm .m".
-Required by: "C".
+Required by: "B".
 Hint: add an implementation for ".m" inside the object literal.
 """, List.of("""
 A:{ .m:A->this }
@@ -506,7 +506,7 @@ C:D,B{}
 While inspecting object literal "D" > method "User#" (line 7)
 This object literal is missing a required method.
 Missing: "imm .m".
-Required by: "D".
+Required by: "C".
 Hint: add an implementation for ".m" inside the object literal.
 """, List.of("""
 R:{}
@@ -560,7 +560,7 @@ User:{ #:D->D:P,Q{} }
 While inspecting object literal "D" > method "User#" (line 7)
 This object literal is missing a required method.
 Missing: "imm .m".
-Required by: "D".
+Required by: "P" and "K" and "X".
 Hint: add an implementation for ".m" inside the object literal.
 """, List.of("""
 R:{}
@@ -578,7 +578,7 @@ User:{ #:D->D:P,Q{} }
 While inspecting object literal "D" > method "User#" (line 6)
 This object literal is missing a required method.
 Missing: "imm .m".
-Required by: "D".
+Required by: "A1" and "A2".
 Hint: add an implementation for ".m" inside the object literal.
 """, List.of("""
 R:{}
