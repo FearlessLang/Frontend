@@ -77,9 +77,10 @@ B:a.A{ .fromC -> base.Void }
 """); }
   @Test void noteQuotesTheInsteadOfListOfTheMap(){
     var ranks= tools.SourceOracle.debugBuilder()
-      .putURI(java.net.URI.create("fear:/_b/_rank_app.fear"), "map a as _c in _b instead of _d;")
+      .putURI(java.net.URI.create("fear:/_b/_rank_app.fear"), "map a as _c in _b instead of _e,\n  _d;")
       .putURI(java.net.URI.create("fear:/_c/_rank_worker.fear"), "")
       .putURI(java.net.URI.create("fear:/_d/_rank_worker.fear"), "map a as _d in _b;")
+      .putURI(java.net.URI.create("fear:/_e/_rank_worker.fear"), "map a as _e in _b;")
       .build();
     var o= oraclePkg(List.of("B:a.A{ .fromC -> base.Void }"));
     var fe= assertThrows(FearlessException.class, () -> new FrontendLogicMain().of("b", rankMaps(ranks), o.allFiles(), others(Map.of("c", cA))));
@@ -95,7 +96,7 @@ Object literal is of type "iso base.Void" instead of a subtype of "a.A".
 Method ".fromC" inherited the signature from "a.A.fromC" as follows:
 .fromC: a.A
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b instead of _d", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b instead of _e, _d", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", fe.render(o));
   }
   @Test void typeErrorWritesTheMappedName(){ fail("""
