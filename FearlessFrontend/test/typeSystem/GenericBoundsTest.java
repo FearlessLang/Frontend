@@ -280,6 +280,94 @@ Object literal "{...}" cannot implement "read/imm X".
 """, List.of("""
 A[X:*]:{ read #: read/imm X -> {} }
 """));}
+@Test void literalCannotImplementARenamedTypeVariable(){failWf("""
+002| B[X:*]:Sup{ .m -> {} }
+   |                   ^^
+
+While inspecting object literal "{...}"
+Object literal "{...}" cannot implement "_AX".
+"_AX" is a generic type parameter; object literals can only implement nominal types.
+Generic type parameter "X" of "Sup.m" is named "_AX" here.
+""", List.of("""
+Sup:{ .m[X:*]: X; }
+B[X:*]:Sup{ .m -> {} }
+"""));}
+@Test void nestedLiteralCannotImplementARenamedTypeVariable(){failWf("""
+003| B[X:*]:Sup{ .m -> { .k -> {} } }
+   |                           ^^
+
+While inspecting object literal "{...}"
+Object literal "{...}" cannot implement "_AX".
+"_AX" is a generic type parameter; object literals can only implement nominal types.
+Generic type parameter "X" of "Sup.m" is named "_AX" here.
+""", List.of("""
+Sup:{ .m[X:*]: K[X]; }
+K[Y:*]:{ .k: Y; }
+B[X:*]:Sup{ .m -> { .k -> {} } }
+"""));}
+@Test void literalCannotImplementATypeVariableRenamedFromARedeclaration(){failWf("""
+003| B[Y:*]:Mid{ .m -> {} }
+   |                   ^^
+
+While inspecting object literal "{...}"
+Object literal "{...}" cannot implement "_AY".
+"_AY" is a generic type parameter; object literals can only implement nominal types.
+Generic type parameter "Y" of "Mid.m" is named "_AY" here.
+""", List.of("""
+Top:{ .m[X:*]: X; }
+Mid:Top{ .m[Y:*]: Y; }
+B[Y:*]:Mid{ .m -> {} }
+"""));}
+@Test void literalCannotImplementATypeVariableRenamedFromAnImpliedRedeclaration(){failWf("""
+004| B[Y:*]:Top,Mid{ .m -> {} }
+   |                       ^^
+
+While inspecting object literal "{...}"
+Object literal "{...}" cannot implement "_AY".
+"_AY" is a generic type parameter; object literals can only implement nominal types.
+Generic type parameter "Y" of "Mid.m" is named "_AY" here.
+""", List.of("""
+Top:{ .m[X:*]: X; }
+Between:Top{}
+Mid:Between{ .m[Y:*]: Y; }
+B[Y:*]:Top,Mid{ .m -> {} }
+"""));}
+@Test void literalCannotImplementATypeVariableRenamedThroughAnInheritingSupertype(){failWf("""
+004| B[X:*]:C1,S2{ .m -> {} }
+   |                     ^^
+
+While inspecting object literal "{...}"
+Object literal "{...}" cannot implement "_AX".
+"_AX" is a generic type parameter; object literals can only implement nominal types.
+Generic type parameter "X" of "C1.m" is named "_AX" here.
+""", List.of("""
+S1:{ .m[X:*]: X; }
+C1:S1{}
+S2:{ .m[Z:*]: Z; }
+B[X:*]:C1,S2{ .m -> {} }
+"""));}
+@Test void literalCannotImplementATypeVariableNextToARenamedOne(){failWf("""
+002| B[X:*]:Sup{ .m -> {} }
+   |                   ^^
+
+While inspecting object literal "{...}"
+Object literal "{...}" cannot implement "Y".
+"Y" is a generic type parameter; object literals can only implement nominal types.
+""", List.of("""
+Sup:{ .m[X:*,Y:*]: Y; }
+B[X:*]:Sup{ .m -> {} }
+"""));}
+@Test void literalCannotImplementAWrittenTypeVariable(){failWf("""
+002| B[X:*]:Sup{ .m[Z:*] -> {} }
+   |                        ^^
+
+While inspecting object literal "{...}"
+Object literal "{...}" cannot implement "Z".
+"Z" is a generic type parameter; object literals can only implement nominal types.
+""", List.of("""
+Sup:{ .m[X:*]: X; }
+B[X:*]:Sup{ .m[Z:*] -> {} }
+"""));}
 @Test void literalMethodNotInferredAsReceiver(){failWf("""
 001| A[X:*]:{ #: X -> {this}* }
    |                  -^^^^-

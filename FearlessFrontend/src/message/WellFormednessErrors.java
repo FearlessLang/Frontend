@@ -36,6 +36,7 @@ import inject.TypeRename;
 import metaParser.NameSuggester;
 import metaParser.PrettyFileName;
 import metaParser.Span;
+import naming.FreshPrefix;
 import pkgmerge.Package;
 import tools.Fs;
 import tools.SourceOracle.Ref;
@@ -561,10 +562,13 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException methodTypeNotInferred(E.Literal at, M.Sig s, MName m, String what){
     return wf(err().line("Cannot infer the type of "+what+" of "+err().methodSig(m)+" in "+err().expRepr(at)+"."), s, at);
   }
-  public FearlessException literalImplementsTypeParameter(E.Literal at, IT t){
-    return wf(err()
+  public FearlessException literalImplementsTypeParameter(E.Literal at, IT t, FreshPrefix fresh){
+    var x= OneOr.of("Type parameters", t.ftv());
+    var e= err()
       .line(up(err().expRepr(at))+" cannot implement "+err().typeRepr(t)+".")
-      .line(disp(OneOr.of("Type parameters", t.ftv()))+" is a generic type parameter; object literals can only implement nominal types."), at);
+      .line(disp(x)+" is a generic type parameter; object literals can only implement nominal types.");
+    e.renamed(fresh, at.name(), List.of(x), e.text()).forEach(e::line);
+    return wf(e, at);
   }
   public FearlessException typeGrowsForever(E at){
     return wf(err()

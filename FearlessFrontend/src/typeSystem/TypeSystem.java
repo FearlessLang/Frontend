@@ -32,22 +32,23 @@ import utils.Range;
 import utils.Streams;
 import core.E.*;
 import pkgmerge.Package;
+import naming.FreshPrefix;
 
 public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   Kinding k(){ return v.k(); }
   public TypeSystemErrors tsE(){ return v.k().tsE(); }
-  public TypeSystemErrors reasonE(){ var e= tsE(); return new TypeSystemErrors(e.decs(), e.pkg(), new LinkedHashSet<>()); }
+  public TypeSystemErrors reasonE(){ var e= tsE(); return new TypeSystemErrors(e.decs(), e.pkg(), e.fresh(), new LinkedHashSet<>()); }
   public Function<TName,Literal> decs(){ return tsE().decs(); }
   public record TRequirement(String reqName, T t){}
   public record MType(String promotion, RC rc, List<T> ts, T t){
     MType withPromotion(String promotion){ return new MType(promotion, rc, ts, t); }
   }
 
-  public static void allOk(List<Literal> tops, Package pkg, OtherPackages other){
+  public static void allOk(List<Literal> tops, Package pkg, OtherPackages other, FreshPrefix fresh){
     tops = UriSort.byFolderThenFile(tops, l -> l.span().inner.fileName());
     var map= AllLs.of(tops);
     Function<TName,Literal> decs= n -> LiteralDeclarations.from(n, map::get, other);
-    var ts= new TypeSystem(TypeScope.top(), new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs, pkg, new LinkedHashSet<>()))));
+    var ts= new TypeSystem(TypeScope.top(), new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs, pkg, fresh, new LinkedHashSet<>()))));
     tops.forEach(l -> ts.litOk(Gamma.empty(), l, captureFree(l) ? imm : l.rc()));
   }
   public boolean isSub(List<B> bs, T t1, T t2){

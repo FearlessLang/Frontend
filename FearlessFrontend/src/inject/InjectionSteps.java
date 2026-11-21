@@ -372,6 +372,7 @@ public record InjectionSteps(Methods meths, int cap){
     var freeNames= Streams.of(new FreeXs(g).ftvMs(l.ms()), new FreeXs(g).ftvCs(l.cs()), rcc.ftv());
     var localBs= freeNames.distinct().map(x -> B.get(bs, x)).toList();
     var newName= name.withArity(localBs.size());
+    if (!newName.equals(name)){ meths.fresh().aliasOwner(name, newName); }
     var ms= fixArity(l.ms(), name, newName);
     var orc= rcc.rc().map(InjectionSteps::noH);
     assert l.infName();

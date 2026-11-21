@@ -7,6 +7,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import naming.FreshPrefix;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -105,10 +107,19 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var renamed= Streams.zip(declared, here).filter((d,h) -> !d.x().equals(h.x()));
     var from= renamed.map((d,_) -> disp(d.x())).toList();
     if (from.isEmpty()){ return Optional.empty(); }
-    var many= from.size() > 1;
-    return Optional.of("Generic type parameter"+(many ? "s " : " ")+and(from)+" of "+parentSig
-      +(many ? " are named " : " is named ")+and(renamed.map((_,h) -> disp(h.x())).toList())+" here.");
+    return Optional.of(renamedLine(parentSig, from, renamed.map((_,h) -> disp(h.x())).toList()));
   }
+  private static String renamedLine(String parentSig, List<String> from, List<String> to){
+    var many= from.size() > 1;
+    return "Generic type parameter"+(many ? "s " : " ")+and(from)+" of "+parentSig+(many ? " are named " : " is named ")+and(to)+" here.";
+  }
+  Stream<String> renamed(FreshPrefix fresh, TName owner, List<String> xs, String shownIn){
+    Function<String,FreshPrefix.Renamed> r= x -> fresh.renamed(owner, x).get();
+    var known= xs.stream().filter(x -> shown(x, shownIn) && fresh.renamed(owner, x).isPresent());
+    var byMethod= known.collect(Collectors.groupingBy(x -> methodSig("", r.apply(x).in(), r.apply(x).m()), LinkedHashMap::new, Collectors.toList()));
+    return byMethod.entrySet().stream().map(g -> renamedLine(g.getKey(), g.getValue().stream().map(x -> disp(r.apply(x).x())).toList(), g.getValue().stream().map(Err::disp).toList()));
+  }
+  private static boolean shown(String x, String text){ return java.util.regex.Pattern.compile("(?<![\\w'])"+java.util.regex.Pattern.quote(x)+"(?![\\w'])").matcher(text).find(); }
   private static String and(List<String> xs){
     if (xs.size() == 1){ return xs.getFirst(); }
     return Join.of(xs.subList(0, xs.size()-1), "", ", ", "")+" and "+xs.getLast();
@@ -206,15 +217,19 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   FearlessException ex(E e){ return ex(e, e); }
   FearlessException typeErr(){ return withNotes(Code.TypeError); }
   FearlessException ex(E footerE, E focus){ return ex(footerE, focus, List.of()); }
-  FearlessException ex(E footerE, E focus, List<T> inferred){
-    var ts= Push.of(inferred.stream().map(t -> typeRepr(true, t)).toList(), inferredTargs(focus)).stream().distinct().toList();
-    if (footerE instanceof X || footerE instanceof Type || ts.isEmpty()){ return typeErr(); }
+  FearlessException ex(E footerE, E focus, List<T> inferred){ return ex(footer(footerE, focus, inferred)); }
+  FearlessException ex(String footer){
+    if (footer.isEmpty()){ return typeErr(); }
     var body= text();
+    return Code.TypeError.of(() -> withNotes(body)+"\n\n"+footer);
+  }
+  String footer(E footerE, E focus, List<T> inferred){
+    var ts= Push.of(inferred.stream().map(t -> typeRepr(true, t)).toList(), inferredTargs(focus)).stream().distinct().toList();
+    if (footerE instanceof X || footerE instanceof Type || ts.isEmpty()){ return ""; }
     var cp= _cp.apply(true);
     var footer= cp.limit(footerE, focus, 120).stripTrailing();
     var what= ts.size() == 1 ? ts.getFirst()+" was" : Join.of(ts.subList(0, ts.size()-1).stream(), "", ", ", "")+" and "+ts.getLast()+" were";
-    var header= "See inferred typing context below for how "+what+" introduced"+(cp.omitted ? " (\"...\" marks omitted code):\n" : ":\n");
-    return Code.TypeError.of(() -> withNotes(body)+"\n\n"+header+footer);
+    return "See inferred typing context below for how "+what+" introduced"+(cp.omitted ? " (\"...\" marks omitted code):\n" : ":\n")+footer;
   }
   private List<String> inferredTargs(E e){
     if (!(e instanceof Call c)){ return List.of(); }

@@ -63,7 +63,7 @@ public class FrontendLogicMain{
     var inferrableAST= ToInference.of(ctx); // Phase 4: Desugar
     inferrableAST = ctx.registerTypeHeadersAndReturnRoots(inferrableAST); // Phase 5: Build Synthetic type table inside ctx
     var coreAST= InjectionSteps.steps(ctx, inferrableAST);  // Phase 6: Inference
-    TypeSystem.allOk(coreAST, ctx.p(), ctx.other()); //Phase 7: type checking
+    TypeSystem.allOk(coreAST, ctx.p(), ctx.other(), ctx.fresh()); //Phase 7: type checking
     return coreAST;
   }
   public Map<String,Map<String,String>> parseRankFiles(Map<String,Ref> ranks, Comparator<Ref> c){

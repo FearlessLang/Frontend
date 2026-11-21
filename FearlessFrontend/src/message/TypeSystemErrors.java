@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 import inject.TypeRename;
 import metaParser.NameSuggester;
 import pkgmerge.Package;
+import naming.FreshPrefix;
 import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix;
 import typeSystem.Change;
@@ -30,7 +31,7 @@ import utils.Streams;
 import core.*;
 import core.E.*;
 
-public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, LinkedHashSet<String> printed){
+public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, FreshPrefix fresh, LinkedHashSet<String> printed){
   public Err err(){ return new WellFormednessErrors(pkg.name(), pkg.map(), pkg.mapSources(), printed).err(this::publicHead, this::preferredForFresh, decs, List.of()); }
   private TName preferredForFresh(TName n){
     var res= decs.apply(n);
@@ -81,13 +82,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var parent= parent(l, m.sig());
     if (fm.isEmpty() || wholeSig(fm.get(), m.sig()) || parent.isEmpty()){ return Optional.empty(); }
     return Optional.of("Method "+err().methodSig(m.sig().m())+" inherited the signature from "+parentSig(parent.get(), m.sig())+" as follows:\n"+err().cp().sig(m));
-  }
-  private Optional<String> renamedGenerics(Literal l, M m){
-    var fm= srcM(l, m.sig());
-    var parent= parent(l, m.sig());
-    var written= fm.flatMap(fearlessFullGrammar.M::sig).flatMap(fearlessFullGrammar.Sig::bs).isPresent();
-    if (fm.isEmpty() || written || parent.isEmpty()){ return Optional.empty(); }
-    return renamed(parentSig(parent.get(), m.sig()), declared(parent.get(), m.sig()).get().bs(), m.sig().bs());
   }
   private Optional<Sig> declared(T.C c, Sig s){
     return decs.apply(c.name()).ms().stream().map(M::sig).filter(ps -> ps.origin().equals(c.name()) && ps.m().equals(s.m()) && ps.rc() == s.rc()).findFirst();
@@ -255,7 +249,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("The method "+err().methodSig(s.rc().toStrSpace(), l, s.m())+" is dead code.")
       .line("The "+err().expRepr(l.withRC(RC.imm))+" is "+disp(l.rc())+", so it will never be seen as "+disp(RC.mut)+".");
     e.line(inheritedSig(l, got).orElse("But it implements method "+m+", which requires a "+disp(RC.mut)+" receiver."));
-    renamedGenerics(l, got).ifPresent(e::line);
+    e.renamed(fresh, l.name(), B.xs(s.bs()), e.text()).forEach(e::line);
     return addExpFrame(l, e.typeErr().addSpan(s.span().inner));
   }
   public FearlessException selfNameDeadCode(Literal l){
@@ -309,13 +303,15 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
         +"\nis implemented with an expression returning "+got0+".");
     e.line(up(got.info(printed)));
     inheritedSig(l, m).ifPresent(e::line);
+    var footer= e.footer(got.footerE.get(), at, List.of());
+    var shownIn= e.text()+footer;
     for (TypeScope it= s; !it.isTop(); it = it.outer()){
-      if (it instanceof TypeScope.Method(var li, var mi, _)){ renamedGenerics(li, mi).ifPresent(e::line); }
+      if (it instanceof TypeScope.Method(var li, var mi, _)){ e.renamed(fresh, li.name(), B.xs(mi.sig().bs()), shownIn).forEach(e::line); }
     }
     var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
     if (thisNotMut){ e.line("Hint: "+err().expRepr(l)+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+", so parameter "+disp(l.thisName())+" is \"imm\" in every method."); }
     overloadHint(e, l, m);
-    return addExpFrame(at, e.ex(got.footerE.get(), at).addSpan(at.span().inner));
+    return addExpFrame(at, e.ex(footer).addSpan(at.span().inner));
   }
   private void overloadHint(Err e, Literal l, M m){
     var written= srcM(l, m.sig()).flatMap(fearlessFullGrammar.M::sig).flatMap(fearlessFullGrammar.Sig::rc).isPresent();

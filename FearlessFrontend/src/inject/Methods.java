@@ -94,10 +94,11 @@ public record Methods(
     var newBs= new ArrayList<B>(s.bs().size());
     for (var b : s.bs()){
       var x= b.x();
-      if (fresh.isFreshGeneric(child.name(), x, scope)){ newBs.add(b); continue; }
+      if (fresh.isFreshGeneric(child.name(), x, scope)){ fresh.renamed(child.name(), x, fresh.renamed(d.name(), x)); newBs.add(b); continue; }
       assert !fullXs.contains(x);
       fullXs.add(x);
       var newX= new IT.X(fresh.freshGeneric(child.name(), x, Push.of(B.xs(s.bs()), scope)), child.name().approxSpan());
+      fresh.renamed(child.name(), newX.name(), fresh.renamed(d.name(), x).or(() -> Optional.of(new FreshPrefix.Renamed(x, d.name(), s.m()))));
       fullTs.add(newX);
       newBs.add(new B(newX.name(), b.rcs()));
     }

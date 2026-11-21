@@ -2,6 +2,7 @@ package naming;
 
 import java.util.*;
 
+import core.MName;
 import core.TName;
 import pkgmerge.Package;
 
@@ -13,11 +14,13 @@ public record FreshPrefix(
     String pkgName){
   private static final char[] up= "ABCDEFGHJKMNPQRSTUVWXYZ".toCharArray();
   private static final char[] low= "abcdefghjkmnpqrstuvwxyz".toCharArray();
+  public record Renamed(String x, TName in, MName m){}
   private record OwnerState(
       HashSet<String> gen,
       HashMap<String,Integer> genSeq,
       HashSet<String> vars,
-      HashMap<String,Integer> varSeq){}
+      HashMap<String,Integer> varSeq,
+      HashMap<String,Optional<Renamed>> renamed){}
   public FreshPrefix(Package p){
     this(new HashSet<>(), new HashMap<>(), new HashSet<>(), new HashMap<>(), p.name());
     for (var tn : p.names().decNames()){ usedTopTypes.add(tn.simpleName()); }
@@ -30,7 +33,7 @@ public record FreshPrefix(
       for (var x : xs.get(owner)){ genNames.add(x.name()); }
       allGenericNames.addAll(genNames);
       var vars= new HashSet<>(params.get(owner));
-      owners.put(owner, new OwnerState(genNames, new HashMap<>(), vars, new HashMap<>()));
+      owners.put(owner, new OwnerState(genNames, new HashMap<>(), vars, new HashMap<>(), new HashMap<>()));
     }
   }
   public TName freshTopType(TName hint, int arity){
@@ -47,6 +50,8 @@ public record FreshPrefix(
     allGenericNames.add(cand);
     return cand;
   }
+  public void renamed(TName owner, String fresh, Optional<Renamed> r){ owners.get(owner).renamed().merge(fresh, r, (a,b) -> a.equals(b) ? a : Optional.empty()); }
+  public Optional<Renamed> renamed(TName owner, String fresh){ return Optional.ofNullable(owners.get(owner)).flatMap(st -> st.renamed().getOrDefault(fresh, Optional.empty())); }
   public String freshVar(TName owner, String hint){
     assert pkgName.equals(owner.pkgName());
     var st= owners.get(owner);
