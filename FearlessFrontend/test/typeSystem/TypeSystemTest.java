@@ -4637,6 +4637,9 @@ While inspecting parameter "c" > method "Sup.run" (line 4) > method "User.f(_,_)
 Parameter "c" has type "mut Foo".
 Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
+
+See inferred typing context below for how type "Sup" was introduced:
+Two#[imm,Sup](s,Sup{mut .run:mut Foo->c})
 """, List.of("""
 Foo:{}
 Sup:{ mut .run: mut Foo }
@@ -4657,6 +4660,9 @@ While inspecting parameter "c" > method "Box.get" (line 4) > method "User.f(_,_)
 Parameter "c" has type "mut Foo".
 Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Box" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
+
+See inferred typing context below for how type "Box" was introduced:
+Two#[imm,Box](s,Box{read .get:read Foo->c})
 """, List.of("""
 Foo:{}
 Box:{ mut .get: mut Foo; read .get: read Foo }
@@ -4677,6 +4683,9 @@ While inspecting parameter "c" > method "Sup.run" (line 4) > method "User.f(_,_)
 Parameter "c" has type "mut Foo".
 Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
+
+See inferred typing context below for how type "Sup" was introduced:
+Two#[imm,Sup](s,Sup{mut .run:mut Foo->c})
 """, List.of("""
 Foo:{}
 Sup:{ mut .run: mut Foo }

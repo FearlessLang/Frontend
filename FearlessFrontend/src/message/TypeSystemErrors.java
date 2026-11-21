@@ -319,11 +319,17 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///Parameter x is syntactically in scope but its value was dropped by viewpoint adaptation.
   ///Raised when a use of x occurs after capturing have made it unavailable.
   ///Raised when checking parameters.
-  public FearlessException parameterNotAvailableHere(E.X x, Change.NoT why){
-    return addExpFrame(x, err()
-      .line(whyDrop(x, why))
-      .ex(x)
-      .addSpan(x.span().inner));
+  public FearlessException parameterNotAvailableHere(TypeScope s, E.X x, Change.NoT why){
+    var e= err().line(whyDrop(x, why));
+    var site= why instanceof Change.DropMutInImm
+      ? Stream.iterate(s, si -> !si.isTop(), TypeScope::outer).filter(si -> inferredRcOf(si, why.l())).findFirst()
+      : Optional.<TypeScope>empty();
+    var ex= site.map(si -> e.ex(si.contextE(), si.contextE())).orElseGet(() -> e.ex(x));
+    return addExpFrame(x, ex.addSpan(x.span().inner));
+  }
+  private static boolean inferredRcOf(TypeScope s, Literal l){
+    var interest= l.cs().stream().<T>map(c -> new T.RCC(l.rc(), c, l.span())).toList();
+    return s instanceof TypeScope.CallSite(var c, _) && Err.inferredTargs(c) && TypeScope.mentionsAny(s, interest);
   }
   private String whyDrop(E.X x, Change.NoT why){
     var subject= err().expRepr(x);
