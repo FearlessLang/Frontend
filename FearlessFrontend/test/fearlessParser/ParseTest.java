@@ -2982,10 +2982,6 @@ In file: [###].fear
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameters redeclared.
 A method with the inferred name and the same parameter count is already present above.
-Likely cause: method declaration missing "." before the name.
-Found unnamed methods with parameters: "b".
-To declare a method named "b", write ".b" (dot b).
-Without the dot, "b" is interpreted as a parameter name for an anonymous method.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2999,6 +2995,19 @@ A:{
  }
 """); }
 
+@Test void redeclaredMethAnonWithAnUnderscoreParameterHasNoLikelyCause(){ fail("""
+In file: [###].fear
+
+001| A:{ _->this; _->this }
+   | --~~~~~~~~~~~^^^^^^^~~
+
+While inspecting type declaration body > type declaration > full file
+Method with inferred name and 1 parameter redeclared.
+A method with the inferred name and the same parameter count is already present above.
+Error 7 WellFormedness
+""", """
+A:{ _->this; _->this }
+"""); }
 @Test void redeclaredMethAnonWithParenthesesHasNoLikelyCause(){ fail("""
 In file: [###].fear
 
@@ -3025,10 +3034,6 @@ In file: [###].fear
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameters redeclared.
 A method with the inferred name and the same parameter count is already present above.
-Likely cause: method declaration missing "." before the name.
-Found unnamed methods with parameters: "b".
-To declare a method named "b", write ".b" (dot b).
-Without the dot, "b" is interpreted as a parameter name for an anonymous method.
 Error 7 WellFormedness
 """, """
 A:{
