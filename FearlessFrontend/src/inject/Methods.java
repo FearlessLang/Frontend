@@ -182,8 +182,9 @@ public record Methods(
     var heirs= allCs.stream().filter(o -> !o.name().equals(LiteralDeclarations.finalMethods) && implied(o).stream().anyMatch(c -> c.name().equals(LiteralDeclarations.finalMethods) && finalMethod(d, c).equals(m))).toList();
     if (heirs.isEmpty()){ return; }
     var origin= heirs.stream().filter(o -> heirs.stream().noneMatch(h -> implied(o).stream().anyMatch(c -> c.name().equals(h.name())))).findFirst().orElseThrow();
+    var claim= implied(origin).stream().filter(c -> c.name().equals(LiteralDeclarations.finalMethods) && finalMethod(d, c).equals(m)).findFirst().orElseThrow();
     d.ms().stream().filter(mi -> mi.sig().m().get().s().equals(m) && mi.sig().origin().equals(Optional.of(d.name()))).findFirst()
-      .ifPresent(mi -> { throw p.err().finalImplemented(d, mi, origin.name(), m); });
+      .ifPresent(mi -> { throw p.err().finalImplemented(d, mi, origin.name(), claim); });
   }
   void notSealed(TName target, E.Literal owner){
     var targetSealed= LiteralDeclarations.has(from(target).cs(), LiteralDeclarations.sealed);

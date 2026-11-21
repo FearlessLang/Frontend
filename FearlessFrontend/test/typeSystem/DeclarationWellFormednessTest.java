@@ -650,6 +650,18 @@ Diary[X]: base.DataEdit{}
 @Test void abstractDataReadWithGenericParameters(){ok(List.of("""
 Shape[X]: base.DataRead{ .extra: X }
 """));}
+@Test void finalMethodWithBackticksImplementedBelowTheOrigin(){failWf("""
+002| B: A{ .foo: A -> this }
+   | ^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Type declaration "B" implements method ".foo".
+"A" implements "base.Final[`.foo`]" and type declaration "B" implements "A",
+thus type declaration "B" cannot override any method named ".foo".
+""", List.of("""
+A: base.Final[`.foo`]{ .foo: A -> this }
+B: A{ .foo: A -> this }
+"""));}
 @Test void finalMethodImplementedBelowTheOrigin(){failWf("""
 001| Fake: base.DataRead{ .name -> base.Nope! }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -630,12 +630,12 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line(up(err().expRepr(owner))+" implements "+claimRepr(owner, c)+".")
       .line("The generic type argument of "+err().tNameADisp(LiteralDeclarations.finalMethods)+" is a type name in quotes holding a method name, like "+disp("\".name\"")+" or "+disp("\"+\"")+"."), owner);
   }
-  public FearlessException finalImplemented(E.Literal owner, M m, TName origin, String name){
+  public FearlessException finalImplemented(E.Literal owner, M m, TName origin, IT.C claim){
     var ctx= up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
-      .line(err().tNameADisp(origin)+" implements "+disp(err().cp().t.of(LiteralDeclarations.finalMethods)+"[\""+name+"\"]")+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
-      .line("thus "+err().expRepr(owner)+" cannot override any method named "+disp(name)+"."), owner);
+      .line(err().tNameADisp(origin)+" implements "+claimRepr(owner, claim)+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
+      .line("thus "+err().expRepr(owner)+" cannot override any method named "+disp(m.sig().m().get().s())+"."), owner);
   }
   public FearlessException claimNotMain(E.Literal owner, TName claim){
     var ctx= err().expRepr(owner);
