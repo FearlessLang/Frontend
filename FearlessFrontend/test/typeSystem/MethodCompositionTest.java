@@ -1051,6 +1051,34 @@ Sup1:{ .id[X:imm](x:Sup1):Sup1 }
 Sup2:{ .id(x:Sup1):Sup1 }
 A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
 """));}
+@Test void anAbstractMethodWithoutReturnTypeAndNoSupertype(){failWf("""
+001| A:{ .m; }
+   | ----^^---
+
+While inspecting type declaration "A"
+Missing return type for method ".m".
+Add an explicit return type at the end of the signature.
+Alternatively (less common), if you intended to override and omit the signature,
+the signature must be inherited from a supertype.
+Cannot infer signature of method ".m".
+No supertype has a method named ".m" with 0 parameters.
+""", List.of("""
+A:{ .m; }
+"""));}
+@Test void anAbstractMethodWithAParameterWithoutReturnTypeAndNoSupertype(){failWf("""
+001| A:{ .use(x: A); }
+   | ----^^^^^^^^^^---
+
+While inspecting type declaration "A"
+Missing return type for method ".use(_)".
+Add an explicit return type at the end of the signature.
+Alternatively (less common), if you intended to override and omit the signature,
+the signature must be inherited from a supertype.
+Cannot infer signature of method ".use(_)".
+No supertype has a method named ".use(_)" with 1 parameter.
+""", List.of("""
+A:{ .use(x: A); }
+"""));}
 @Test void anImmMethodDoesNotInheritFromAMutMethod(){failWf("""
 002| B:A{ imm .m -> this }
    | -----^^^^^^^^^^^^^^--
