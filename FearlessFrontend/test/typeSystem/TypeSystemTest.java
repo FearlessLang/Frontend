@@ -848,8 +848,8 @@ User:{
    |   ----------------^^^^^^^^^^^^^^^^
 
 While inspecting method call "#(_)" > method "User.m" (line 4)
-The body of method ".m" of type declaration "User" is an expression returning "A".
-Method call "MakeA#(_)" has type "A" instead of a subtype of "mut A".
+The body of method ".m" of type declaration "User" is an expression returning "imm A".
+Method call "MakeA#(_)" has type "imm A" instead of a subtype of "mut A".
 """, List.of("""
 A:{}
 MakeA:{ #(u:base.Void):A->A{} }
@@ -866,8 +866,8 @@ User:{
 
 While inspecting method call "#(_)" > method "Get.get" (line 6) > method "User.m" (line 5)
 Method ".get" inside the object literal instance of "Get" (line 5)
-is implemented with an expression returning "A".
-Method call "MakeA#(_)" has type "A" instead of a subtype of "mut A".
+is implemented with an expression returning "imm A".
+Method call "MakeA#(_)" has type "imm A" instead of a subtype of "mut A".
 """, List.of("""
 A:{}
 MakeA:{ #(u:base.Void):A->A{} }
@@ -1010,7 +1010,7 @@ User:{
 
 While inspecting parameter "loooooong" > method "Get.get" (line 6) > method "Wrap.wrap" (line 6) > method "User.m(_)" (line 5)
 Method ".get" inside the object literal instance of "Get" (line 6)
-is implemented with an expression returning "A".
+is implemented with an expression returning "imm A".
 Parameter "loooooong" has type "imm A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
 Capturing changes the type of parameter "loooooong":
@@ -6002,8 +6002,8 @@ U:{ .m(a: iso A): H -> Mk#(a).match{ .k(v1) -> { .h -> v1 } } }
    |     -------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".let(_,_)" > method "U.m" (line 2)
-The body of method ".m" of type declaration "U" is an expression returning "A".
-Method call "mut base.Block[_].let(_,_)" has type "A" instead of a subtype of "iso A".
+The body of method ".m" of type declaration "U" is an expression returning "imm A".
+Method call "mut base.Block[_].let(_,_)" has type "imm A" instead of a subtype of "iso A".
 
 See inferred typing context below for how type "A" was introduced ("..." marks omitted code):
 U:{.m:iso A->(...)#[imm,A].let[mut,A](mut base.ReturnStmt[A]{...},mut base.Continuation[...,...,...]{...})}

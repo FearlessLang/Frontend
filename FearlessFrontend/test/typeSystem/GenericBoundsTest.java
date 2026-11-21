@@ -132,7 +132,7 @@ Break:{
 
 While inspecting method call ".m(_)" > method "Bar.k(_)" (line 4)
 The body of method ".k(_)" of type declaration "Bar" is an expression returning "mut Beer[Y]".
-Method call "Foo.m(_)" has type "mut Beer[Y]" instead of a subtype of "Beer[Y]".
+Method call "Foo.m(_)" has type "mut Beer[Y]" instead of a subtype of "imm Beer[Y]".
 """, List.of("""
 Baz:{}
 Beer[X:*]:{ mut .x: X; read .x: read X }

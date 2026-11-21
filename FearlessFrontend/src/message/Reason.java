@@ -59,7 +59,7 @@ public final class Reason{
   private static E baseFooterE(TypeScope s, T actual, T req){ return TypeScope.bestInterestingScope(s, TypeScope.interestFromDeclVsReq(actual, req)).contextE(); }
   public static Reason callResultCannotHaveRequiredType(TypeSystem ts, Literal d, Call call, TRequirement req, List<T> got, Sig sig){
     var es= ts.reasonE();
-    return new Reason(got.getFirst(), es.err().gotMsg(true, "Method call "+es.err().methodSig(call.rc().toStrSpace(), d, call.name()), got, req.t()), es.printed(),
+    return new Reason(got.getFirst(), es.err().gotMsg(got.stream().noneMatch(g -> rcOnlyMismatch(g, req.t())), "Method call "+es.err().methodSig(call.rc().toStrSpace(), d, call.name()), got, req.t()), es.printed(),
       () -> baseFooterE(ts.scope(), sig.ret().withRC(RC.imm), req.t().withRC(RC.imm)));
   }
   public static Reason parameterDoesNotHaveRequiredTypeHere(
