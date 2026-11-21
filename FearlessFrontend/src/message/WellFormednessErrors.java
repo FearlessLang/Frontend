@@ -261,10 +261,13 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       if (ss.stream().anyMatch(s -> s.contains("."))){ e.line(addUse); }
     }
   }
-  public FearlessException useNotFullyQualified(TName tn){
-    return wfUse(err()
+  public FearlessException useNotFullyQualified(FileFull.Use u, List<String> pkgs){
+    var tn= u.in();
+    var e= err()
       .line("\"use\" directive refers to "+disp(tn.s())+", which is not a full type name.")
-      .line("A \"use\" directive refers to a type of another package by its full type name, as in \"use base.Str as Str;\"."), tn);
+      .line("A \"use\" directive refers to a type of another package by its full type name.");
+    if (pkgs.isEmpty()){ return wfUse(e.line("No other package declares a type named "+disp(tn.s())+"."), tn); }
+    return wfUse(e.line(Join.of(pkgs.stream().map(p -> disp("use "+p+"."+tn.s()+" as "+u.out()+";")), "Did you mean ", " or ", " ?")), tn);
   }
   public FearlessException useOfTheCurrentPackage(TName tn){
     return wfUse(err()

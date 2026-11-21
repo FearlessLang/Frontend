@@ -1404,11 +1404,42 @@ In file: [###].fear
 
 While inspecting package header
 "use" directive refers to "A", which is not a full type name.
-A "use" directive refers to a type of another package by its full type name, as in "use base.Str as Str;".
+A "use" directive refers to a type of another package by its full type name.
+Did you mean "use a.A as X;" ?
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 use A as X;
 B:{.m(x:a.A):a.A->x.fromC}
+"""); }
+  @Test void useOfASimpleNameDeclaredInTwoPackages(){ fail("""
+In file: [###].fear
+
+001| use A as X;
+   |     ^
+
+While inspecting package header
+"use" directive refers to "A", which is not a full type name.
+A "use" directive refers to a type of another package by its full type name.
+Did you mean "use a.A as X;" or "use d.A as X;" ?
+Error 7 WellFormedness
+""", Map.of("c", cA, "d", "A:{}"), Map.of("a", "c"), """
+use A as X;
+B:{}
+"""); }
+  @Test void useOfASimpleNameOfAPrivateType(){ fail("""
+In file: [###].fear
+
+001| use _A as X;
+   |     ^^
+
+While inspecting package header
+"use" directive refers to "_A", which is not a full type name.
+A "use" directive refers to a type of another package by its full type name.
+No other package declares a type named "_A".
+Error 7 WellFormedness
+""", Map.of("d", "_A:{}"), Map.of(), """
+use _A as X;
+B:{}
 """); }
   @Test void undeclaredSimpleNameThroughAKeywordLikeMap(){ fail("""
 In file: [###].fear
