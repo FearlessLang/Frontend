@@ -266,6 +266,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var e= err()
       .line("\"use\" directive refers to "+disp(tn.s())+", which is not a full type name.")
       .line("A \"use\" directive refers to a type of another package by its full type name.");
+    if (!tn.isPublic()){ return wfUse(e.line("Type names starting with \"_\" can only be used in their own package, so no \"use\" directive can refer to "+disp(tn.s())+"."), tn); }
     if (pkgs.isEmpty()){ return wfUse(e.line("No other package declares a type named "+disp(tn.s())+"."), tn); }
     return wfUse(e.didYouMean(pkgs.stream().map(p -> disp("use "+p+"."+tn.s()+" as "+u.out()+";")).toList()), tn);
   }

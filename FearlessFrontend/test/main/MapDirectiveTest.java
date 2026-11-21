@@ -1443,7 +1443,7 @@ In file: [###].fear
 While inspecting package header
 "use" directive refers to "_A", which is not a full type name.
 A "use" directive refers to a type of another package by its full type name.
-No other package declares a type named "_A".
+Type names starting with "_" can only be used in their own package, so no "use" directive can refer to "_A".
 Error 7 WellFormedness
 """, Map.of("d", "_A:{}"), Map.of(), """
 use _A as X;
