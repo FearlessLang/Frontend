@@ -621,7 +621,11 @@ In file: [###].fear
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
-Expected one of: parameter name, type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`), "(", "{".
+Expected one of:
+- parameter name
+- type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`)
+- "("
+- "{"
 Error 2 UnexpectedToken
 """, """
 A:{ .m(x:C):C->x.foo(,) }
@@ -634,7 +638,11 @@ In file: [###].fear
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
-Expected one of: parameter name, type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`), "(", "{".
+Expected one of:
+- parameter name
+- type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`)
+- "("
+- "{"
 Error 2 UnexpectedToken
 """, """
 A:{ .m(x:C):C->x.foo(,a) }
@@ -818,7 +826,11 @@ In file: [###].fear
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: ".use".
-Expected one of: parameter name, type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`), "(", "{".
+Expected one of:
+- parameter name
+- type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`)
+- "("
+- "{"
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -836,7 +848,11 @@ In file: [###].fear
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
-Expected one of: parameter name, type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`), "(", "{".
+Expected one of:
+- parameter name
+- type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`)
+- "("
+- "{"
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -927,7 +943,11 @@ In file: [###].fear
 While inspecting method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: ":".
-Expected one of: parameter name, type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`), "(", "{".
+Expected one of:
+- parameter name
+- type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`)
+- "("
+- "{"
 Error 2 UnexpectedToken
 """, """
 A:{ .m -> :+45 }
@@ -1243,7 +1263,11 @@ In file: [###].fear
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
-Expected one of: parameter name, type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`), "(", "{".
+Expected one of:
+- parameter name
+- type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`)
+- "("
+- "{"
 Error 2 UnexpectedToken
 """, """
 \uFEFFA:{ .m(x:C):C->x.foo(,) }
@@ -3419,7 +3443,10 @@ In file: [###].fear
 003| }
 
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
-Expected one of: ",", ":", "->".
+Expected one of:
+- ","
+- ":"
+- "->"
 Error 4 ExtraTokenInGroup
 """, """
 User:{
@@ -3674,7 +3701,11 @@ In file: [###].fear
 While inspecting method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: "_".
-Expected one of: parameter name, type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`), "(", "{".
+Expected one of:
+- parameter name
+- type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`)
+- "("
+- "{"
 Error 2 UnexpectedToken
 """, """
 A:{ .m:A->_ }
@@ -3688,7 +3719,11 @@ In file: [###].fear
 While inspecting method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: "_".
-Expected one of: parameter name, type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`), "(", "{".
+Expected one of:
+- parameter name
+- type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`)
+- "("
+- "{"
 Error 2 UnexpectedToken
 """, """
 A:{_ A +1.0 }

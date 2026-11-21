@@ -148,7 +148,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException mapToMissingFolder(String role, String folder, String directive, List<String> pkgs){
     var e= err().line("The map "+role+" folders named "+disp("_"+folder)+", but no folder is named "+disp("_"+folder)+":").line(directive);
     NameSuggester.suggest(folder, pkgs, (_,_,best) -> { best.ifPresent(b -> e.line("Did you mean "+disp("_"+b)+" ?")); return null; });
-    return e.line(Join.of(pkgs.stream().map(p -> disp("_"+p)), "Existing folders: ", ", ", ".")).wf();
+    return e.list("Existing folders", pkgs.stream().map(p -> disp("_"+p)).toList()).wf();
   }
   public Err badRank(Err err){
     return err
@@ -209,12 +209,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       var targetPkg= typedPkg.isEmpty() ? contextPkg : typedPkg;
       var e= err.get()
         .line("Type "+disp(typedSimple)+" is not declared with "+count(tn.arity(), "generic type parameter")+" in package "+disp(targetPkg)+".")
-        .line("Type "+disp(typedSimple)+" is only declared with "
-          +(arities.size() == 1
-            ? count(arities.getFirst(), "generic type parameter")+"."
-            : "other numbers of generic type parameters.\n"+Join.of(arities.stream().map(n -> disp(typedSimple+genArity(n))), "Candidates: ", ", ", ".")
-          ))
-        .line("Did you accidentally add or omit a generic type argument?");
+        .line("Type "+disp(typedSimple)+" is only declared with "+(arities.size() == 1 ? count(arities.getFirst(), "generic type parameter")+"." : "other numbers of generic type parameters."));
+      if (arities.size() > 1){ e.list("Candidates", arities.stream().map(n -> disp(typedSimple+genArity(n))).toList()); }
+      e.line("Did you accidentally add or omit a generic type argument?");
       return Optional.of(typeName(e, tn));
     }
     private FearlessException undeclaredInPkg(){
@@ -251,7 +248,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     }
     private static Void inScope(Err e, List<String> cs, Optional<String> best, Function<String,String> shown){
       best.ifPresent(b -> e.line("Did you mean "+disp(shown.apply(b))+" ?"));
-      if (cs.size() <= 12){ e.line(Join.of(cs.stream().map(c -> disp(shown.apply(c))).distinct(), "In scope: ", ", ", ".")); }
+      if (cs.size() <= 12){ e.list("In scope", cs.stream().map(c -> disp(shown.apply(c))).distinct().toList()); }
       return null;
     }
     private static final String addUse= "Add a \"use\" or write the full type name.";
@@ -308,7 +305,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     e.line(inFolders(ctx)+" cannot use package name "+disp(pkg)+".");
     var vs= visible.stream().filter(p -> !p.equals(ctx)).toList();
     known.or(() -> vs.isEmpty() ? Optional.empty() : NameSuggester.suggest(pkg, vs, (_,_,b) -> b)).ifPresent(b -> e.line("Did you mean "+disp(b)+" ?"));
-    if (!vs.isEmpty()){ e.line(Join.of(vs.stream().map(Err::disp), "Visible package names: ", ", ", ".")); }
+    if (!vs.isEmpty()){ e.list("Visible package names", vs.stream().map(Err::disp).toList()); }
     return e;
   }
   public FearlessException useOfMissingPackage(TName tn, List<String> visible){ return wfUse(missingPkg(err(), pkgName, tn.pkgName(), visible, Optional.empty()), tn); }
@@ -448,7 +445,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var x= res.stream().filter(t -> !(t instanceof IT.RCC)).findFirst();
     var e= err()
       .line("Supertypes disagree on "+msg+" of method "+methodSig(rc, at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
-      .line(Join.of(res.stream().map(o -> option(rcDiffers, o)), "Candidates: ", ", ", "."));
+      .list("Candidates", res.stream().map(o -> option(rcDiffers, o)).toList());
     var m= err().methodSig(at.mName());
     if (rcDiffers){ return wf(e.line("The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method "+m+" can implement all the candidates."), at); }
     if (x.isPresent()){ return wf(e.line("The candidates are different types and "+option(false, x.get())+" is a generic type parameter, so no method "+m+" can implement all the candidates."), at); }
@@ -462,7 +459,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var e= err()
       .line("Supertypes disagree on the number of generic type parameters of method "+err().methodSig(at.mName())
         +" with "+count(at.mName().arity(), "parameter")+".")
-      .line(Join.of(ss.stream().map(s -> disp(s.bs().get())).distinct(), "Candidates: ", ", ", "."));
+      .list("Candidates", ss.stream().map(s -> disp(s.bs().get())).distinct().toList());
     Streams.zip(declared, ss).filterMap((d,s) -> renamed(err().methodSig("", d.origin(), d.m()), d.bs(), s.bs().get())).distinct().forEach(e::line);
     return wf(e.line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes."), at);
   }
@@ -475,12 +472,12 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var n= res.getFirst().size();
     assert res.stream().allMatch(bs -> bs.size() == n);
     var i= firstRcsDisagreementIndex(res);
-    var opts= Join.of(res.stream().map(bs -> disp(Join.of(bs.get(i).rcs().stream(), "", ",", ""))).distinct().sorted(), "Candidates: ", ", ", ".");
+    var opts= res.stream().map(bs -> disp(Join.of(bs.get(i).rcs().stream(), "", ",", ""))).distinct().sorted().toList();
     var m= err().methodSig(at.mName());
     return wf(err()
       .line("Supertypes disagree on the capability bounds of generic type parameter "+(i+1)+" of method "+m+" with "+count(at.mName().arity(), "parameter")+".")
       .line("Generic type parameter names may differ across supertypes; only the position matters.")
-      .line(opts)
+      .list("Candidates", opts)
       .line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes."), at);
   }
   public FearlessException methodBsDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
@@ -569,15 +566,12 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return wf(err()
       .line("Cannot infer the name for a method with "+count(m.sig().ts().size(), "parameter")+".")
       .line("More than one"+(abs ? " abstract" : "")+" method with "+count(m.sig().ts().size(), "parameter")+" could be selected.")
-      .line(Join.of(
-        options.stream().map(mi -> methodSig(mi.rc().get()+" ", mi.m().get())),
-        "Candidates: ", ", ", "."
-      )), m.sig(), origin);
+      .list("Candidates", options.stream().map(mi -> methodSig(mi.rc().get()+" ", mi.m().get())).toList()), m.sig(), origin);
   }
   public FearlessException ambiguousImplementationFor(List<TName> options, Agreement at){
     return wf(err()
       .line("Ambiguous implementation for method "+err().methodSig(at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
-      .line(Join.of(options.stream().map(err()::tNameADisp), "Implemented by the supertypes ", ", ", "."))
+      .list("Implemented by the supertypes", options.stream().map(err()::tNameADisp).toList())
       .line(up(err().expRepr(at.lit()))+" must declare a method "+err().methodSig(at.mName())+" explicitly implementing the desired behaviour."), at);
   }
   public FearlessException multipleWidenTo(E.Literal owner, List<IT.C> widen){

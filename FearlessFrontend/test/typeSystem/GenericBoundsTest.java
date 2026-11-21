@@ -687,7 +687,9 @@ Box[X:imm,Y:imm]:{ .x: X; .y: Y }
 
 While inspecting a type name
 Type "Z" is not declared in package "p" and is not made visible via "use".
-In scope: "Box", "Foo".
+In scope:
+- "Box"
+- "Foo"
 """, List.of("""
 Foo:{ .m[X:imm,Y:imm](x: X, y: Y): Box[X,Y] ->
   Box[X,Y]{'b
