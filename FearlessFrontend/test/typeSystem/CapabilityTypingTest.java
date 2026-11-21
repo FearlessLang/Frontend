@@ -291,12 +291,12 @@ User:{ .m({.d, .e}: P, {.a, .b, .c}: mutH P): P -> e }
    |     -------------^^^^^^^^^^^^^^
 
 While inspecting method call ".absMeth" > method "C#" (line 4)
-The body of method "#" of type declaration "C" is an expression returning "B".
-Method call "read L[_].absMeth" has type "B" instead of a subtype of "mutH B".
+The body of method "#" of type declaration "C" is an expression returning "imm B".
+Method call "read L[_].absMeth" has type "imm B" instead of a subtype of "mutH B".
 """, List.of("""
 B:{}
 L[X:*]:{ read .absMeth: read/imm X }
-A:{ read .m(par: imm B) : mutH L[imm B] -> mut L[imm B]{.absMeth->par} }
+A:{ read .m(par: B) : mutH L[B] -> mut L[B]{.absMeth->par} }
 C:{ #: mutH B -> A.m(B).absMeth }
 """));}
 @Test void immCapturedAsReadH(){ok(List.of("""
@@ -513,7 +513,7 @@ Test:{ #(r: readH Box[Foo]): readH Foo -> r.get }
 
 While inspecting method call ".get" > method "Test#(_)" (line 3)
 The body of method "#(_)" of type declaration "Test" is an expression returning "readH Foo".
-Method call "read Box[_].get" has type "readH Foo" instead of a subtype of "Foo".
+Method call "read Box[_].get" has type "readH Foo" instead of a subtype of "imm Foo".
 """, List.of("""
 Foo:{}
 Box[X:*]:{ mut .get: X; read .get: read X }

@@ -1322,7 +1322,7 @@ Promotion failures:
 - Argument 1 fails:    As declared
   Method call "a.Id#(_)" has type "readH A" instead of a subtype of "read A".
 - Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow mutH receiver, Allow mutH argument 2
-  Method call "a.Id#(_)" has type "readH A" instead of a subtype of "A".
+  Method call "a.Id#(_)" has type "readH A" instead of a subtype of "imm A".
 - Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
   Parameter "y" has type "mutH A" instead of a subtype of "iso A".
 
