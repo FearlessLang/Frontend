@@ -6062,6 +6062,30 @@ F3:{ #[T:*](x: read/imm T):base.Void -> base.Void }
 A:{}
 U:{ .m:base.Void -> F3#(A{}) }
 """));}
+@Test void baseIdReturningThisNamesItsParameter(){fail("""
+001| I: base.BaseId[I,I]{ #(y)->this }
+   |                            ^^^^
+
+While inspecting the file
+Type declaration "I" implements "base.BaseId[_,_]".
+The body of "#(_)" must be "y" or "y.as{...}".
+Only those two shapes are the identity function.
+""", List.of("""
+I: base.BaseId[I,I]{ #(y)->this }
+"""));}
+@Test void baseIdAsOnANonContainerNamesItsParameter(){fail("""
+002| I: base.BaseId[Box,Box]{ #(y)->y.as{ #(z)->z } }
+   |                                ^^^^^^^^^^^^^^^
+
+While inspecting the file
+Type declaration "I" implements "base.BaseId[_,_]".
+The body of "#(_)" calls ".as(_)" on parameter "y".
+Calling ".as(_)" counts as the identity function only when the receiver has a type implementing "base.BaseContainer[_]".
+Parameter "y" has type "Box".
+""", List.of("""
+Box:{ .as(f: base.BaseId[Box,Box]):Box -> this }
+I: base.BaseId[Box,Box]{ #(y)->y.as{ #(z)->z } }
+"""));}
 @Test void baseIdReturningThis(){fail("""
 001| I: base.BaseId[I,I]{ #(x)->this }
    |                            ^^^^
@@ -6135,7 +6159,8 @@ Impl:{ #(x:I):I -> x }
 
 While inspecting the file
 Type declaration "I" implements "base.BaseId[_,_]".
-The body "x.as{...}" of "#(_)" is the identity function only when parameter "x" has a type implementing "base.BaseContainer[_]".
+The body of "#(_)" calls ".as(_)" on parameter "x".
+Calling ".as(_)" counts as the identity function only when the receiver has a type implementing "base.BaseContainer[_]".
 Parameter "x" has type "Box".
 """, List.of("""
 Box:{ .as(f: base.BaseId[Box,Box]):Box -> this }
@@ -6212,7 +6237,8 @@ I: base.BaseId[I,I]{ #(x)->x#(x) }
 
 While inspecting the file
 Type declaration "I[_]" implements "base.BaseId[_,_]".
-The body "x.as{...}" of "#(_)" is the identity function only when parameter "x" has a type implementing "base.BaseContainer[_]".
+The body of "#(_)" calls ".as(_)" on parameter "x".
+Calling ".as(_)" counts as the identity function only when the receiver has a type implementing "base.BaseContainer[_]".
 Parameter "x" has type "X".
 """, List.of("""
 I[X:*]: base.BaseId[X,I[X]]{ #(x)->x.as[I[X]](this) }
