@@ -144,9 +144,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return got.withRC(RC.imm).equals(req.withRC(RC.imm));
   }
   String text(){ return sb.toString().stripTrailing(); }
-  public Err pTypeArgBounds(String what, String kindingTarget, String paramName, int index, T bad, String allowedStr, String gotStr){
-    var badStr= typeRepr(true, bad);
-    var e= line("The "+what+" is invalid.")
+  public Err pTypeArgBounds(String first, String kindingTarget, String paramName, int index, T bad, String allowedStr, String gotStr){
+    var badStr= typeRepr(false, bad);
+    var e= line(first)
       .line("Generic type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds")
       .line("for generic type parameter "+paramName+" in "+kindingTarget+".")
       .line("Here "+paramName+" can only use "+allowedStr+".");

@@ -402,7 +402,7 @@ Outer:{ #: G -> { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
    |         ----------------------------------------------------~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^---
 
 While inspecting method call ".foo" > method "G.bar" (line 2) > method "Outer#" (line 2)
-The call to ".foo" is invalid.
+This call to method "G.foo" cannot typecheck.
 Generic type argument 1 ("mut Outer") does not satisfy the bounds
 for generic type parameter "X" in "G.foo".
 Here "X" can only use capability "imm".
@@ -536,7 +536,7 @@ User:{ imm .m(a:imm B):imm A[mut B]; }
    |        -----------------------------------^^^^^^^^^^^^^^
 
 While inspecting method call ".id(_)" > method "User.m(_,_)" (line 3)
-The call to ".id(_)" is invalid.
+This call to method "A.id(_)" cannot typecheck.
 Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capability "imm".
@@ -551,7 +551,7 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
    |        -------------------------------------------^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".pair(_,_)" > method "User.m(_,_,_)" (line 5)
-The call to ".pair(_,_)" is invalid.
+This call to method "A.pair(_,_)" cannot typecheck.
 Generic type argument 2 ("mut C") does not satisfy the bounds
 for generic type parameter "Y" in "A.pair(_,_)".
 Here "Y" can only use capability "read".
@@ -615,7 +615,7 @@ User:{ imm .m(x:imm A[B[mut C]]):base.Void; }
    |        -----------------------------------^^^^^^^^^^^^^^
 
 While inspecting method call ".id(_)" > method "User.m(_,_)" (line 3)
-The call to ".id(_)" is invalid.
+This call to method "A.id(_)" cannot typecheck.
 Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "imm" or "read".
@@ -631,8 +631,8 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
    |        -----------------------------------^^^^^^^
 
 While inspecting method call ".id(_)" > method "User.m(_,_)" (line 3)
-The call to ".id(_)" is invalid.
-Generic type argument 1 ("B") does not satisfy the bounds
+This call to method "A.id(_)" cannot typecheck.
+Generic type argument 1 ("imm B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
 
@@ -649,8 +649,8 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
    |        --------------------------------^^^^^^^
 
 While inspecting method call ".id(_)" > method "User.m(_,_)" (line 3)
-The call to ".id(_)" is invalid.
-Generic type argument 1 ("B") does not satisfy the bounds
+This call to method "A.id(_)" cannot typecheck.
+Generic type argument 1 ("imm B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "iso" or "mut".
 
@@ -1797,7 +1797,7 @@ A:{
    |           ^^^^^^^^^^^
 
 While inspecting method call "#(_)" > method "A.f(_)" (line 6)
-The call to "#(_)" is invalid.
+This call to method "IdRO#(_)" cannot typecheck.
 Generic type argument 1 ("mut A") does not satisfy the bounds
 for generic type parameter "X" in "IdRO#(_)".
 Here "X" can only use capabilities "imm" or "read".

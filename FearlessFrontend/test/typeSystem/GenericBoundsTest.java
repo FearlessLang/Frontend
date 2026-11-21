@@ -389,7 +389,7 @@ Foo:{ .bar: A[mutH Foo] -> A[mutH Foo] }
 
 While inspecting type declaration "Break"
 The type "A[Break]" is invalid.
-Generic type argument 1 ("Break") does not satisfy the bounds
+Generic type argument 1 ("imm Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 """, List.of("""
@@ -402,7 +402,7 @@ Break:A[imm Break]{}
 
 While inspecting type declaration "Break"
 The type "A[Break]" is invalid.
-Generic type argument 1 ("Break") does not satisfy the bounds
+Generic type argument 1 ("imm Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 """, List.of("""
@@ -419,7 +419,7 @@ Break:A[mut Break]{}
 
 While inspecting object literal "BreakInner" > method "BreakOuter#" (line 3)
 The type "A[Break]" is invalid.
-Generic type argument 1 ("Break") does not satisfy the bounds
+Generic type argument 1 ("imm Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 """, List.of("""
@@ -441,7 +441,7 @@ Break:{ #: imm Break -> A#(imm Break) }
    |     ------------------------^^^^^^^^^
 
 While inspecting method call ".m(_)" > method "A.f(_)" (line 3)
-The call to ".m(_)" is invalid.
+This call to method "Util.m(_)" cannot typecheck.
 Generic type argument 1 ("Z") does not satisfy the bounds
 for generic type parameter "Y" in "Util.m(_)".
 Here "Y" can only use capability "imm".
@@ -464,7 +464,7 @@ A:{ .f[Z:imm](z: Z): Foo -> Util.m(z) }
    |            -----------------^^^^^^^^^
 
 While inspecting method call ".m(_)" > method "A[_].f(_)" (line 3)
-The call to ".m(_)" is invalid.
+This call to method "Util.m(_)" cannot typecheck.
 Generic type argument 1 ("Z") does not satisfy the bounds
 for generic type parameter "Y" in "Util.m(_)".
 Here "Y" can only use capability "imm".
@@ -513,8 +513,8 @@ Break:{ .m(f: imm Foo): imm Foo -> A#(f) }
    |         ---------------------------^^^^^^^^^^^^^^
 
 While inspecting method call "#(_)" > method "Break.m(_)" (line 3)
-The call to "#(_)" is invalid.
-Generic type argument 1 ("Foo") does not satisfy the bounds
+This call to method "A#(_)" cannot typecheck.
+Generic type argument 1 ("imm Foo") does not satisfy the bounds
 for generic type parameter "X" in "A#(_)".
 Here "X" can only use capability "mut".
 """, List.of("""
