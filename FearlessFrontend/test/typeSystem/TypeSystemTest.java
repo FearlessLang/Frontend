@@ -5823,7 +5823,8 @@ A:Show{ .str -> base.Void }
 
 While inspecting package header
 "use" directive refers to "Foo", which is not a full type name.
-A "use" directive refers to a type of another package by its full type name, as in "use base.Str as Str;".
+A "use" directive refers to a type of another package by its full type name.
+No other package declares a type named "Foo".
 """, List.of("""
 use Foo as Bar;
 Foo:{}
