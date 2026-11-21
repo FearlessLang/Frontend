@@ -296,7 +296,7 @@ Method call "read L[_].absMeth" has type "imm B" instead of a subtype of "mutH B
 """, List.of("""
 B:{}
 L[X:*]:{ read .absMeth: read/imm X }
-A:{ read .m(par: imm B) : mutH L[imm B] -> mut L[imm B]{.absMeth->par} }
+A:{ read .m(par: B) : mutH L[B] -> mut L[B]{.absMeth->par} }
 C:{ #: mutH B -> A.m(B).absMeth }
 """));}
 @Test void immCapturedAsReadH(){ok(List.of("""

@@ -127,8 +127,8 @@ Break:{
   }
 """));}
 @Test void genericPromotionToImmIsNotSound(){fail("""
-004| Bar:{ .k[Y:*](y: Y): imm Beer[Y] -> Foo.m[Y](y) }
-   |       ------------------------------^^^^^^^^^^^
+004| Bar:{ .k[Y:*](y: Y): Beer[Y] -> Foo.m[Y](y) }
+   |       --------------------------^^^^^^^^^^^
 
 While inspecting method call ".m(_)" > method "Bar.k(_)" (line 4)
 The body of method ".k(_)" of type declaration "Bar" is an expression returning "mut Beer[Y]".
@@ -137,7 +137,7 @@ Method call "Foo.m(_)" has type "mut Beer[Y]" instead of a subtype of "imm Beer[
 Baz:{}
 Beer[X:*]:{ mut .x: X; read .x: read X }
 Foo:{ .m[X:*](x: X): mut Beer[X] -> {x} }
-Bar:{ .k[Y:*](y: Y): imm Beer[Y] -> Foo.m[Y](y) }
+Bar:{ .k[Y:*](y: Y): Beer[Y] -> Foo.m[Y](y) }
 Break:{
   .m1(y: mut Baz): Beer[mut Baz] -> Bar.k(y);
   .ohNo(y: mut Baz): imm Baz -> this.m1(y).x;
