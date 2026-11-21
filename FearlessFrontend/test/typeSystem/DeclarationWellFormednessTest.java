@@ -434,10 +434,34 @@ BreakOuter[Y:*,Z:*]:{ #: BreakInner[Y] -> BreakInner[Y:*]:{ .z: A[Z] -> A[Z] } }
    |                                                 ---^~~----------
 
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
-Name "Z" is already in scope.
+Name "Z" is already used by a generic type parameter declared outside the type declaration "BreakInner".
+Generic type parameters declared inside "BreakInner" can not reuse the name "Z", even though "Z" is not in scope there.
 """, List.of("""
 A[X:*]:{}
 BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z[Z:*](z: Z): Z -> z } }
+"""));}
+@Test void nestedInlineDeclarationCannotRedeclareAHiddenMethodGeneric(){failParse("""
+001| A:{}
+002| Top:{ .m[K:*]: A -> Mid:{ .n: A -> Low:A{ .o[K:*]: A -> A } } }
+   |                                           ---^~~----
+
+While inspecting generic bounds declaration > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
+Name "K" is already used by a generic type parameter declared outside the type declaration "Low".
+Generic type parameters declared inside "Low" can not reuse the name "K", even though "K" is not in scope there.
+""", List.of("""
+A:{}
+Top:{ .m[K:*]: A -> Mid:{ .n: A -> Low:A{ .o[K:*]: A -> A } } }
+"""));}
+@Test void inlineDeclarationCannotRedeclareAFunnelledGeneric(){failParse("""
+001| A:{}
+002| Top[W:*]:{ #: A -> Mid[W:*]:A{ .o[W:*]: A -> A } }
+   |                                ---^~~----
+
+While inspecting generic bounds declaration > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
+Name "W" is already in scope.
+""", List.of("""
+A:{}
+Top[W:*]:{ #: A -> Mid[W:*]:A{ .o[W:*]: A -> A } }
 """));}
 @Test void inlineDeclarationInsideInlineDeclarationCannotFunnelAHiddenGeneric(){failParse("""
 001| A:{}

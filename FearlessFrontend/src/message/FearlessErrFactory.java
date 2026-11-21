@@ -263,6 +263,12 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       "Generic type parameter "+disp(X.content())+" is not in scope.\n"
       +Join.of(Xs.stream().map(Err::disp), "Declared generic type parameters: ", ", ", ".\n", "No generic type parameters are declared here.\n")).addSpan(at);
   }
+  public FearlessException hiddenGenericRedeclared(Token X, Span at, String owner){
+    var x= disp(X.content());
+    var dec= disp(owner);
+    return Code.UnexpectedToken.of("Name "+x+" is already used by a generic type parameter declared outside the type declaration "+dec+".\n"
+      +"Generic type parameters declared inside "+dec+" can not reuse the name "+x+", even though "+x+" is not in scope there.\n").addSpan(at);
+  }
   public FearlessException genericNotFunnelled(Token X, Span at, String owner, List<String> Xs){
     return Code.UnexpectedToken.of(Err.funnel(X.content(), owner, Xs)).addSpan(at);
   }
