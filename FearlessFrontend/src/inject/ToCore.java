@@ -86,10 +86,9 @@ public record ToCore(List<B> ctx, Methods meths){
     var amb= ambs(t).findFirst();
     if (amb.isEmpty()){ return fillVoid(t, b); }
     var cs= amb.get().candidates().stream().map(c -> replace(t, amb.get(), c)).toList();
-    var common= t instanceof IT.Amb ? meths.commonSuperHeads(cs) : List.<TName>of();
+    var common= t instanceof IT.Amb ? meths.commonSuperHeads(cs) : List.<IT.C>of();
     var err= meths.p().err();
-    var example= err.callWithTargs(e, targs, i, common.isEmpty() ? "Type"+(i+1) : err.typeName(common.getFirst()));
-    throw err.typeArgAmbiguous(e, b.x(), cs, common, example, meths::_from);
+    throw err.typeArgAmbiguous(e, b.x(), cs, common, err.callWithTargs(e, targs, i), meths::_from);
   }
   private static Stream<IT.Amb> ambs(IT t){ return switch (t){
     case IT.Amb a -> Stream.of(a);

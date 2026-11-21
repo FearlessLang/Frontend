@@ -2245,7 +2245,7 @@ In file: [###].fear
 While inspecting method call ".both(_,_)"
 The generic type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "a.Y", some need "a.Z".
 "T" could be "a.A" or "a.B2": each is a supertype of "a.Y" and "a.Z". The choice is ambiguous.
-Write the generic type argument explicitly, as in "this.both[a.A](y, z)".
+Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2261,10 +2261,10 @@ In file: [###].fear
 While inspecting object literal instance of "bb.ThenElse[_]"
 The generic type argument "R" of "bb.ThenElse[_]" is inferred from the method bodies, but they disagree: some need "a.Y", some need "a.Z".
 "R" could be "a.S1" or "a.S2": each is a supertype of "a.Y" and "a.Z". The choice is ambiguous.
-Write the generic type argument explicitly, as in "bb.ThenElse[a.S1]{...}".
+Write the generic type argument explicitly, in place of "_" in "bb.ThenElse[_]{...}".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "S1:{} S2:{} Y:S1,S2{} Z:S1,S2{}"), mapABb, """
 A:{}
@@ -2703,10 +2703,10 @@ In file: [###].fear
 While inspecting method call ".two(_,_,_)"
 The generic type argument "T" of ".two" is inferred from the arguments, but they disagree: some need "a.Y", some need "a.Z".
 "T" could be "a.A" or "a.B2": each is a supertype of "a.Y" and "a.Z". The choice is ambiguous.
-Write the generic type argument explicitly, as in "this.two[d.Q,a.A](q, y, z)".
+Write the generic type argument explicitly, in place of "_" in "this.two[d.Q,_](q, y, z)".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "d" to refer to the code inside folders named "_e", because of "map d as _e in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "A:{} B2:{} Y:A,B2{} Z:A,B2{}", "e", "Q:{}"), Map.of("a", "c", "d", "e"), """
 U:{ .two[S,T](s:S, x:T, y:T):a.A -> a.A; .use(q:d.Q, y:a.Y, z:a.Z):a.A -> this.two(q, y, z) }

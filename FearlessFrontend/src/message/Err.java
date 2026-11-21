@@ -67,10 +67,11 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String typeRepr(inference.IT t){ return typeRepr(true, t); }
   String typeRepr(boolean skipImm, inference.IT t){ return t.isTV() ? typeRepr(skipImm, TypeRename.itToT(t)) : disp(typeReprRaw(t)); }
   String typeReprRaw(inference.IT t){ return switch (t){
-    case inference.IT.RCC(var rc, var c, _) -> rc.map(RC::toStrSpace).orElse("")+cp().t.of(c.name())+Join.of(c.ts().stream().map(this::typeReprRaw), "[", ",", "]", "");
+    case inference.IT.RCC(var rc, var c, _) -> rc.map(RC::toStrSpace).orElse("")+typeReprRaw(c);
     case inference.IT.U _, inference.IT.Amb _ -> "?";
     default -> typeReprRaw(true, TypeRename.itToT(t));
   };}
+  String typeReprRaw(inference.IT.C c){ return cp().t.of(c.name())+Join.of(c.ts().stream().map(this::typeReprRaw), "[", ",", "]", ""); }
   String typeRepr(inference.IT t, int levels){ return disp(typeReprRaw(t, levels)); }
   private String typeReprRaw(inference.IT t, int levels){
     if (!(t instanceof inference.IT.RCC(var rc, var c, _)) || c.ts().isEmpty()){ return typeReprRaw(t); }
