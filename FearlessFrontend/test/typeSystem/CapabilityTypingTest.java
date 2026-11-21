@@ -536,6 +536,9 @@ The body of method ".m1" of type declaration "B" is an expression returning "mut
 Parameter "this" has type "mut B" instead of a subtype of "A".
 Method ".m1" inherited the signature from "A.m1" as follows:
 mut .m1: A
+Method ".m1" is overloaded; to implement a specific overload only, write one of the following:
+- "imm .m1"
+- "mut .m1"
 """, List.of("""
 A:{ imm .m1: A; mut .m1: A; .m2: A }
 B:A{ .m1 -> this; .m2 -> this.m1 }

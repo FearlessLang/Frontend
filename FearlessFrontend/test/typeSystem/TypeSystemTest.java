@@ -2763,11 +2763,107 @@ Parameter "this" has type "B" instead of a subtype of "mut A".
 Method ".get" inherited the signature from "A.get" as follows:
 mut .get: mut A
 Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
-A value of "B" is never "mut", so "mut .get" can stay abstract.
-A method written without a receiver capability also implements "mut .get": write the receiver capability, as in "read .get".
+Method ".get" is overloaded; to implement a specific overload only, write one of the following:
+- "read .get"
+- "mut .get"
 """, List.of("""
  A:{ read .get: read A; mut .get: mut A; }
  B:A,base.CaptureFree{ .get->this; }
+"""));}
+@Test void captureFreeThisIsNotMutWithAnImmOverload(){fail("""
+002|  B:A,base.CaptureFree{ .get->this; }
+   |                        ------^^^^
+
+While inspecting parameter "this" > method "B.get" (line 2)
+The body of method ".get" of type declaration "B" is an expression returning "B".
+Parameter "this" has type "B" instead of a subtype of "mut A".
+Method ".get" inherited the signature from "A.get" as follows:
+mut .get: mut A
+Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
+Method ".get" is overloaded; to implement a specific overload only, write one of the following:
+- "imm .get"
+- "mut .get"
+""", List.of("""
+ A:{ imm .get: A; mut .get: mut A; }
+ B:A,base.CaptureFree{ .get->this; }
+"""));}
+@Test void captureFreeThisIsNotMutWithNoOtherOverload(){fail("""
+002|  B:A,base.CaptureFree{ .get->this; }
+   |                        ------^^^^
+
+While inspecting parameter "this" > method "B.get" (line 2)
+The body of method ".get" of type declaration "B" is an expression returning "B".
+Parameter "this" has type "B" instead of a subtype of "mut A".
+Method ".get" inherited the signature from "A.get" as follows:
+mut .get: mut A
+Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
+""", List.of("""
+ A:{ mut .get: mut A; }
+ B:A,base.CaptureFree{ .get->this; }
+"""));}
+@Test void captureFreeThisIsNotMutWithTwoOtherOverloads(){fail("""
+002|  B:A,base.CaptureFree{ .get->this; }
+   |                        ------^^^^
+
+While inspecting parameter "this" > method "B.get" (line 2)
+The body of method ".get" of type declaration "B" is an expression returning "B".
+Parameter "this" has type "B" instead of a subtype of "mut A".
+Method ".get" inherited the signature from "A.get" as follows:
+mut .get: mut A
+Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
+Method ".get" is overloaded; to implement a specific overload only, write one of the following:
+- "read .get"
+- "imm .get"
+- "mut .get"
+""", List.of("""
+ A:{ read .get: read A; imm .get: A; mut .get: mut A; }
+ B:A,base.CaptureFree{ .get->this; }
+"""));}
+@Test void captureFreeThisIsNotMutWrittenAsMut(){fail("""
+002|  B:A,base.CaptureFree{ mut .get->this; }
+   |                        ----------^^^^
+
+While inspecting parameter "this" > method "B.get" (line 2)
+The body of method ".get" of type declaration "B" is an expression returning "B".
+Parameter "this" has type "B" instead of a subtype of "mut A".
+Method ".get" inherited the signature from "A.get" as follows:
+mut .get: mut A
+Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
+""", List.of("""
+ A:{ read .get: read A; mut .get: mut A; }
+ B:A,base.CaptureFree{ mut .get->this; }
+"""));}
+@Test void aMethodWithoutReceiverCapabilityImplementingTwoOverloadsListsThem(){fail("""
+003|  B:A{ .get->C; }
+   |       ------^
+
+While inspecting object literal instance of "C" > method "B.get" (line 3)
+The body of method ".get" of type declaration "B" is an expression returning "iso C".
+Object literal is of type "iso C" instead of a subtype of "read A".
+Method ".get" inherited the signature from "A.get" as follows:
+read .get: read A
+Method ".get" is overloaded; to implement a specific overload only, write one of the following:
+- "read .get"
+- "mut .get"
+""", List.of("""
+ A:{ read .get: read A; mut .get: mut A; }
+ C:{}
+ B:A{ .get->C; }
+"""));}
+@Test void aMethodWithoutReceiverCapabilityInAnImmLiteralImplementsOneOverload(){fail("""
+003|  B:{ .m: A -> A{ .get -> C } }
+   |      ------------~~~~~~~~^--
+
+While inspecting object literal instance of "C" > method "A.get" (line 3) > method "B.m" (line 3)
+Method ".get" inside the object literal instance of "A" (line 3)
+is implemented with an expression returning "iso C".
+Object literal is of type "iso C" instead of a subtype of "read A".
+Method ".get" inherited the signature from "A.get" as follows:
+read .get: read A
+""", List.of("""
+ A:{ read .get: read A; mut .get: mut A; }
+ C:{}
+ B:{ .m: A -> A{ .get -> C } }
 """));}
 @Test void captureFreeThisReadOnly(){ok(List.of("""
  A:{ read .get: read A; mut .get: mut A; }

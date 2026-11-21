@@ -303,14 +303,16 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       if (it instanceof TypeScope.Method(var li, var mi, _)){ renamedGenerics(li, mi).ifPresent(e::line); }
     }
     var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
-    if (thisNotMut){ captureFreeHint(e, l, m); }
+    if (thisNotMut){ e.line("Hint: "+err().expRepr(l)+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+", so parameter "+disp(l.thisName())+" is \"imm\" in every method."); }
+    overloadHint(e, l, m);
     return addExpFrame(at, e.ex(got.footerE.get(), at).addSpan(at.span().inner));
   }
-  private void captureFreeHint(Err e, Literal l, M m){
-    var mut= methodSig("mut ", m.sig().m());
-    e.line("Hint: "+err().expRepr(l)+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+", so parameter "+disp(l.thisName())+" is \"imm\" in every method.")
-      .line("A value of "+err().tNameADisp(l.name())+" is never \"mut\", so "+mut+" can stay abstract.")
-      .line("A method written without a receiver capability also implements "+mut+": write the receiver capability, as in "+methodSig("read ", m.sig().m())+".");
+  private void overloadHint(Err e, Literal l, M m){
+    var written= srcM(l, m.sig()).flatMap(fearlessFullGrammar.M::sig).flatMap(fearlessFullGrammar.Sig::rc).isPresent();
+    var overloads= l.ms().stream().map(M::sig).filter(s -> !s.abs() && s.m().equals(m.sig().m())).map(s -> methodSig(s.rc()+" ", s.m())).toList();
+    if (written || overloads.size() < 2){ return; }
+    e.line("Method "+err().methodSig(m.sig().m())+" is overloaded; to implement a specific overload only, write one of the following:");
+    overloads.forEach(e::bullet);
   }
 
 
