@@ -209,7 +209,9 @@ In file: [###].fear
 While inspecting a type name
 The full type name "b.B" is invalid in source code inside folders named "_b".
 Source code inside folders named "_b" uses the simple name "B" to refer to "b.B".
-Did you mean "a.B" or "d.B" ?
+Did you mean one of the following?
+- "a.B"
+- "d.B"
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -1040,7 +1042,9 @@ In file: [###].fear
 While inspecting a type name
 Type "Server" is not declared in package "b" and is not made visible via "use".
 In scope: "B", "Remote".
-Did you mean "Remote" or "d.Server" ?
+Did you mean one of the following?
+- "Remote"
+- "d.Server"
 Add a "use" or write the full type name.
 
 Name "Remote" stands for "a.Server" because of "use a.Server as Remote".
@@ -1130,7 +1134,9 @@ In file: [###].fear
 While inspecting a type name
 Type "Server" is not declared in package "b" and is not made visible via "use".
 In scope: "B".
-Did you mean "a.Server" or "z.Server" ?
+Did you mean one of the following?
+- "a.Server"
+- "z.Server"
 Add a "use" or write the full type name.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_e", because of "map a as _e in _b", written in fear:/_b/_rank_app.fear.
@@ -1420,7 +1426,9 @@ In file: [###].fear
 While inspecting package header
 "use" directive refers to "A", which is not a full type name.
 A "use" directive refers to a type of another package by its full type name.
-Did you mean "use a.A as X;" or "use d.A as X;" ?
+Did you mean one of the following?
+- "use a.A as X;"
+- "use d.A as X;"
 Error 7 WellFormedness
 """, Map.of("c", cA, "d", "A:{}"), Map.of("a", "c"), """
 use A as X;

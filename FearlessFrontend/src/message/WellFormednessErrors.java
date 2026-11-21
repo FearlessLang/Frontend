@@ -257,7 +257,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     private static final String addUse= "Add a \"use\" or write the full type name.";
     void addOptionsList(List<String> ss, Err e){
       if (ss.isEmpty()){ return; }
-      e.line(Join.of(ss.stream().map(Err::disp), "Did you mean ", " or ", " ?"));
+      e.didYouMean(ss.stream().map(Err::disp).toList());
       if (ss.stream().anyMatch(s -> s.contains("."))){ e.line(addUse); }
     }
   }
@@ -267,7 +267,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("\"use\" directive refers to "+disp(tn.s())+", which is not a full type name.")
       .line("A \"use\" directive refers to a type of another package by its full type name.");
     if (pkgs.isEmpty()){ return wfUse(e.line("No other package declares a type named "+disp(tn.s())+"."), tn); }
-    return wfUse(e.line(Join.of(pkgs.stream().map(p -> disp("use "+p+"."+tn.s()+" as "+u.out()+";")), "Did you mean ", " or ", " ?")), tn);
+    return wfUse(e.didYouMean(pkgs.stream().map(p -> disp("use "+p+"."+tn.s()+" as "+u.out()+";")).toList()), tn);
   }
   public FearlessException useOfTheCurrentPackage(TName tn){
     return wfUse(err()
@@ -316,7 +316,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private Err mappedAway(String out, String in, List<String> visible){ return missingPkg(err(), pkgName, out, visible, Optional.of(in)).line(refersTo(pkgName, in, out, writtenIn)); }
   public FearlessException typeOfTheCurrentPackageQualified(TName tn, List<TName> options){
     var e= fullNameInvalid(err(), tn).line(inFolders(pkgName)+" uses the simple name "+disp(tn.simpleName())+" to refer to "+disp(tn.s())+".");
-    if (!options.isEmpty()){ e.line(Join.of(options.stream().map(o -> disp(err().cp().t.of(o))).distinct(), "Did you mean ", " or ", " ?")); }
+    if (!options.isEmpty()){ e.didYouMean(options.stream().map(o -> disp(err().cp().t.of(o))).distinct().toList()); }
     return typeName(e, tn);
   }
   public FearlessException typeWithAnAlias(TName tn, FileFull.Use u){
@@ -405,7 +405,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var names= sup.stream().map(si -> si.m().s()).distinct().sorted().toList();
     var best= s.m().filter(_ -> !names.isEmpty()).flatMap(n -> NameSuggester.bestName(n.s(), names));
     var e= s.m().isEmpty() ? unnamedNotInferred(origin, s, sup) : missingTypes(s, best.isEmpty());
-    best.ifPresent(b -> e.line(Join.of(sup.stream().filter(si -> si.m().s().equals(b)).map(WellFormednessErrors::supSig).distinct(), "Did you mean ", " or ", " ?")));
+    best.ifPresent(b -> e.didYouMean(sup.stream().filter(si -> si.m().s().equals(b)).map(WellFormednessErrors::supSig).distinct().toList()));
     m.names().stream().filter(x -> s.m().isEmpty() && names.contains("."+x)).findFirst()
       .ifPresent(x -> e.line(disp(x)+" is read as a parameter name: a method name starts with \".\", as in "+disp("."+x)+"."));
     if (!sup.isEmpty()){ e.line(Join.of(sup.stream().map(WellFormednessErrors::supSig).distinct().sorted(), "Methods of the supertypes: ", ", ", ".")); }
