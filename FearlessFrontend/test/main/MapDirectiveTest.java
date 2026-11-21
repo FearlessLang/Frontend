@@ -42,7 +42,16 @@ public final class MapDirectiveTest extends testUtils.FearlessTestBase{
     assertThrows(compact.Frontend.Fail.class, () -> compactB(pkgs, map, o));
   }
   static Map<String,String> writtenIn(Map<String,String> map){
-    return map.entrySet().stream().collect(java.util.stream.Collectors.toMap(Map.Entry::getKey, e -> e.getValue()+" fear:/_b/_rank_app.fear"));
+    var b= tools.SourceOracle.debugBuilder()
+      .putURI(java.net.URI.create("fear:/_b/_rank_app.fear"), utils.Join.of(map.entrySet().stream().map(e -> "map "+e.getKey()+" as _"+e.getValue()+" in _b;"), "", "\n", "", ""));
+    for (var out : java.util.Set.copyOf(map.values())){ b = b.putURI(java.net.URI.create("fear:/_"+out+"/_rank_worker.fear"), ""); }
+    return rankMaps(b.build());
+  }
+  static Map<String,String> rankMaps(tools.SourceOracle o){
+    var ranks= new java.util.HashMap<String,tools.SourceOracle.Ref>();
+    for (var r : o.allFiles()){ ranks.put(r.fearPath().split("/")[1].substring(1), r); }
+    var res= new FrontendLogicMain().parseRankFiles(ranks, java.util.Comparator.comparing(r -> r.fearPath().endsWith("_rank_app.fear")));
+    return res.getOrDefault("b", Map.of());
   }
   static List<compact.Frontend.Literal> compactB(Map<String,String> pkgs, Map<String,String> map, tools.SourceOracle o){
     var base= compactBase();
@@ -66,6 +75,30 @@ Source code inside folders named "_b" uses package name "a" to refer to the code
 Error 8 TypeError""", Map.of("c", cA), Map.of("a", "c"), """
 B:a.A{ .fromC -> base.Void }
 """); }
+  @Test void noteQuotesTheInsteadOfListOfTheMap(){
+    var ranks= tools.SourceOracle.debugBuilder()
+      .putURI(java.net.URI.create("fear:/_b/_rank_app.fear"), "map a as _c in _b instead of _e,\n  _d;")
+      .putURI(java.net.URI.create("fear:/_c/_rank_worker.fear"), "")
+      .putURI(java.net.URI.create("fear:/_d/_rank_worker.fear"), "map a as _d in _b;")
+      .putURI(java.net.URI.create("fear:/_e/_rank_worker.fear"), "map a as _e in _b;")
+      .build();
+    var o= oraclePkg(List.of("B:a.A{ .fromC -> base.Void }"));
+    var fe= assertThrows(FearlessException.class, () -> new FrontendLogicMain().of("b", rankMaps(ranks), o.allFiles(), others(Map.of("c", cA))));
+    strCmp("""
+In file: [###].fear
+
+001| B:a.A{ .fromC -> base.Void }
+   |        ----------^^^^^^^^^
+
+While inspecting object literal instance of "base.Void" > method "B.fromC" (line 1)
+The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
+Object literal is of type "iso base.Void" instead of a subtype of "a.A".
+Method ".fromC" inherited the signature from "a.A.fromC" as follows:
+.fromC: a.A
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b instead of _e, _d", written in fear:/_b/_rank_app.fear.
+Error 8 TypeError""", fe.render(o));
+  }
   @Test void typeErrorWritesTheMappedName(){ fail("""
 In file: [###].fear
 

@@ -53,7 +53,7 @@ public class FrontendLogicMain{
     if (test.isEmpty()){ return coreAST; }
     var testDecs= test.stream().flatMap(t -> Parse.from(t.fileName(), t.text(), t.layout()).decs().stream()).sorted().toList();
     var names= DeclaredNames.of(pkgName, Stream.concat(pkg.decs().stream(), testDecs.stream()).sorted().toList(), pkg.uses().stream().map(FileFull.Use::out).collect(Collectors.toUnmodifiableSet()));
-    var testPkg= makePackage(pkgName, pkg.map(), pkg.writtenIn(), pkg.uses(), testDecs, names);
+    var testPkg= makePackage(pkgName, pkg.map(), pkg.mapSources(), pkg.uses(), testDecs, names);
     var lits= AllLs.of(coreAST);
     var testCtx= Methods.create(testPkg, other.mergeWith(lits, other.stamp()));
     lits.keySet().forEach(n -> testCtx.fresh().usedTopTypes().add(n.simpleName()));
@@ -101,7 +101,7 @@ public class FrontendLogicMain{
     var shared= winners.stream().collect(Collectors.groupingBy(x -> x.m().target()+"."+x.m().out(), TreeMap::new, Collectors.toList())).values().stream().filter(cs -> cs.size() > 1).findFirst();
     if (shared.isPresent()){ throw new WellFormednessErrors(shared.get().getFirst().m().target()).mapToATargetOfAnotherMap(shared.get().getFirst().m().out(), shared.get().stream().map(Object::toString).toList()); }
     ranks.forEach((pkg, f) -> usesOnlyLowerRanks(pkg, parsed.get(f).uses(), ranks, c));
-    return Map.copyOf(winners.stream().collect(Collectors.groupingBy(x -> x.m().target(), Collectors.toUnmodifiableMap(x -> x.m().in(), x -> x.m().out()+" "+writtenIn(x.uri())))));
+    return Map.copyOf(winners.stream().collect(Collectors.groupingBy(x -> x.m().target(), Collectors.toUnmodifiableMap(x -> x.m().in(), x -> x.m().out()+" "+message.Err.disp(x.m())+", written in "+writtenIn(x.uri())))));
   }
   private static String writtenIn(Ref uri){ return PrettyFileName.displayFileName(uri.fearURI()); }
   private void usesOnlyLowerRanks(String pkg, List<FileFull.Use> uses, Map<String,Ref> ranks, Comparator<Ref> c){
@@ -119,8 +119,8 @@ public class FrontendLogicMain{
   }
   Package mergeToPackage(String pkgName, Map<Ref,FileFull> raw, Map<String,String> override, OtherPackages other){
     assert !raw.isEmpty();
-    var writtenIn= writtenIn(override);
-    var err= new WellFormednessErrors(pkgName, Map.of(), writtenIn, new LinkedHashSet<>());
+    var mapSources= mapSources(override);
+    var err= new WellFormednessErrors(pkgName, Map.of(), mapSources, new LinkedHashSet<>());
     var headPkg= findHeadUri(err, raw.keySet());
     raw.entrySet().stream()
       .filter(e -> !e.getKey().equals(headPkg) && !e.getValue().noDirectives())
@@ -130,10 +130,10 @@ public class FrontendLogicMain{
       .flatMap(f -> f.decs().stream())
       .sorted().toList();
     var names= DeclaredNames.of(pkgName, ds, head.uses().stream().map(FileFull.Use::out).collect(Collectors.toUnmodifiableSet()));
-    return makePackage(pkgName, directives(err, override, head.uses(), other), writtenIn, head.uses(), ds, names);
+    return makePackage(pkgName, directives(err, override, head.uses(), other), mapSources, head.uses(), ds, names);
   }
   public Function<TName,String> names(String pkgName, Map<String,String> override, List<Ref> files, OtherPackages other){
-    var err= new WellFormednessErrors(pkgName, Map.of(), writtenIn(override), new LinkedHashSet<>());
+    var err= new WellFormednessErrors(pkgName, Map.of(), mapSources(override), new LinkedHashSet<>());
     var head= findHeadUri(err, Set.copyOf(files));
     var map= directives(err, override, Parse.from(head.fearURI(), head.loadString()).uses(), other);
     return t -> Package.nameOf(pkgName, map, t);
@@ -144,11 +144,11 @@ public class FrontendLogicMain{
     accUses(err, map, uses, other);
     return Collections.unmodifiableMap(map);
   }
-  private static Map<String,String> writtenIn(Map<String,String> override){
+  private static Map<String,String> mapSources(Map<String,String> override){
     return override.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> e.getValue().substring(e.getValue().indexOf(' ')+1)));
   }
-  Package makePackage(String name, Map<String,String> map, Map<String,String> writtenIn, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names){
-    return new Package(name, map, writtenIn, uses, decs, names, new Package.Logger(false, null));//this method exists to change logger in mocking
+  Package makePackage(String name, Map<String,String> map, Map<String,String> mapSources, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names){
+    return new Package(name, map, mapSources, uses, decs, names, new Package.Logger(false, null));//this method exists to change logger in mocking
   }
   //map a as _b in _c //inside _c, the package name a stands for the code inside _b
   private void accUses(WellFormednessErrors err, HashMap<String,String> map, List<FileFull.Use> uses, OtherPackages other){
