@@ -275,10 +275,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var ms= err().methodSig(m.sig().rc().toStrSpace(), l, m.sig().m());
     var p= pattern(l, m, name, usages.getFirst());
     var x= disp(p.map(FearlessErrFactory::patternRepr).orElse(usages.getFirst().src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : name));
-    var e= err().line("Iso parameter "+x+" violates the single-use rule in method "+ms+" (line "+line+").");
+    var t= m.sig().ts().get(m.xs().indexOf(name));
+    var iso= t instanceof T.RCC r && r.rc() == RC.iso || t instanceof T.RCX rx && rx.rc() == RC.iso;
+    var e= err().line((iso ? "Iso parameter "+x : "Parameter "+x+" of type "+err().typeRepr(false, t)+", which can be instantiated with "+disp(RC.iso)+",")+" violates the single-use rule in method "+ms+" (line "+line+").");
     p.filter(_ -> earlyErrOnMoreThenOnceDirectly).ifPresent(d -> e.line("The pattern "+x+" calls "+Join.of(d.extract().stream().map(ns -> disp(ns.getFirst().s())), "", " and ", "")+" on it."));
     var ex= e.line(earlyErrOnMoreThenOnceDirectly ? "It is used directly "+usages.size()+" times." : "It is used directly and also captured into object literals.")
-      .line("An iso parameter can either be captured into object literals, where it is seen as "+disp(RC.imm)+", or be used directly once.")
+      .line(iso ? "An iso parameter can either be captured into object literals, where it is seen as "+disp(RC.imm)+", or be used directly once." : "A parameter of type "+err().typeRepr(false, t)+" can either be captured into object literals, or be used directly once.")
       .typeErr();
     for (var u : usages){ ex.addSpan(u.span().inner); }
     return ex;
@@ -495,10 +497,18 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("The receiver (the expression before the method name) has capability "+disp(recvRc)+".")
       .line(Join.of(needed, "This call requires a receiver with capability ", " or ", "."));
     if (c.e() instanceof X x && g.bind(x.name()).current() instanceof Change.WithT w && !(w instanceof Change.Same)){ e.line(Reason.adaptation(this, isSelfName(s, x.name()), x, w)); }
-    if (c.e() instanceof X x && g.bind(x.name()).current() instanceof Change.Same(T.RCC t) && t.rc() == RC.imm && !isSelfName(s, x.name())){
+    if (c.e() instanceof X x && g.bind(x.name()).current() instanceof Change.Same(T.RCC t) && t.rc() == RC.imm && !isSelfName(s, x.name()) && writtenWithoutRC(s, x.name())){
       e.line(up(err().expRepr(x))+" has type "+err().typeRepr(false, t)+": a type written without a capability, as "+err().typeRepr(true, t)+", is \"imm\".");
     }
     return withCallSpans(e.pReceiverRequiredByPromotion(promos).ex(c), c.e(), c);
+  }
+  private static boolean writtenWithoutRC(TypeScope s, String x){
+    for (TypeScope it= s; !it.isTop(); it = it.outer()){
+      if (it instanceof TypeScope.Method(var l, var m, _) && m.xs().contains(x)){
+        return srcM(l, m.sig()).filter(fm -> !fm.hasImplicit()).flatMap(fearlessFullGrammar.M::sig).flatMap(fs -> fs.parameters().get(m.xs().indexOf(x)).t()).filter(t -> t instanceof fearlessFullGrammar.T.RCC r && r.rc().isEmpty()).isPresent();
+      }
+    }
+    throw Bug.unreachable();
   }
   ///For argument index argi in call c, the argument's type does not satisfy any promotion's requirement.
   ///Receiver and arguments are well typed, but this argument does not match any promotion.

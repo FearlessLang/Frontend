@@ -6921,6 +6921,39 @@ G:{ .m(a:A): A; .k: A }
 Use:{ #[X](f:F, g:X): X -> g }
 User:{ .u(a:A): B -> Use#({::.fooooooooooooooooooooooooooooooooooooooo}, G{ .m -> ::.fooooooooooooooooooooooooooooooooooooooo; .k -> A }) }
 """));}
+@Test void aParameterWrittenAsImmIsNotSaidToBeWrittenWithoutCapability(){fail("""
+002| U:{ .m(c: imm Counter): Counter -> c.inc }
+   |     -------------------------------^~~~~
+
+While inspecting method "U.m(_)" (line 2)
+This call to method "mut Counter.inc" cannot typecheck.
+The receiver (the expression before the method name) has capability "imm".
+This call requires a receiver with capability "mut" or "iso".
+
+Receiver required by each promotion:
+- "mut" (As declared)
+- "iso" (Strengthen result)
+""", List.of("""
+Counter:{ mut .inc: Counter }
+U:{ .m(c: imm Counter): Counter -> c.inc }
+"""));}
+@Test void aParameterOfInheritedTypeIsNotSaidToBeWrittenWithoutCapability(){fail("""
+003| U:A{ .m(c) -> c.inc }
+   |      ---------^~~~~
+
+While inspecting method "U.m(_)" (line 3)
+This call to method "mut Counter.inc" cannot typecheck.
+The receiver (the expression before the method name) has capability "imm".
+This call requires a receiver with capability "mut" or "iso".
+
+Receiver required by each promotion:
+- "mut" (As declared)
+- "iso" (Strengthen result)
+""", List.of("""
+Counter:{ mut .inc: Counter }
+A:{ .m(c: Counter): Counter }
+U:A{ .m(c) -> c.inc }
+"""));}
 @Test void aParameterWrittenWithoutCapabilityIsImmAsReceiverOfAMutMethod(){fail("""
 002| U:{ .m(c: Counter): Counter -> c.inc }
    |     ---------------------------^~~~~
