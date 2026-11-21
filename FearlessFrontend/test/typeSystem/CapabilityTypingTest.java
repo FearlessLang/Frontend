@@ -438,21 +438,34 @@ A:{ .notBreak(x1: iso Caps, x2: iso Caps): Void -> this.notBreak(x1, x2) }
    |     -------------------------------------------------------^^~~~~-
 
 While inspecting method "A.break(_,_)" (line 2)
-Iso parameter "x1" violates the single-use rule in method "A.break(_,_)" (line 2).
+The iso parameter "x1" violates the single-use rule in method "A.break(_,_)" (line 2).
 It is used directly 2 times.
-An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
+An iso parameter can either be captured into object literals, or be used directly once.
 """, List.of("""
 Caps:{} Void:{}
 A:{ .break(x1: iso Caps, x2: iso Caps): Void -> this.break(x1, x1) }
+"""));}
+@Test void aTypeVariableThatCanBeIsoUsedTwiceDirectly(){fail("""
+002| A:{ .break[X:iso,mut](x1: X, x2: X): Void -> this.break[X](x1, x1) }
+   |     -------------------------------------------------------^^~~~~-
+
+While inspecting method "A.break(_,_)" (line 2)
+Parameter "x1" of type "X", which can be instantiated with "iso"
+The iso parameter "x1" violates the single-use rule in method "A.break(_,_)" (line 2).
+It is used directly 2 times.
+An iso parameter can either be captured into object literals, or be used directly once.
+""", List.of("""
+Void:{}
+A:{ .break[X:iso,mut](x1: X, x2: X): Void -> this.break[X](x1, x1) }
 """));}
 @Test void isoUsedDirectlyAndCaptured(){fail("""
 003|   .break(x1: iso Caps, x2: iso Caps): Void -> this.breakTwo(x1, B{ x1 });
    |   ----------------------------------------------------------^^~~~~~~~---
 
 While inspecting method "A.break(_,_)" (line 3)
-Iso parameter "x1" violates the single-use rule in method "A.break(_,_)" (line 3).
+The iso parameter "x1" violates the single-use rule in method "A.break(_,_)" (line 3).
 It is used directly and also captured into object literals.
-An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
+An iso parameter can either be captured into object literals, or be used directly once.
 """, List.of("""
 Caps:{} Void:{}
 A:{
