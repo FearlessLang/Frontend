@@ -504,11 +504,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   private static boolean writtenWithoutRC(TypeScope s, String x){
     for (TypeScope it= s; !it.isTop(); it = it.outer()){
-      if (it instanceof TypeScope.Method(var l, var m, _) && m.xs().contains(x)){
-        return srcM(l, m.sig()).filter(fm -> !fm.hasImplicit()).flatMap(fearlessFullGrammar.M::sig).flatMap(fs -> fs.parameters().get(m.xs().indexOf(x)).t()).filter(t -> t instanceof fearlessFullGrammar.T.RCC r && r.rc().isEmpty()).isPresent();
-      }
+      if (!(it instanceof TypeScope.Method(var l, var m, _))){ continue; }
+      var t= OneOr.opt("Parameter declared once", srcM(l, m.sig()).flatMap(fearlessFullGrammar.M::sig).stream().flatMap(fs -> fs.parameters().stream()).filter(p -> p.xp().filter(xp -> xp instanceof fearlessFullGrammar.XPat.Name(var n) && n.name().equals(x)).isPresent()).flatMap(p -> p.t().stream()));
+      if (t.isPresent()){ return t.get() instanceof fearlessFullGrammar.T.RCC r && r.rc().isEmpty(); }
     }
-    throw Bug.unreachable();
+    return false;
   }
   ///For argument index argi in call c, the argument's type does not satisfy any promotion's requirement.
   ///Receiver and arguments are well typed, but this argument does not match any promotion.

@@ -6944,6 +6944,24 @@ G:{ .m(a:A): A; .k: A }
 Use:{ #[X](f:F, g:X): X -> g }
 User:{ .u(a:A): B -> Use#({::.fooooooooooooooooooooooooooooooooooooooo}, G{ .m -> ::.fooooooooooooooooooooooooooooooooooooooo; .k -> A }) }
 """));}
+@Test void aParameterBesideANominalPatternIsSaidToBeWrittenWithoutCapability(){fail("""
+003| U:{ .m(c: Counter, {.a}: P): Counter -> c.inc }
+   |     ------------------------------------^~~~~
+
+While inspecting method "base.MF[Counter,Counter,Counter]#(_,_)" (line 3) > method "U.m(_,_)" (line 3)
+This call to method "mut Counter.inc" cannot typecheck.
+The receiver (the expression before the method name) has capability "imm".
+This call requires a receiver with capability "mut" or "iso".
+Parameter "c" has type "imm Counter": a type written without a capability, as "Counter", is "imm".
+
+Receiver required by each promotion:
+- "mut" (As declared)
+- "iso" (Strengthen result)
+""", List.of("""
+Counter:{ mut .inc: Counter }
+P:{ .a: Counter }
+U:{ .m(c: Counter, {.a}: P): Counter -> c.inc }
+"""));}
 @Test void aParameterWrittenAsImmIsNotSaidToBeWrittenWithoutCapability(){fail("""
 002| U:{ .m(c: imm Counter): Counter -> c.inc }
    |     -------------------------------^~~~~
