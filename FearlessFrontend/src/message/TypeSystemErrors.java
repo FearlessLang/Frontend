@@ -308,9 +308,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   private void captureFreeHint(Err e, Literal l, M m){
     var mut= methodSig("mut ", m.sig().m());
+    var others= l.ms().stream().map(M::sig).filter(s -> s.m().equals(m.sig().m()) && s.rc() != RC.mut).map(s -> methodSig(s.rc()+" ", s.m())).distinct().toList();
+    var write= "A method written without a receiver capability also implements "+mut+": write the receiver capability";
     e.line("Hint: "+err().expRepr(l)+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+", so parameter "+disp(l.thisName())+" is \"imm\" in every method.")
-      .line("A value of "+err().tNameADisp(l.name())+" is never \"mut\", so "+mut+" can stay abstract.")
-      .line("A method written without a receiver capability also implements "+mut+": write the receiver capability, as in "+methodSig("read ", m.sig().m())+".");
+      .line("A value of "+err().tNameADisp(l.name())+" is never \"mut\", so "+mut+" can stay abstract.");
+    if (others.isEmpty()){ e.line("A method written without a receiver capability also implements "+mut+".").line("The supertypes declare no other overload of "+err().methodSig(m.sig().m())+": a method "+err().methodSig(m.sig().m())+" with another receiver capability needs its whole signature."); return; }
+    if (others.size() == 1){ e.line(write+", as in "+others.getFirst()+"."); return; }
+    e.line(write+" of one of the following:");
+    others.forEach(e::bullet);
   }
 
 

@@ -2769,6 +2769,57 @@ A method written without a receiver capability also implements "mut .get": write
  A:{ read .get: read A; mut .get: mut A; }
  B:A,base.CaptureFree{ .get->this; }
 """));}
+@Test void captureFreeThisIsNotMutWithAnImmOverload(){fail("""
+002|  B:A,base.CaptureFree{ .get->this; }
+   |                        ------^^^^
+
+While inspecting parameter "this" > method "B.get" (line 2)
+The body of method ".get" of type declaration "B" is an expression returning "B".
+Parameter "this" has type "B" instead of a subtype of "mut A".
+Method ".get" inherited the signature from "A.get" as follows:
+mut .get: mut A
+Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
+A value of "B" is never "mut", so "mut .get" can stay abstract.
+A method written without a receiver capability also implements "mut .get": write the receiver capability, as in "imm .get".
+""", List.of("""
+ A:{ imm .get: A; mut .get: mut A; }
+ B:A,base.CaptureFree{ .get->this; }
+"""));}
+@Test void captureFreeThisIsNotMutWithNoOtherOverload(){fail("""
+002|  B:A,base.CaptureFree{ .get->this; }
+   |                        ------^^^^
+
+While inspecting parameter "this" > method "B.get" (line 2)
+The body of method ".get" of type declaration "B" is an expression returning "B".
+Parameter "this" has type "B" instead of a subtype of "mut A".
+Method ".get" inherited the signature from "A.get" as follows:
+mut .get: mut A
+Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
+A value of "B" is never "mut", so "mut .get" can stay abstract.
+A method written without a receiver capability also implements "mut .get".
+The supertypes declare no other overload of ".get": a method ".get" with another receiver capability needs its whole signature.
+""", List.of("""
+ A:{ mut .get: mut A; }
+ B:A,base.CaptureFree{ .get->this; }
+"""));}
+@Test void captureFreeThisIsNotMutWithTwoOtherOverloads(){fail("""
+002|  B:A,base.CaptureFree{ .get->this; }
+   |                        ------^^^^
+
+While inspecting parameter "this" > method "B.get" (line 2)
+The body of method ".get" of type declaration "B" is an expression returning "B".
+Parameter "this" has type "B" instead of a subtype of "mut A".
+Method ".get" inherited the signature from "A.get" as follows:
+mut .get: mut A
+Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
+A value of "B" is never "mut", so "mut .get" can stay abstract.
+A method written without a receiver capability also implements "mut .get": write the receiver capability of one of the following:
+- "read .get"
+- "imm .get"
+""", List.of("""
+ A:{ read .get: read A; imm .get: A; mut .get: mut A; }
+ B:A,base.CaptureFree{ .get->this; }
+"""));}
 @Test void captureFreeThisReadOnly(){ok(List.of("""
  A:{ read .get: read A; mut .get: mut A; }
  B:A,base.CaptureFree{ read .get->this; }
