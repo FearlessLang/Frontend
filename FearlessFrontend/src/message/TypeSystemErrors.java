@@ -2,10 +2,9 @@ package message;
 
 import static message.Err.*;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -562,34 +561,27 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///  - What arguments satisfy what promotion and why (best type <: required type1, required type 2 etc)
   public FearlessException methodPromotionsDisagreeOnArguments(Literal d, Call c, ArgMatrix mat){
     var args= mat.okByArg().size();
-    assert args > 0;
     assert mat.resByArg().size() == args;
-    var e= err()
-      .pCallCantBeSatisfied(d, c)
-      .line("Each argument is compatible with at least one promotion, but no single promotion fits all arguments.")
-      .blank()
-      .line("Compatible promotions by argument:");
-    for (int argi : Range.of(0, args)){
-      var ok= mat.okByArg().get(argi);
-      assert !ok.isEmpty();
-      var promos= ok.stream().map(i -> mat.candidate(i).promotion()).distinct().sorted().toList();
-      var got= err().typeRepr(true, headerBest(mat.resByArg().get(argi)));
-      e.bullet("Argument "+(argi+1)+" has type "+got+" and is compatible with: "+Join.of(promos, "", ", ", "")+".");
+    for (int i : Range.of(0, args)){
+      for (int j : Range.of(i+1, args)){
+        if (Collections.disjoint(mat.okByArg().get(i), mat.okByArg().get(j))){ return conflictingArguments(d, c, mat, i, j); }
+      }
     }
-    e.blank().line("Promotion failures:");
-    var byArg= IntStream.range(0, args)
-      .mapToObj(_ -> new LinkedHashMap<String,ArrayList<String>>()).toList();
-    var promosN= mat.resByArg().getFirst().size();
-    for (int pi : Range.of(0, promosN)){
-      var argi= IntStream.range(0, args).filter(a -> !mat.okByArg().get(a).contains(pi)).findFirst().getAsInt();
-      var r= mat.resByArg().get(argi).get(pi);
-      assert !r.isEmpty();
-      byArg.get(argi).computeIfAbsent(up(r.info(printed)), _ -> new ArrayList<>())
-        .add(mat.candidate(pi).promotion());
-    }
-    for (int argi : Range.of(0, args)){
-      byArg.get(argi).forEach((info,names) -> e.bullet("Argument "+(argi+1)+Join.of(names, " fails:    ", ", ", "\n")+info));
-    }
+    throw Bug.unreachable();
+  }
+  private FearlessException conflictingArguments(Literal d, Call c, ArgMatrix mat, int i, int j){
+    var e= err().pCallCantBeSatisfied(d, c)
+      .line("Arguments "+(i+1)+" and "+(j+1)+" need different promotions, but a call uses one promotion for all its arguments.");
+    conflictBullet(e, mat, i, j);
+    conflictBullet(e, mat, j, i);
     return withCallSpans(e.ex(c), c);
+  }
+  private void conflictBullet(Err e, ArgMatrix mat, int argi, int other){
+    var promos= mat.okByArg().get(argi).stream().map(i -> mat.candidate(i).promotion()).distinct().toList();
+    var got= err().typeRepr(false, headerBest(mat.resByArg().get(argi)));
+    var pi= mat.okByArg().get(other).getFirst();
+    e.bullet("Argument "+(argi+1)+" has type "+got+" and is compatible with: "+Join.of(promos, "", ", ", "")+".\n"
+      +"Argument "+(argi+1)+" fails with: "+mat.candidate(pi).promotion()+".\n"
+      +up(mat.resByArg().get(argi).get(pi).info(printed)));
   }
 }
