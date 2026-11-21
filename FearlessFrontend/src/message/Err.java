@@ -183,10 +183,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   Err pCallCantBeSatisfied(Literal d, Call c){
     return line("This call to method "+methodSig(c.rc().toStrSpace(), d, c.name())+" cannot typecheck.");
   }
-  Err notInSubtypeList(List<String> options){
-    if (options.size() == 1){ return this; }
-    return line(Join.of(options, "That is not a subtype of any of ", " or ", "."));
-  }
   Err pCallCantBeSatisfied(Call c){
     return line("This call to method "+methodSig(c.name())+" cannot typecheck.");
   }
@@ -196,7 +192,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     blank().line("Receiver required by each promotion:");
     byRc.keySet().stream()
       .sorted()
-      .forEach(rc -> bullet(disp(rc)+" ("+Join.of(byRc.get(rc).stream().distinct(), "", " / ", "")+")"));
+      .forEach(rc -> bullet(disp(rc)+" ("+Join.of(byRc.get(rc).stream().distinct(), "", ", ", "")+")"));
     return this;
   }
   public String gotMsg(boolean skipImm, String label, List<T> got, T expected){

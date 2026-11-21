@@ -369,7 +369,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var best= TypeScope.bestInterestingScope(s, List.of(recvType));
     return withCallSpans(err()
       .pCallCantBeSatisfied(c)
-      .line("The receiver is of type "+err().typeRepr(true, recvType)+". This is a generic type parameter.")
+      .line("The receiver has type "+err().typeRepr(true, recvType)+", where "+disp(((T.RCX)recvType.withRC(RC.imm)).x().name())+" is a generic type parameter.")
       .line("Generic type parameters cannot be receivers of method calls.")
       .ex(best.contextE(), c.e()), c.e(), c);
   }
@@ -507,16 +507,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     assert reqs.stream().allMatch(r -> canon(r.t()).equals(canon(declared)));
     if (isWrongUnderlyingType(ts, bs, canon(declared), res)){ return wrongUnderlyingTypeErr(d, c, argi, declared, res); }
     var gotHdr= headerBest(res);
-    var any= reqs.stream().map(TRequirement::t).map(t -> err().typeRepr(false, t)).distinct().toList();
     var r= Streams.zip(res, reqs).filter((ri,q) -> rcOnlyMismatch(ri.best, q.t())).map((ri,_) -> ri).findFirst().orElse(res.getFirst());
     var e= err()
       .pCallCantBeSatisfied(d, c)
-      .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
-      .notInSubtypeList(any)
+      .line("Argument "+(argi+1)+" has type "+err().typeRepr(false, gotHdr)+".")
       .line(up(r.info(printed)))
       .blank()
       .line("Type required by each promotion:");
-    reqs.forEach(q -> e.bullet(err().typeRepr(false, q.t())+"  ("+q.reqName()+")"));
+    reqs.forEach(q -> e.bullet(err().typeRepr(false, q.t())+" ("+q.reqName()+")"));
     addNoPrecedenceHintIfOperator(e, c);
     var footer= r.footerE.get();
     return withCallSpans(e.ex(footer, c.es().get(argi), inferredInParam(d, c, argi)), c.es().get(argi), c);

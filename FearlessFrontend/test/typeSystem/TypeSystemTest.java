@@ -1249,7 +1249,7 @@ User:{
 
 While inspecting method "User.m(_)" (line 2)
 This call to method ".foo" cannot typecheck.
-The receiver is of type "X". This is a generic type parameter.
+The receiver has type "X", where "X" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 """, List.of("""
 Id:{ #[T:*](t: T): T -> t }
@@ -1261,7 +1261,7 @@ User:{ .m[X:*](x: X): X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
 
 While inspecting method "User.m(_)" (line 4)
 This call to method ".foo" cannot typecheck.
-The receiver is of type "read X". This is a generic type parameter.
+The receiver has type "read X", where "X" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 """, List.of("""
 Id:{ #[T:*](t: T): T -> t }
@@ -1275,7 +1275,7 @@ User:Sup[Box[User]]{ .m[X:*](x: read X): read X -> Id#(Id#(Id#(Id#(Id#(x.foo))))
 
 While inspecting method "User.m(_)" (line 2)
 This call to method ".foo" cannot typecheck.
-The receiver is of type "read/imm X". This is a generic type parameter.
+The receiver has type "read/imm X", where "X" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 """, List.of("""
 Id:{ #[T:*](t: T): T -> t }
@@ -1293,7 +1293,7 @@ User:{ .m[X:*](x: X): base.Void -> Ig#(Mk#(x)) }
 
 While inspecting method "User.m(_)" (line 2)
 This call to method ".foo" cannot typecheck.
-The receiver is of type "X". This is a generic type parameter.
+The receiver has type "X", where "X" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 """, List.of("""
 User:{
@@ -1740,12 +1740,11 @@ User:{
 While inspecting method "BB.foo" (line 5) > method "A.f(_)" (line 5)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Method call "AsRead#(_)" has type "read A" instead of a subtype of "mut A".
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 """, List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
@@ -1762,7 +1761,6 @@ A:{
 While inspecting method "BB.foo" (line 5) > method "A.f(_)" (line 5)
 This call to method "Skip#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Parameter "aaaa" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
 Capturing changes the type of parameter "aaaa":
@@ -1771,8 +1769,8 @@ Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 """, List.of("""
 
 Skip:{#[X:**](X):B->B}
@@ -1823,12 +1821,11 @@ A:{
 While inspecting method "A.f(_)" (line 5)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Method call "IdRO#(_)" has type "read A" instead of a subtype of "mut A".
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 """, List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
@@ -1847,13 +1844,12 @@ A:{
 While inspecting method "User.f" (line 5)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Object literal is of type "read A" instead of a subtype of "mut A".
 Hint: write "mut A" if you need a "mut" object literal.
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 """, List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
@@ -2184,7 +2180,7 @@ User:{ #: read A -> read C:A,B{ .m -> Z } }
 
 While inspecting method "A.bar(_)" (line 3)
 This call to method ".foo123" cannot typecheck.
-The receiver is of type "X". This is a generic type parameter.
+The receiver has type "X", where "X" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 """, List.of("""
 A:{
@@ -2332,12 +2328,11 @@ A:{
 While inspecting method "BB.foo" (line 6) > method "A.f(_)" (line 6)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Method call "AsRead#(_)" has type "read A" instead of a subtype of "mut A".
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 """, List.of("""
 
 B:{}
@@ -4800,7 +4795,6 @@ User:{ .nested(css: L[L[C]]): C -> C; .t: C -> this.nested(Ls#(Ls#(C))) }
 While inspecting method "User.f" (line 5)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mutH A" or "iso A".
 Object literal is of type "read A" instead of a subtype of "mutH A".
 Hint: write "mut A" if you need a "mut" object literal (needed to satisfy the "mutH" requirement).
 
@@ -6457,7 +6451,7 @@ Argument 1 has type "read Foo".
 Parameter "s" has type "read Foo" instead of a subtype of "imm Foo".
 
 Type required by each promotion:
-- "imm Foo"  (As declared, Strengthen result)
+- "imm Foo" (As declared, Strengthen result)
 """, List.of("""
 Use:{ #(f: Foo): base.Void -> base.Void }
 A:{ .k: base.Void -> read Foo:{'s read .z: base.Void -> Use#s }.z }
