@@ -718,8 +718,7 @@ User:{
 While inspecting method "User.bad(_)" (line 4)
 Iso parameter "x" violates the single-use rule in method "User.bad(_)" (line 4).
 It is used directly 2 times.
-Iso parameters can be used directly at most once.
-Allowed: capture into object literals as "imm", or use directly once.
+An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
 """, List.of("""
 Unit:{}
 B:{}
@@ -734,8 +733,7 @@ User:{ imm .bad(x:iso B):Unit->Use2#(x,x); }
 While inspecting method "User.bad(_)" (line 7)
 Iso parameter "xyz" violates the single-use rule in method "User.bad(_)" (line 7).
 It is used directly and also captured into object literals.
-An iso parameter must be either captured, or used directly once (but not both).
-Allowed: capture into object literals as "imm", or use directly once.
+An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
 """, List.of("""
 Unit:{}
 B:{}
@@ -755,8 +753,7 @@ User:{
 While inspecting method "User.bad(_)" (line 8)
 Iso parameter "x" violates the single-use rule in method "User.bad(_)" (line 8).
 It is used directly and also captured into object literals.
-An iso parameter must be either captured, or used directly once (but not both).
-Allowed: capture into object literals as "imm", or use directly once.
+An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
 """, List.of("""
 
 Unit:{}
@@ -778,8 +775,7 @@ User:{
 While inspecting method "base.F[iso B,Unit]#(_)" (line 4) > method "User.bad" (line 4)
 Iso parameter "::" violates the single-use rule in method "read base.F[iso B,Unit]#(_)" (line 4).
 It is used directly 2 times.
-Iso parameters can be used directly at most once.
-Allowed: capture into object literals as "imm", or use directly once.
+An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
 """, List.of("""
 Unit:{}
 B:{}
@@ -793,8 +789,7 @@ While inspecting method "User.bad(_)" (line 2)
 Iso parameter "{.a, .b}" violates the single-use rule in method "User.bad(_)" (line 2).
 The pattern "{.a, .b}" calls ".a" and ".b" on it.
 It is used directly 2 times.
-Iso parameters can be used directly at most once.
-Allowed: capture into object literals as "imm", or use directly once.
+An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
 """, List.of("""
 B:{ .a:B->this; .b:B->this; }
 User:{ .bad({.a,.b}:iso B):B->a }
@@ -1239,7 +1234,7 @@ Hint: funnel "X" into "Foo" by writing "Foo[Z:..,X:..]", restating the bounds of
 
 While inspecting parameter "beer" > method "G[_].get" (line 3) > method "User.m(_)" (line 2)
 Parameter "beer" has type "X".
-The type of parameter "beer" can be instantiated with hygienics (readH or mutH)
+The type of parameter "beer" can be instantiated with a hygienic capability (readH or mutH)
 and thus it cannot be captured in the object literal "G[_]" (line 3).
 """, List.of("""
 User:{

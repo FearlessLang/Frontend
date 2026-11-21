@@ -1865,8 +1865,7 @@ In file: [###].fear
 While inspecting method "a.F.m(_)" (line 1) > method "B.k" (line 1)
 Iso parameter "x" violates the single-use rule in method "a.F.m(_)" (line 1).
 It is used directly 2 times.
-Iso parameters can be used directly at most once.
-Allowed: capture into object literals as "imm", or use directly once.
+An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError

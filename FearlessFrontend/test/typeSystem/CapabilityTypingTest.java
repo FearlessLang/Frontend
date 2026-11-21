@@ -260,7 +260,7 @@ B:{ .break(prisoner: readH B): mut A[readH B] -> {prisoner} }
 
 While inspecting parameter "x" > method "A[X].prison" (line 2) > method "B[_].break(_)" (line 2)
 Parameter "x" has type "X".
-The type of parameter "x" can be instantiated with hygienics (readH or mutH)
+The type of parameter "x" can be instantiated with a hygienic capability (readH or mutH)
 and thus it cannot be captured in the object literal instance of "A[X]" (line 2).
 """, List.of("""
 A[X:mut,imm,read,mutH,readH]:{ mut .prison: X }
@@ -315,7 +315,7 @@ A:{ read .m[T:*](par: mut T) : mut L[mut T] -> mut L[mut T]{.absMeth->par} }
 
 While inspecting parameter "par" > method "L[mutH T].absMeth" (line 3) > method "A.m(_)" (line 3)
 Parameter "par" has type "T".
-The type of parameter "par" can be instantiated with hygienics (readH or mutH)
+The type of parameter "par" can be instantiated with a hygienic capability (readH or mutH)
 and thus it cannot be captured in the object literal instance of "L[mutH T]" (line 3).
 """, List.of("""
 B:{}
@@ -440,8 +440,7 @@ A:{ .notBreak(x1: iso Caps, x2: iso Caps): Void -> this.notBreak(x1, x2) }
 While inspecting method "A.break(_,_)" (line 2)
 Iso parameter "x1" violates the single-use rule in method "A.break(_,_)" (line 2).
 It is used directly 2 times.
-Iso parameters can be used directly at most once.
-Allowed: capture into object literals as "imm", or use directly once.
+An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
 """, List.of("""
 Caps:{} Void:{}
 A:{ .break(x1: iso Caps, x2: iso Caps): Void -> this.break(x1, x1) }
@@ -453,8 +452,7 @@ A:{ .break(x1: iso Caps, x2: iso Caps): Void -> this.break(x1, x1) }
 While inspecting method "A.break(_,_)" (line 3)
 Iso parameter "x1" violates the single-use rule in method "A.break(_,_)" (line 3).
 It is used directly and also captured into object literals.
-An iso parameter must be either captured, or used directly once (but not both).
-Allowed: capture into object literals as "imm", or use directly once.
+An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
 """, List.of("""
 Caps:{} Void:{}
 A:{
