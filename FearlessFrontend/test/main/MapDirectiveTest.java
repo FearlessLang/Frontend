@@ -1426,6 +1426,21 @@ Error 7 WellFormedness
 use A as X;
 B:{}
 """); }
+  @Test void useOfASimpleNameOfAPrivateType(){ fail("""
+In file: [###].fear
+
+001| use _A as X;
+   |     ^^
+
+While inspecting package header
+"use" directive refers to "_A", which is not a full type name.
+A "use" directive refers to a type of another package by its full type name.
+No other package declares a type named "_A".
+Error 7 WellFormedness
+""", Map.of("d", "_A:{}"), Map.of(), """
+use _A as X;
+B:{}
+"""); }
   @Test void undeclaredSimpleNameThroughAKeywordLikeMap(){ fail("""
 In file: [###].fear
 
