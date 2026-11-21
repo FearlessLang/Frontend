@@ -420,8 +420,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var allParHasType= s.ts().stream().allMatch(Optional::isPresent);
     var e= err();
     if (allParHasType){ e.line("Missing return type for method "+name+"."); }
-    if (allParHasType && addReturnType){ e
-      .line(m.impl().isPresent() ? "Add an explicit return type before \"->\"." : "Add an explicit return type at the end of the signature.")
+    if (allParHasType && addReturnType && m.impl().isEmpty()){ e.line("Add an explicit return type at the end of the signature."); }
+    if (allParHasType && addReturnType && m.impl().isPresent()){ e
+      .line("Add an explicit return type before \"->\".")
       .line("Alternatively (less common), if you intended to override and omit the signature,")
       .line("the signature must be inherited from a supertype.");
     }

@@ -1058,8 +1058,6 @@ A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
 While inspecting type declaration "A"
 Missing return type for method ".m".
 Add an explicit return type at the end of the signature.
-Alternatively (less common), if you intended to override and omit the signature,
-the signature must be inherited from a supertype.
 Cannot infer signature of method ".m".
 No supertype has a method named ".m" with 0 parameters.
 """, List.of("""
@@ -1072,8 +1070,6 @@ A:{ .m; }
 While inspecting type declaration "A"
 Missing return type for method ".use(_)".
 Add an explicit return type at the end of the signature.
-Alternatively (less common), if you intended to override and omit the signature,
-the signature must be inherited from a supertype.
 Cannot infer signature of method ".use(_)".
 No supertype has a method named ".use(_)" with 1 parameter.
 """, List.of("""
