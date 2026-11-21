@@ -406,10 +406,14 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var names= sup.stream().map(si -> si.m().s()).distinct().sorted().toList();
     var best= s.m().filter(_ -> !names.isEmpty()).flatMap(n -> NameSuggester.bestName(n.s(), names));
     var e= s.m().isEmpty() ? unnamedNotInferred(origin, s, sup) : missingTypes(s, best.isEmpty());
-    best.ifPresent(b -> e.didYouMean(sup.stream().filter(si -> si.m().s().equals(b)).map(WellFormednessErrors::supSig).distinct().toList()));
-    m.names().stream().filter(x -> s.m().isEmpty() && names.contains("."+x)).findFirst()
-      .ifPresent(x -> e.line(disp(x)+" is read as a parameter name: a method name starts with \".\", as in "+disp("."+x)+"."));
-    if (!sup.isEmpty()){ e.line(Join.of(sup.stream().map(WellFormednessErrors::supSig).distinct().sorted(), "Methods of the supertypes: ", ", ", ".")); }
+    var asName= m.names().stream().filter(x -> s.m().isEmpty() && names.contains("."+x)).findFirst();
+    var suggested= best.or(() -> asName.map(x -> "."+x)).map(b -> sup.stream().filter(si -> si.m().s().equals(b)).map(WellFormednessErrors::supSig).distinct().toList()).orElse(List.of());
+    best.ifPresent(_ -> e.didYouMean(suggested));
+    asName.ifPresent(x -> e.line(disp(x)+" is read as a parameter name: a method name starts with \".\", as in "+disp("."+x)+"."));
+    var rest= sup.stream().map(WellFormednessErrors::supSig).distinct().sorted().filter(x -> !suggested.contains(x)).toList();
+    if (rest.isEmpty()){ return wf(e, s, origin); }
+    e.line(suggested.isEmpty() ? "Methods of the supertypes:" : "Other methods of the supertypes:");
+    rest.forEach(e::bullet);
     return wf(e, s, origin);
   }
   private static String supSig(core.Sig s){ return methodSig(s.rc().toStrSpace(), s.m()); }

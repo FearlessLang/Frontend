@@ -1025,7 +1025,6 @@ Missing return type for method "imm .m".
 Cannot infer signature of method "imm .m".
 No supertype has a method named "imm .m" with 0 parameters.
 Did you mean "mut .m" ?
-Methods of the supertypes: "mut .m".
 """, List.of("""
 A:{ mut .m: A }
 B:A{ imm .m -> this }
@@ -1039,7 +1038,8 @@ Missing return type for method ".some".
 Cannot infer signature of method ".some".
 No supertype has a method named ".some" with 0 parameters.
 Did you mean ".some(_)" ?
-Methods of the supertypes: ".empty", ".some(_)".
+Other methods of the supertypes:
+- ".empty"
 """, List.of("""
 A:{}
 OM[R]:{ .some(a: A): R; .empty: R }
@@ -1055,7 +1055,8 @@ Missing return type for method ".els".
 Cannot infer signature of method ".els".
 No supertype has a method named ".els" with 0 parameters.
 Did you mean ".else" ?
-Methods of the supertypes: ".else", ".then".
+Other methods of the supertypes:
+- ".then"
 """, List.of("""
 A:{}
 IfM[R]:{ .then: R; .else: R }
@@ -1073,7 +1074,8 @@ No supertype has a method named ".els" with 0 parameters.
 Did you mean one of the following?
 - ".else(_)"
 - "read .else"
-Methods of the supertypes: ".else(_)", ".then", "read .else".
+Other methods of the supertypes:
+- ".then"
 """, List.of("""
 A:{}
 IfM[R]:{ .then: R; .else(r: R): R; read .else: R }
@@ -1088,10 +1090,24 @@ While inspecting type declaration "West"
 Cannot infer signature and name for a method with 1 parameter.
 No supertype of type declaration "West" has a method with 1 parameter.
 "turn" is read as a parameter name: a method name starts with ".", as in ".turn".
-Methods of the supertypes: ".turn".
 """, List.of("""
 Direction:{ .turn: Direction }
 North:Direction{ .turn -> North }
+West:Direction{ turn -> North }
+"""));}
+@Test void aMethodNameWithoutTheDotListsTheOtherMethodsOfTheSupertypes(){failWf("""
+003| West:Direction{ turn -> North }
+   | ----------------^^^^^^^^^^^^^--
+
+While inspecting type declaration "West"
+Cannot infer signature and name for a method with 1 parameter.
+No supertype of type declaration "West" has a method with 1 parameter.
+"turn" is read as a parameter name: a method name starts with ".", as in ".turn".
+Other methods of the supertypes:
+- ".back"
+""", List.of("""
+Direction:{ .turn: Direction; .back: Direction }
+North:Direction{ .turn -> North; .back -> North }
 West:Direction{ turn -> North }
 """));}
 @Test void aLambdaWithTooManyParametersListsTheMethodsOfTheSupertype(){failWf("""
@@ -1101,7 +1117,8 @@ West:Direction{ turn -> North }
 While inspecting object literal instance of "F[_,_]"
 Cannot infer signature and name for a method with 2 parameters.
 No supertype of object literal instance of "F[_,_]" has a method with 2 parameters.
-Methods of the supertypes: "#(_)".
+Methods of the supertypes:
+- "#(_)"
 """, List.of("""
 A:{}
 F[X,R]:{ #(x: X): R }
@@ -1114,7 +1131,8 @@ U:{ .u(f: F[A,A]): A -> A; .k: A -> this.u{ a, b -> a } }
 While inspecting type declaration "B"
 Cannot infer signature and name for a method with 1 parameter.
 Each method with 1 parameter of the supertypes is already implemented by another method of type declaration "B".
-Methods of the supertypes: ".m(_)".
+Methods of the supertypes:
+- ".m(_)"
 """, List.of("""
 A:{ .m(a: A): A }
 B:A{ .m(a) -> this; a -> this }
