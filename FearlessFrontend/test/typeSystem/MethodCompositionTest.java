@@ -100,7 +100,9 @@ C:{ .m: C }
 
 While inspecting type declaration "A"
 Supertypes disagree on the return type of method "imm .m" with 0 parameters.
-Candidates: "B", "C".
+Candidates:
+- "B"
+- "C"
 Type declaration "A" must declare a method ".m" explicitly choosing the desired option.
 """, List.of("""
 A:B,C{}
@@ -113,7 +115,9 @@ C:{ .m: C }
 
 While inspecting type declaration "AA"
 Supertypes disagree on the return type of method "imm .m" with 0 parameters.
-Candidates: "B", "C".
+Candidates:
+- "B"
+- "C"
 Type declaration "AA" must declare a method ".m" explicitly choosing the desired option.
 """, List.of("""
 A:AA{ .m: Int }
@@ -187,7 +191,9 @@ C:{ .m(c:Foo): Foo -> c }
 
 While inspecting type declaration "A"
 Ambiguous implementation for method ".m(_)" with 1 parameter.
-Implemented by the supertypes "B", "C".
+Implemented by the supertypes:
+- "B"
+- "C"
 Type declaration "A" must declare a method ".m(_)" explicitly implementing the desired behaviour.
 """, List.of("""
 Foo:{}
@@ -208,7 +214,9 @@ D:A,C{}
 
 While inspecting type declaration "D"
 Ambiguous implementation for method ".m" with 0 parameters.
-Implemented by the supertypes "A", "B".
+Implemented by the supertypes:
+- "A"
+- "B"
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
 """, List.of("""
 R:{}
@@ -243,7 +251,9 @@ List[T:*]:{}
 
 While inspecting type declaration "A"
 Supertypes disagree on the return type of method "imm .kk" with 0 parameters.
-Candidates: "A", "List[A]".
+Candidates:
+- "A"
+- "List[A]"
 Type declaration "A" must declare a method ".kk" explicitly choosing the desired option.
 """, List.of("""
 A:B[A],C[List[A]]{}
@@ -278,7 +288,10 @@ C:{ .withTArg(a:A): Foo -> a.m[Foo]; .noTArg(a:A): Foo -> a.m }
 
 While inspecting a type name
 Type "X" is not declared in package "p" and is not made visible via "use".
-In scope: "A", "B", "Foo".
+In scope:
+- "A"
+- "B"
+- "Foo"
 """, List.of("""
 Foo:{}
 A:B{ .m(x: X): Foo }
@@ -434,7 +447,9 @@ Bar[X:*]:{ .m: Foo[X] -> Foo[X:*]:{} }
 
 While inspecting type declaration "D"
 Supertypes disagree on the type of parameter 1 of method "imm .m(_)" with 1 parameter.
-Candidates: "base.Int", "base.Float".
+Candidates:
+- "base.Int"
+- "base.Float"
 Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
 """, List.of("""
 A[X:*]:{ .m(x:X):X->x }
@@ -617,7 +632,9 @@ User:{ #:D->D:X,C{} }
 
 While inspecting type declaration "D"
 Ambiguous implementation for method ".m" with 0 parameters.
-Implemented by the supertypes "B", "C".
+Implemented by the supertypes:
+- "B"
+- "C"
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
 """, List.of("""
 R:{}
@@ -633,7 +650,9 @@ D:X,B,C{}
 
 While inspecting type declaration "D"
 Ambiguous implementation for method ".m" with 0 parameters.
-Implemented by the supertypes "A", "B".
+Implemented by the supertypes:
+- "A"
+- "B"
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
 """, List.of("""
 R:{}
@@ -825,7 +844,9 @@ A:Foo[imm Bar],Foo[mut Beer]{ .get: Both -> Both }
 
 While inspecting type declaration "A"
 Supertypes disagree on the return type of method "imm .get" with 0 parameters.
-Candidates: "imm Bar", "mut Beer".
+Candidates:
+- "imm Bar"
+- "mut Beer"
 The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".get" can implement all the candidates.
 """, List.of("""
 Bar:{}
@@ -852,7 +873,9 @@ Sub[X:*]:Sup[X]{ .h(x: X): X }
 
 While inspecting type declaration "A[_]"
 Supertypes disagree on the return type of method "imm .get" with 0 parameters.
-Candidates: "Y", "imm Y".
+Candidates:
+- "Y"
+- "imm Y"
 The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".get" can implement all the candidates.
 """, List.of("""
 Foo[T:*]:{ .get: T }
@@ -883,7 +906,9 @@ A[Y:imm]:Foo[Y],Bar[Y]{}
 
 While inspecting type declaration "A[_]"
 Supertypes disagree on the return type of method "imm .get" with 0 parameters.
-Candidates: "Y", "Bar".
+Candidates:
+- "Y"
+- "Bar"
 The candidates are different types and "Y" is a generic type parameter, so no method ".get" can implement all the candidates.
 """, List.of("""
 Bar:{}
@@ -896,7 +921,9 @@ A[Y:imm]:Foo[Y],Foo[Bar]{}
 
 While inspecting type declaration "A[_]"
 Supertypes disagree on the return type of method "imm .get" with 0 parameters.
-Candidates: "Y", "imm Bar".
+Candidates:
+- "Y"
+- "imm Bar"
 The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".get" can implement all the candidates.
 """, List.of("""
 Bar:{}
@@ -931,7 +958,9 @@ User:{ .asFoo(a: A[Baz]): Foo[Baz] -> a; .get(a: A[Baz]): Baz -> a.get; .make: A
 
 While inspecting type declaration "A[_]"
 Supertypes disagree on the return type of method "imm .get" with 0 parameters.
-Candidates: "Y", "read/imm Y".
+Candidates:
+- "Y"
+- "read/imm Y"
 The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".get" can implement all the candidates.
 """, List.of("""
 Foo[X:imm,mut]:{ .get: X }
@@ -950,7 +979,9 @@ A:Foo,Bar{}
 
 While inspecting type declaration "A"
 Supertypes disagree on the return type of method "imm .get" with 0 parameters.
-Candidates: "T", "read/imm T".
+Candidates:
+- "T"
+- "read/imm T"
 The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".get" can implement all the candidates.
 """, List.of("""
 Foo:{ .get[T:mut]: T }
@@ -995,7 +1026,9 @@ C:A{.m[Y:imm,X:imm](x:Y,y:X):Y->x}
 While inspecting object literal "Both"
 Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
 Generic type parameter names may differ across supertypes; only the position matters.
-Candidates: "imm", "read".
+Candidates:
+- "imm"
+- "read"
 Object literal "Both" cannot implement all of those supertypes.
 """, List.of("""
 Sup1:{ .id[X:imm](x:X):X }
@@ -1008,7 +1041,9 @@ A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
 
 While inspecting object literal "Both"
 Supertypes disagree on the number of generic type parameters of method ".id(_)" with 1 parameter.
-Candidates: "[_AX:imm]", "[]".
+Candidates:
+- "[_AX:imm]"
+- "[]"
 Generic type parameter "X" of "Sup1.id(_)" is named "_AX" here.
 Object literal "Both" cannot implement all of those supertypes.
 """, List.of("""

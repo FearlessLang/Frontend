@@ -88,7 +88,9 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Supertypes disagree on the return type of method "imm .m" with 0 parameters.
-Candidates: "a.A", "a.A2".
+Candidates:
+- "a.A"
+- "a.A2"
 Type declaration "B" must declare a method ".m" explicitly choosing the desired option.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -125,7 +127,9 @@ In file: [###].fear
 While inspecting a type name
 Source code inside folders named "_b" cannot use package name "c".
 Did you mean "a" ?
-Visible package names: "a", "base".
+Visible package names:
+- "a"
+- "base"
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
@@ -194,7 +198,9 @@ In file: [###].fear
 While inspecting a type name
 Source code inside folders named "_b" cannot use package name "c".
 Did you mean "a" ?
-Visible package names: "a", "base".
+Visible package names:
+- "a"
+- "base"
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
@@ -276,7 +282,9 @@ In file: [###].fear
 While inspecting package header
 Source code inside folders named "_b" cannot use package name "c".
 Did you mean "a" ?
-Visible package names: "a", "base".
+Visible package names:
+- "a"
+- "base"
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
@@ -397,7 +405,9 @@ In file: [###].fear
 While inspecting a type name
 Source code inside folders named "_b" cannot use package name "webserver_v12".
 Did you mean "webserver" ?
-Visible package names: "base", "webserver".
+Visible package names:
+- "base"
+- "webserver"
 Source code inside folders named "_b" uses package name "webserver" to refer to the code inside folders named "_webserver_v12", because of "map webserver as _webserver_v12 in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("webserver_v12", "Server:{.v12:Server->this}"), Map.of("webserver", "webserver_v12"), """
@@ -563,7 +573,9 @@ In file: [###].fear
 
 While inspecting a type name
 Type "Server" is not declared in package "b" and is not made visible via "use".
-In scope: "B", "Remote".
+In scope:
+- "B"
+- "Remote"
 Did you mean "Remote" ?
 
 Name "Remote" stands for "a.Server" because of "use a.Server as Remote".
@@ -748,7 +760,9 @@ In file: [###].fear
 While inspecting a type name
 Source code inside folders named "_b" cannot use package name "c".
 Did you mean "a" ?
-Visible package names: "a", "base".
+Visible package names:
+- "a"
+- "base"
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cBox), Map.of("a", "c"), """
@@ -1026,7 +1040,9 @@ In file: [###].fear
 
 While inspecting a type name
 Type "Server" is not declared in package "b" and is not made visible via "use".
-In scope: "B", "Remote".
+In scope:
+- "B"
+- "Remote"
 Did you mean "Remote" ?
 Error 7 WellFormedness
 """, Map.of("c", cA, "d", "Server:{}"), Map.of("a", "c"), """
@@ -1041,7 +1057,9 @@ In file: [###].fear
 
 While inspecting a type name
 Type "Server" is not declared in package "b" and is not made visible via "use".
-In scope: "B", "Remote".
+In scope:
+- "B"
+- "Remote"
 Did you mean one of the following?
 - "Remote"
 - "d.Server"
@@ -1063,7 +1081,9 @@ In file: [###].fear
 
 While inspecting a type name
 Type "Qqqqqq" is not declared in package "b" and is not made visible via "use".
-In scope: "B", "X".
+In scope:
+- "B"
+- "X"
 
 Name "X" stands for "a.A" because of "use a.A as X".
 """+noteA+"""
@@ -1366,7 +1386,9 @@ In file: [###].fear
 While inspecting a type name
 Source code inside folders named "_b" cannot use package name "c__v_".
 Did you mean "a" ?
-Visible package names: "a", "base".
+Visible package names:
+- "a"
+- "base"
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c__v_", because of "map a as _c__v_ in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c__v_", cA), Map.of("a", "c__v_"), """
@@ -1381,7 +1403,9 @@ In file: [###].fear
 While inspecting a type name
 Source code inside folders named "_b" cannot use package name "in".
 Did you mean "as" ?
-Visible package names: "as", "base".
+Visible package names:
+- "as"
+- "base"
 Source code inside folders named "_b" uses package name "as" to refer to the code inside folders named "_in", because of "map as as _in in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("in", cA), Map.of("as", "in"), """
@@ -1628,7 +1652,10 @@ In file: [###].fear
 While inspecting a type name
 Source code inside folders named "_b" cannot use package name "json_v2".
 Did you mean "json" ?
-Visible package names: "base", "json", "json_v1".
+Visible package names:
+- "base"
+- "json"
+- "json_v1"
 """+jsonNote+"""
 
 Error 7 WellFormedness
@@ -1644,7 +1671,10 @@ In file: [###].fear
 While inspecting package header
 Source code inside folders named "_b" cannot use package name "json_v2".
 Did you mean "json" ?
-Visible package names: "base", "json", "json_v1".
+Visible package names:
+- "base"
+- "json"
+- "json_v1"
 """+jsonNote+"""
 
 Error 7 WellFormedness
@@ -1661,7 +1691,10 @@ In file: [###].fear
 While inspecting a type name
 Source code inside folders named "_b" cannot use package name "json_v3".
 Did you mean "json_v1" ?
-Visible package names: "base", "json", "json_v1".
+Visible package names:
+- "base"
+- "json"
+- "json_v1"
 Error 7 WellFormedness
 """, jsons, Map.of("json", "json_v2"), """
 B:{.m(x:json_v3.Parser):json.Parser->x.v2}
@@ -2128,7 +2161,9 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Supertypes disagree on the type of parameter 1 of method "imm .m(_)" with 1 parameter.
-Candidates: "a.P", "a.Q".
+Candidates:
+- "a.P"
+- "a.Q"
 Type declaration "B" must declare a method ".m(_)" explicitly choosing the desired option.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -2144,7 +2179,9 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Supertypes disagree on the return type of method "imm .m" with 0 parameters.
-Candidates: "imm a.P", "mut a.P".
+Candidates:
+- "imm a.P"
+- "mut a.P"
 The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".m" can implement all the candidates.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -2275,7 +2312,9 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Ambiguous implementation for method ".m" with 0 parameters.
-Implemented by the supertypes "a.I1", "a.I2".
+Implemented by the supertypes:
+- "a.I1"
+- "a.I2"
 Type declaration "B" must declare a method ".m" explicitly implementing the desired behaviour.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -2881,7 +2920,9 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Ambiguous implementation for method ".m" with 0 parameters.
-Implemented by the supertypes "X", "a.I2".
+Implemented by the supertypes:
+- "X"
+- "a.I2"
 Type declaration "B" must declare a method ".m" explicitly implementing the desired behaviour.
 
 Name "X" stands for "a.I1" because of "use a.I1 as X".
@@ -2900,7 +2941,9 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Ambiguous implementation for method ".m" with 0 parameters.
-Implemented by the supertypes "d.I2", "a.I1".
+Implemented by the supertypes:
+- "d.I2"
+- "a.I1"
 Type declaration "B" must declare a method ".m" explicitly implementing the desired behaviour.
 
 """+noteD+"\n"+noteA+"""

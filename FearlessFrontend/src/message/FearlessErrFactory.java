@@ -261,10 +261,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   public FearlessException genericNotInScope(Token X, Span at, Collection<String> Xs){
     return Code.UnexpectedToken.of(() ->
       "Generic type parameter "+disp(X.content())+" is not in scope.\n"
-      +expected(
-        "No generic type parameters are declared here",
-        "Declared generic type parameters: ", "Declared generic type parameters: ",
-        Xs, Err::disp)).addSpan(at);
+      +Join.of(Xs.stream().map(Err::disp), "Declared generic type parameters: ", ", ", ".\n", "No generic type parameters are declared here.\n")).addSpan(at);
   }
   public FearlessException genericNotFunnelled(Token X, Span at, String owner, List<String> Xs){
     return Code.UnexpectedToken.of(Err.funnel(X.content(), owner, Xs)).addSpan(at);
@@ -319,7 +316,8 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   private static <EE> String expected(String pre0, String pre1, String preMany, Collection<EE> items, Function<EE,String> f){
     var labels= items.stream().map(f).distinct().toList();
-    return Join.of(labels, labels.size() == 1 ? pre1 : preMany, ", ", ".\n", pre0.isEmpty() ? "" : pre0+".\n");
+    if (labels.size() != 1){ return Join.of(labels.stream().map(l -> "\n- "+l), preMany.stripTrailing(), "", "\n", pre0.isEmpty() ? "" : pre0+".\n"); }
+    return pre1+labels.getFirst()+".\n";
   }
   @Override public FearlessException unrecognizedTextAt(Span at, String what, Tokenizer tokenizer){
     var head= what.isBlank()

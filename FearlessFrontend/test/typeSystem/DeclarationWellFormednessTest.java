@@ -210,7 +210,11 @@ A:{ #: readH A -> readH A }
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: "read/imm".
-Expected one of: parameter name, type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`), "(", "{".
+Expected one of:
+- parameter name
+- type name (like "Point", "base.Nat", "12", "-3.5", `"abc"`)
+- "("
+- "{"
 """, List.of("""
 A:{ #: A -> this.eat(read/imm A); .eat(a: A): A -> a }
 """));}
@@ -356,7 +360,10 @@ FPerson:{ #[N:imm](name: Str, age: N): Person[N] -> Person2[N] }
 
 While inspecting a type name
 Type "Break" is not declared in package "p" and is not made visible via "use".
-In scope: "A", "BreakInner", "BreakOuter".
+In scope:
+- "A"
+- "BreakInner"
+- "BreakOuter"
 """, List.of("""
 A[X:mut]:{}
 BreakOuter:{ #: BreakInner -> BreakInner: A[imm Break]{} }
