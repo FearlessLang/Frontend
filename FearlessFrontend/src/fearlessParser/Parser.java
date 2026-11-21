@@ -98,9 +98,8 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   T.X parseDecTX(boolean mustNew){
     var startPos= index();
     var c= expectValidate("generic type parameter name", UppercaseId, _XId);
-    var declared= names.XIn(c.content()) || names.XHidden(c.content());
-    var redeclared= mustNew && declared;
-    if (redeclared){ throw errFactory().nameRedeclared(c, span(c).get()); }
+    if (mustNew && names.XIn(c.content())){ throw errFactory().nameRedeclared(c, span(c).get()); }
+    if (mustNew && names.XHidden(c.content())){ throw errFactory().hiddenGenericRedeclared(c, span(c).get(), names.funnelOwner()); }
     if (!mustNew){ checkXInScope(c); }
     return new T.X(c.content(), new TSpan(spanAround(startPos, index()-1)));
   }
