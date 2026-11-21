@@ -445,6 +445,18 @@ An iso parameter can either be captured into object literals, where it is seen a
 Caps:{} Void:{}
 A:{ .break(x1: iso Caps, x2: iso Caps): Void -> this.break(x1, x1) }
 """));}
+@Test void aTypeVariableThatCanBeIsoUsedTwiceDirectly(){fail("""
+002| A:{ .break[X:iso,mut](x1: X, x2: X): Void -> this.break[X](x1, x1) }
+   |     -------------------------------------------------------^^~~~~-
+
+While inspecting method "A.break(_,_)" (line 2)
+Parameter "x1" of type "X", which can be instantiated with "iso", violates the single-use rule in method "A.break(_,_)" (line 2).
+It is used directly 2 times.
+A parameter of type "X" can either be captured into object literals, or be used directly once.
+""", List.of("""
+Void:{}
+A:{ .break[X:iso,mut](x1: X, x2: X): Void -> this.break[X](x1, x1) }
+"""));}
 @Test void isoUsedDirectlyAndCaptured(){fail("""
 003|   .break(x1: iso Caps, x2: iso Caps): Void -> this.breakTwo(x1, B{ x1 });
    |   ----------------------------------------------------------^^~~~~~~~---
