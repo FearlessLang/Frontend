@@ -2215,7 +2215,7 @@ Supertypes disagree on the signature of method "imm .m".
 Signatures as inherited by type declaration "B":
 -       a.A1.m: a.P
 -       a.A2.m: mut a.P
-The return type differs in reference capability ("imm a.P", "mut a.P"), and an overriding method must keep the reference capability.
+The return type differs in reference capability; overriding must keep the reference capability.
 Type declaration "B" cannot implement all of those supertypes.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -2237,7 +2237,7 @@ Original signatures:
 Signatures as inherited by type declaration "B[_]":
 -       a.A1.id[_AX](_AX): _AX
 -       a.A2.id[Y:read](Y): Y
-The capability bounds of generic type parameter 1 differ, and an overriding method must keep the capability bounds.
+The capability bounds of generic type parameter 1 differ; overriding must keep the capability bounds.
 Type declaration "B[_]" cannot implement all of those supertypes.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.

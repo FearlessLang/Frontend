@@ -887,7 +887,7 @@ Supertypes disagree on the signature of method "imm .id(_)".
 Signatures as inherited by type declaration "D":
 -       A.id[X](Box[X]): X
 -       C.id[Y:read](Box[Y]): Y
-The capability bounds of generic type parameter 1 differ, and an overriding method must keep the capability bounds.
+The capability bounds of generic type parameter 1 differ; overriding must keep the capability bounds.
 Type declaration "D" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
@@ -907,7 +907,7 @@ Supertypes disagree on the signature of method "imm .id(_)".
 Signatures as inherited by type declaration "D":
 -       A.id[X](Box[X]): X
 -       C.id[Y:read](Box[Y]): Y
-The capability bounds of generic type parameter 1 differ, and an overriding method must keep the capability bounds.
+The capability bounds of generic type parameter 1 differ; overriding must keep the capability bounds.
 Type declaration "D" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
