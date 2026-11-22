@@ -1412,6 +1412,25 @@ S1:{ .foo: Foo[Q1] }
 S2:{ .foo: Foo[Q2] }
 B:S1,S2{}
 """));}
+@Test void supertypesDisagreeOnReturnTypesWithTheSameGenericTypeImplementedByAGenericType(){failWf("""
+007| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
+Candidates:
+- "Foo[Q1]"
+- "Foo[Q2]"
+Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+""", List.of("""
+Q1:{}
+Q2:{}
+Foo[T:*]:{ .get: T }
+G[T:*]:Foo[T]{}
+S1:{ .foo: Foo[Q1] }
+S2:{ .foo: Foo[Q2] }
+B:S1,S2{}
+"""));}
 @Test void supertypesDisagreeOnTheReturnTypeWithAGenericCommonSubtype(){failWf("""
 006| B:S1,S2{}
    | ^^^^^^^^^
