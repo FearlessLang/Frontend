@@ -204,19 +204,23 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   private boolean foreignSealed(TName name){
     return !name.pkgName().equals(pkg.name()) && LiteralDeclarations.has(decs.apply(name).cs(), LiteralDeclarations.sealed);
   }
-  public FearlessException literalImplementsTypeParameter(E at, T req){
+  public FearlessException literalImplementsTypeParameter(TypeScope scope, E at, T req){
     var x= err().typeRepr(true, req);
     var untyped= at instanceof Literal l && l.src().inner instanceof fearlessFullGrammar.E.Literal;
-    if (untyped){ return addExpFrame(at, err()
-      .line(up(err().expRepr(at))+" cannot implement "+x+".")
-      .line(x+" is a generic type parameter; object literals can only implement nominal types.")
-      .typeErr());
-    }
     E typed= switch (at){ case Literal l -> l.withRC(RC.imm); case Type t -> new Type(t.type().withRC(RC.imm), t.src()); default -> throw Bug.unreachable(); };
-    return addExpFrame(at, err()
-      .line(up(err().expRepr(typed))+" is required to be of type "+x+".")
-      .line(x+" is a generic type parameter; an object literal is always of a nominal type.")
-      .typeErr());
+    var e= untyped
+      ? err().line(up(err().expRepr(at))+" cannot implement "+x+".").line(x+" is a generic type parameter; object literals can only implement nominal types.")
+      : err().line(up(err().expRepr(typed))+" is required to be of type "+x+".").line(x+" is a generic type parameter; an object literal is always of a nominal type.");
+    declaring(scope, OneOr.of("Type parameters", TypeRename.tToIT(req).ftv())).ifPresent(m -> e.sigs(m.l(), m.m(), true));
+    return addExpFrame(at, e.typeErr());
+  }
+  static Optional<TypeScope.Method> declaring(TypeScope s, String x){ return OneOr.opt("Type parameter declared twice", visible(s).stream().filter(m -> B.xs(m.m().sig().bs()).contains(x))); }
+  private static List<TypeScope.Method> visible(TypeScope scope){
+    var res= new ArrayList<TypeScope.Method>();
+    for (TypeScope it= scope; !it.isTop() && (res.isEmpty() || res.getLast().l().infName()); it = it.outer()){
+      if (it instanceof TypeScope.Method m){ res.add(m); }
+    }
+    return res;
   }
   public FearlessException typeDeclaredInMethod(E at, Literal l){
     return addExpFrame(at, err()
@@ -290,9 +294,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
         +"\nis implemented with an expression returning "+got0+".");
     e.line(up(got.info(printed)));
     e.sigs(l, m, true);
-    for (TypeScope it= s.outer(); !it.isTop(); it = it.outer()){
-      if (it instanceof TypeScope.Method(var li, var mi, _)){ e.sigs(li, mi, false); }
-    }
+    visible(s).stream().skip(1).forEach(it -> e.sigs(it.l(), it.m(), false));
     var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
     if (thisNotMut){ e.line("Hint: "+err().expRepr(l)+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+", so parameter "+disp(l.thisName())+" is \"imm\" in every method."); }
     overloadHint(e, l, m);

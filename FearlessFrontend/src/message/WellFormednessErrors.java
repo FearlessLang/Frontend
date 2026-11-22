@@ -602,14 +602,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var e= err(y -> y, n -> n, decs, List.of())
       .line(up(err().expRepr(at))+" cannot implement "+err().typeRepr(t)+".")
       .line(disp(x)+" is a generic type parameter; object literals can only implement nominal types.");
-    declaring(s, x).ifPresent(m -> e.sigs(m.l(), m.m(), true));
+    TypeSystemErrors.declaring(s, x).ifPresent(m -> e.sigs(m.l(), m.m(), true));
     return wf(e, at);
-  }
-  private static Optional<TypeScope.Method> declaring(TypeScope s, String x){
-    if (s.isTop()){ return Optional.empty(); }
-    var m= (TypeScope.Method)s;
-    if (B.xs(m.m().sig().bs()).contains(x)){ return Optional.of(m); }
-    return declaring(s.outer(), x);
   }
   public FearlessException typeGrowsForever(E at){
     return wf(err()

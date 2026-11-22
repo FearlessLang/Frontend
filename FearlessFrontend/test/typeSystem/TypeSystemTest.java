@@ -7221,4 +7221,20 @@ P1:{ .m(x: A): Sub; }
 P2:{ .m(x: A): Sup; }
 B:P1,P2{ .m(x): Sub -> Sup }
 """));}
+@Test void bodyOfANamedLiteralMethodShowsNoEnclosingSignature(){fail("""
+004| B[X:*]:Sup{ .m -> Fresh:K{ .k -> Foo{} } }
+   |             ---------------~~~~~~^^^^^--
+
+While inspecting object literal instance of "Foo" > method "Fresh.k" (line 4) > method "B[_].m" (line 4)
+Method ".k" inside the object literal "Fresh" (line 4)
+is implemented with an expression returning "iso Foo".
+Object literal is of type "iso Foo" instead of a subtype of "K".
+Signature as inherited by object literal "Fresh":
+-       K.k: K
+""", List.of("""
+Foo:{}
+K:{ .k: K; }
+Sup:{ .m[X:*]: K; }
+B[X:*]:Sup{ .m -> Fresh:K{ .k -> Foo{} } }
+"""));}
 }

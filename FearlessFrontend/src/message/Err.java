@@ -135,7 +135,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var own= OneOr.opt("Malformed methods", d.ms().stream().map(M::sig).filter(o -> o.m().equals(s.m()) && o.rc() == s.rc()));
     if (own.isEmpty()){ return List.of(); }
     var sig= own.get();
-    var written= d.src() == Src.synthetic ? sig.origin().equals(n) : TypeSystemErrors.srcM(d, sig).filter(fm -> TypeSystemErrors.wholeSig(fm, sig)).isPresent();
+    var written= d.src() == Src.synthetic ? sig.origin().equals(n) : sig.bs().isEmpty() || TypeSystemErrors.srcM(d, sig).flatMap(fearlessFullGrammar.M::sig).flatMap(fearlessFullGrammar.Sig::bs).isPresent();
     if (written){ return List.of(new Sig(sig.rc(), sig.m(), sig.bs(), sig.ts(), sig.ret(), n, sig.abs(), sig.span())); }
     var cs= d.cs().stream().map(T.C::name).toList();
     return cs.stream().filter(c -> cs.stream().noneMatch(o -> _decs.apply(o).cs().stream().anyMatch(oc -> oc.name().equals(c)))).flatMap(c -> originals(c, s).stream()).toList();
