@@ -1003,4 +1003,49 @@ K:{ .k[Y:*]: Y; }
 Sup:{ .m: K; }
 B:Sup{ .m -> { .k -> {} } }
 """));}
+@Test void typedLiteralCannotBeOfARenamedTypeVariable(){fail("""
+003| B[X:*]:Sup{ .m -> Foo{} }
+   |             ------^^^^^
+
+While inspecting object literal instance of "Foo" > method "B[_].m" (line 3)
+Object literal instance of "Foo" is required to be of type "_AX".
+"_AX" is a generic type parameter; an object literal is always of a nominal type.
+Original signature:
+-       Sup.m[X:*]: X
+Signature as inherited by type declaration "B[_]":
+-       Sup.m[_AX:*]: _AX
+""", List.of("""
+Foo:{}
+Sup:{ .m[X:*]: X; }
+B[X:*]:Sup{ .m -> Foo{} }
+"""));}
+@Test void typedLiteralInANamedLiteralCannotBeOfItsOwnTypeVariable(){fail("""
+004| B:Sup{ .m -> Fresh:K{ .k -> Foo{} } }
+   |        ---------------~~~~~~^^^^^--
+
+While inspecting object literal instance of "Foo" > method "Fresh.k" (line 4) > method "B.m" (line 4)
+Object literal instance of "Foo" is required to be of type "X".
+"X" is a generic type parameter; an object literal is always of a nominal type.
+Signature as inherited by object literal "Fresh":
+-       K.k[X:*]: X
+""", List.of("""
+Foo:{}
+K:{ .k[X:*]: X; }
+Sup:{ .m[X:*]: K; }
+B:Sup{ .m -> Fresh:K{ .k -> Foo{} } }
+"""));}
+@Test void literalCannotImplementATypeVariableWrittenByASupertypeWithoutTypes(){failWf("""
+003| B:Mid{ .m -> {} }
+   |              ^^
+
+While inspecting object literal "{...}"
+Object literal "{...}" cannot implement "Z".
+"Z" is a generic type parameter; object literals can only implement nominal types.
+Signature as inherited by type declaration "B":
+-       Mid.m[Z:*]: Z
+""", List.of("""
+Top:{ .m[X:*]: X; }
+Mid:Top{ .m[Z:*] -> this.m[Z] }
+B:Mid{ .m -> {} }
+"""));}
 }

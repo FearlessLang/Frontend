@@ -100,7 +100,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private static boolean hasAbstractMut(Literal l){ return l.ms().stream().anyMatch(m -> m.sig().abs() && m.sig().rc() == mut); }
   private List<Reason> reqs(E blame, List<B> bs, T got, List<TRequirement> rs){
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
-    for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(blame, r.t()); } }
+    for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(scope, blame, r.t()); } }
     return rs.stream().map(r -> isSub(bs, got, r.t())
       ? Reason.pass(got)
       : Reason.literalDoesNotHaveRequiredType(this, blame, bs, got, r.t())
