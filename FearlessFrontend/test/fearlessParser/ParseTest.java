@@ -157,7 +157,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a type name in quotes between here and the stopping point.
-Did you mean to place the closer outside the type name in quotes?
+The closer may belong outside the type name in quotes.
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1423,7 +1423,7 @@ In file: [###].fear
 
 While inspecting a type name
 Quote [Double Quote (") 0x22] is not closed before the end of the line.
-A comment opening sign is present later on this line; did you mean to close the quote before it?
+A comment opening sign is present later on this line; the quote may be meant to close before it.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1440,7 +1440,7 @@ In file: [###].fear
 
 While inspecting a type name
 Quote [Backtick (`) 0x60] is not closed before the end of the line.
-A comment opening sign is present later on this line; did you mean to close the quote before it?
+A comment opening sign is present later on this line; the quote may be meant to close before it.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1458,7 +1458,7 @@ In file: [###].fear
 
 While inspecting a type name
 Quote [Backtick (`) 0x60] is not closed before the end of the line.
-A comment opening sign is present later on this line; did you mean to close the quote before it?
+A comment opening sign is present later on this line; the quote may be meant to close before it.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1476,7 +1476,7 @@ In file: [###].fear
 
 While inspecting a type name
 Quote [Backtick (`) 0x60] is not closed before the end of the line.
-A comment opening sign is present later on this line; did you mean to close the quote before it?
+A comment opening sign is present later on this line; the quote may be meant to close before it.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1530,7 +1530,7 @@ In file: [###].fear
 While inspecting a type name
 Quote [Double Quote (") 0x22] is not closed before the end of the line.
 A preceding block comment "/* ... */" on this line contains that quote.
-Did it swallow the intended opening quote?
+That block comment may hold the intended opening quote.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1566,7 +1566,7 @@ In file: [###].fear
 While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a type name in quotes before this point.
-Did you mean to place the opener outside the type name in quotes?
+The opener may belong outside the type name in quotes.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1587,7 +1587,7 @@ In file: [###].fear
 While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a type name in quotes before this point.
-Did you mean to place the opener outside the type name in quotes?
+The opener may belong outside the type name in quotes.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1607,7 +1607,7 @@ In file: [###].fear
 While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a type name in quotes before this point.
-Did you mean to place the opener outside the type name in quotes?
+The opener may belong outside the type name in quotes.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1632,7 +1632,7 @@ In file: [###].fear
 While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a line comment "//" before this point.
-Did you mean to place the opener outside the line comment "//"?
+The opener may belong outside the line comment "//".
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1697,7 +1697,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a type name in quotes between here and the stopping point.
-Did you mean to place the closer outside the type name in quotes?
+The closer may belong outside the type name in quotes.
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1713,7 +1713,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a type name in quotes between here and the stopping point.
-Did you mean to place the closer outside the type name in quotes?
+The closer may belong outside the type name in quotes.
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1730,7 +1730,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
-Did you mean to place the closer outside the block comment "/* ... */"?
+The closer may belong outside the block comment "/* ... */".
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1746,7 +1746,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a line comment "//" between here and the stopping point.
-Did you mean to place the closer outside the line comment "//"?
+The closer may belong outside the line comment "//".
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1763,7 +1763,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "(" group.
 Found a matching closer inside a type name in quotes between here and the stopping point.
-Did you mean to place the closer outside the type name in quotes?
+The closer may belong outside the type name in quotes.
 Otherwise expected: ")".
 Error 0 Unclosed
 """, """
@@ -1779,7 +1779,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "[" group.
 Found a matching closer inside a type name in quotes between here and the stopping point.
-Did you mean to place the closer outside the type name in quotes?
+The closer may belong outside the type name in quotes.
 Otherwise expected: "]".
 Error 0 Unclosed
 """, """
@@ -1795,7 +1795,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a type name in quotes between here and the stopping point.
-Did you mean to place the closer outside the type name in quotes?
+The closer may belong outside the type name in quotes.
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1811,7 +1811,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
-Did you mean to place the closer outside the block comment "/* ... */"?
+The closer may belong outside the block comment "/* ... */".
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1827,7 +1827,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "[" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
-Did you mean to place the closer outside the block comment "/* ... */"?
+The closer may belong outside the block comment "/* ... */".
 Otherwise expected: "]".
 Error 0 Unclosed
 """, """
@@ -1843,7 +1843,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unopened ")".
 Found a matching opener hidden inside a type name in quotes before this point.
-Did you mean to place the opener outside the type name in quotes?
+The opener may belong outside the type name in quotes.
 Error 1 Unopened
 """, """
 A:{ .m:Str -> "call (" ) }
@@ -1858,7 +1858,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unopened ")".
 Found a matching opener hidden inside a line comment "//" before this point.
-Did you mean to place the opener outside the line comment "//"?
+The opener may belong outside the line comment "//".
 Error 1 Unopened
 """, """
 A:{ .m:Str -> // ( swallowed
@@ -1874,7 +1874,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unopened "]".
 Found a matching opener hidden inside a block comment "/* ... */" before this point.
-Did you mean to place the opener outside the block comment "/* ... */"?
+The opener may belong outside the block comment "/* ... */".
 Error 1 Unopened
 """, """
 A:{ .m:Str -> /* [ hidden */ ] }
@@ -1889,7 +1889,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unopened "}".
 Found a matching opener hidden inside a type name in quotes before this point.
-Did you mean to place the opener outside the type name in quotes?
+The opener may belong outside the type name in quotes.
 Error 1 Unopened
 """, """
 .m:Str -> "start { here" }
@@ -1904,7 +1904,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unopened ")".
 Found a matching opener hidden inside a block comment "/* ... */" before this point.
-Did you mean to place the opener outside the block comment "/* ... */"?
+The opener may belong outside the block comment "/* ... */".
 Error 1 Unopened
 """, """
 A:{ .m:Str -> 1 + 2 /* ( */ + 3 ) }
@@ -2245,7 +2245,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a type name in quotes between here and the stopping point.
-Did you mean to place the closer outside the type name in quotes?
+The closer may belong outside the type name in quotes.
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -2968,7 +2968,7 @@ In file: [###].fear
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
 A method with the inferred name and the same parameter count is already present above.
-Likely cause: method declaration missing "." before the name.
+A method declaration may be missing "." before its name.
 Found unnamed methods with parameters: "a", "b".
 To declare a method named "a", write ".a" (dot a).
 Without the dot, "a" is interpreted as a parameter name for an anonymous method.
@@ -3286,7 +3286,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a line comment "//" between here and the stopping point.
-Did you mean to place the closer outside the line comment "//"?
+The closer may belong outside the line comment "//".
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -3380,7 +3380,7 @@ In file: [###].fear
 While inspecting type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
 A method with the inferred name and the same parameter count is already present above.
-Likely cause: method declaration missing "." before the name.
+A method declaration may be missing "." before its name.
 Found unnamed methods with parameters: "x", "y".
 To declare a method named "x", write ".x" (dot x).
 Without the dot, "x" is interpreted as a parameter name for an anonymous method.
@@ -3457,8 +3457,7 @@ In file: [###].fear
 005| }
 
 While inspecting method declaration > type declaration body > type declaration > full file
-Did you forget a space in "!!!->" ?
-Did you mean "!!! ->" ?
+Method name "!!!->" ends with "->": a space may be missing, as in "!!! ->".
 Error 2 UnexpectedToken
 """, """
 Box[E:*]: _Box[E]{
@@ -3650,7 +3649,7 @@ This should probably be inside the declaration of "A".
 Top level code can only contain type declarations.
 A type declaration starts with a type name, like "Point:{..}".
 Found instead: ".foo".
-Likely cause: an extra "}" closed a type declaration unintentionally.
+A "}" may have closed the declaration of "A" too early.
 Error 2 UnexpectedToken
 """, """
 A:{}

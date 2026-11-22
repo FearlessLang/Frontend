@@ -210,7 +210,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
         .line("Type "+disp(typedSimple)+" is not declared with "+count(tn.arity(), "generic type parameter")+" in package "+disp(targetPkg)+".")
         .line("Type "+disp(typedSimple)+" is only declared with "+(arities.size() == 1 ? count(arities.getFirst(), "generic type parameter")+"." : "other numbers of generic type parameters."));
       if (arities.size() > 1){ e.list("Candidates", arities.stream().map(n -> disp(typedSimple+genArity(n))).toList()); }
-      e.line("Did you accidentally add or omit a generic type argument?");
+      var tooMany= arities.stream().allMatch(n -> n < tn.arity());
+      var tooFew= arities.stream().allMatch(n -> n > tn.arity());
+      e.line("There may be "+(tooMany ? "too many" : tooFew ? "too few" : "too many or too few")+" generic type arguments.");
       return Optional.of(typeName(e, tn));
     }
     private FearlessException undeclaredInPkg(){
@@ -784,5 +786,5 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line(numHint())
       .wf().addSpan(at);
   }
-  private String numHint(){ return "Hint: if you need arbitrary precision numbers, use "+disp(err().cp().t.of(new TName("base.Num", 0, Pos.unknown)))+"."; }
+  private String numHint(){ return "If you need arbitrary precision numbers, use "+disp(err().cp().t.of(new TName("base.Num", 0, Pos.unknown)))+"."; }
 }

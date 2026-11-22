@@ -88,7 +88,7 @@ This character can only appear inside comments and inside type names in quotes, 
     throw Code.UnexpectedToken.of(
       "Unopened block comment close \"*/\".\n"
     +"Found a \"/*\" "+where+" before this point.\n"
-    +"Did you mean to place the opener outside the"+describeFree(h)+"?")
+    +"The opener may belong outside the"+describeFree(h)+".")
       .addFrame("comments", primary);
   }
   private static Stream<Token> squareAfterLiteral(int idx, Token t, Tokenizer tz){
@@ -145,7 +145,7 @@ This character can only appear inside comments and inside type names in quotes, 
     var idxComment= openSL == -1 ? openML : openML == -1 ? openSL : Math.min(openSL, openML);
     if (idxComment != -1){
       var after= new Span(file, b.startLine(), b.startCol(), b.endLine(), b.startCol() + idxComment);
-      throw strErr(after, quoteChar, "A comment opening sign is present later on this line; did you mean to close the quote before it?");
+      throw strErr(after, quoteChar, "A comment opening sign is present later on this line; the quote may be meant to close before it.");
     }
     var all= tz.allTokens();
     var j= idx - 1;
@@ -162,6 +162,6 @@ This character can only appear inside comments and inside type names in quotes, 
     var endCol= b.startCol()+1;//invert the caret
     var startCol= s.endCol()-(prev.content().length()-quote);
     var before= new Span(file, line, startCol, line, endCol);
-    throw strErr(before, quoteChar, "A preceding block comment \"/* ... */\" on this line contains that quote.\nDid it swallow the intended opening quote?");
+    throw strErr(before, quoteChar, "A preceding block comment \"/* ... */\" on this line contains that quote.\nThat block comment may hold the intended opening quote.");
   }
 }

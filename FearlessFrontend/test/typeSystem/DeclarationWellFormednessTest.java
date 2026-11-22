@@ -325,7 +325,7 @@ Bad:Person{}
 While inspecting method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "N" is not in scope inside the type declaration "Person".
 A type declaration only sees the generic type parameters it declares itself; here "Person" declares none.
-Hint: funnel "N" into "Person" by writing "Person[N:..]", restating the bounds of "N".
+Funnel "N" into "Person" by writing "Person[N:..]", restating the bounds of "N".
 """, List.of("""
 Str:{}
 FPerson:{ #[N:*](name: Str, age: N): Person -> Person:{
@@ -376,7 +376,7 @@ BreakOuter:{ #: BreakInner -> BreakInner: A[imm Break]{} }
 While inspecting generic type arguments > super types declaration > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
-Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
+Funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A[X:mut]:{}
 BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[Z]{} }
@@ -393,7 +393,7 @@ BreakOuter[Z:mut]:{ #: BreakInner[Z] -> BreakInner[Z:mut]: A[Z]{} }
 While inspecting generic type arguments > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
-Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
+Funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A[X:*]:{}
 BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z: A[Z] -> A[Z] } }
@@ -410,7 +410,7 @@ BreakOuter[Z:*]:{ #: BreakInner[Z] -> BreakInner[Z:*]:{ .z: A[Z] -> A[Z] } }
 While inspecting generic type arguments > super types declaration > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
-Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
+Funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A[X:mut]:{}
 BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[mut Z]{} }
@@ -423,7 +423,7 @@ BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[mut Z]{} }
 While inspecting generic type arguments > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares "Y".
-Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Y:..,Z:..]", restating the bounds of "Z".
+Funnel "Z" into "BreakInner" by writing "BreakInner[Y:..,Z:..]", restating the bounds of "Z".
 """, List.of("""
 A[X:*]:{}
 BreakOuter[Y:*,Z:*]:{ #: BreakInner[Y] -> BreakInner[Y:*]:{ .z: A[Z] -> A[Z] } }
@@ -471,7 +471,7 @@ Top[W:*]:{ #: A -> Mid[W:*]:A{ .o[W:*]: A -> A } }
 While inspecting generic bounds declaration > method body > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
-Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
+Funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A:{}
 BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z: A -> Inner2[Z:*]: A{} } }
@@ -484,7 +484,7 @@ BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z: A -> Inner2[Z:*]: A{} } }
 While inspecting method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
-Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
+Funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A:{}
 BreakOuter[Z:*]:{ #(z: Z): BreakInner -> BreakInner:{ .z: read/imm Z -> z } }
@@ -501,7 +501,7 @@ While inspecting object literal "B" > method "Bs#" (line 2)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".
-Hint: add an implementation for ".foo" inside the object literal.
+Add an implementation for ".foo" inside the object literal.
 """, List.of("""
 A:{ .foo: A }
 Bs:{ #: B -> B: A{} }
@@ -519,7 +519,7 @@ While inspecting object literal instance of "B" > method "Bs#" (line 3)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".
-Hint: add an implementation for ".foo" inside the object literal.
+Add an implementation for ".foo" inside the object literal.
 """, List.of("""
 A:{ .foo: A }
 B:A{}

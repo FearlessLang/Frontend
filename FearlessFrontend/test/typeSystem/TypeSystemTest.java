@@ -359,12 +359,9 @@ A:{ .foo:base.Todo->{ ! -> this } }
 While inspecting method "Inner.foo" (line 1) > method "Outer#" (line 1)
 This call to method ".bar" cannot typecheck.
 Method ".bar" is not declared on type "Outer".
-Hint:
-The method parameter "this" here has type "Outer".
-
-The method ".bar" is defined in the object literal of type "Inner".
-No parameter refers to instances of this literal.
-To declare one, use the single quote as in the example below:
+Parameter "this" has type "Outer".
+Method ".bar" is declared in the object literal "Inner", which has no self name.
+A self name is declared with a single quote, as "'rect" in the example below:
   Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect
     .area: Nat -> width * height;
     .str: Str -> "area: "+(rect.area.str);
@@ -383,15 +380,47 @@ Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> ba
 While inspecting method "Innermost.a" (line 1) > method "Inner.foo" (line 1) > method "Outer#" (line 1)
 This call to method ".bar" cannot typecheck.
 Method ".bar" is not declared on type "Outer".
-Hint:
-The method parameter "this" here has type "Outer".
-
-The method ".bar" is defined in the object literal of type "Inner"; the parameter referring to its instances is named "self".
+Parameter "this" has type "Outer".
+Method ".bar" is declared in the object literal "Inner", whose self name is "self".
 
 Available methods on type "Outer":
 -       #: Inner
 """, List.of("""
 Outer: { #: Inner -> Inner:{'self .foo: Innermost -> Innermost: { .a: base.Void -> this.bar; }; .bar: base.Void -> base.Void; } }
+"""));}
+@Test void mutThisMisbinding_enclosingLiteralHintShowsTheCapability(){fail("""
+001| Outer:{ mut #: mut Inner -> mut Inner:{ mut .foo: base.Void -> this.bar; mut .bar: base.Void -> base.Void; } }
+   |                                         -----------------------~~~~^^^^
+
+While inspecting method "Inner.foo" (line 1) > method "Outer#" (line 1)
+This call to method ".bar" cannot typecheck.
+Method ".bar" is not declared on type "Outer".
+Parameter "this" has type "mut Outer".
+Method ".bar" is declared in the object literal "Inner", which has no self name.
+A self name is declared with a single quote, as "'rect" in the example below:
+  Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect
+    .area: Nat -> width * height;
+    .str: Str -> "area: "+(rect.area.str);
+    .withWidth(width': Nat): Rectangle -> this#(width', height);
+  }}
+
+Available methods on type "Outer":
+-   mut #: mut Inner
+""", List.of("""
+Outer:{ mut #: mut Inner -> mut Inner:{ mut .foo: base.Void -> this.bar; mut .bar: base.Void -> base.Void; } }
+"""));}
+@Test void thisMisbindingWithOtherArity_getsNoEnclosingLiteralHint(){fail("""
+001| Outer:{ #: Inner -> Inner:{ .foo: base.Void -> this.bar; .bar(x: base.Void): base.Void -> x; } }
+   |                             -------------------~~~~^^^^
+
+While inspecting method "Inner.foo" (line 1) > method "Outer#" (line 1)
+This call to method ".bar" cannot typecheck.
+Method ".bar" is not declared on type "Outer".
+
+Available methods on type "Outer":
+-       #: Inner
+""", List.of("""
+Outer:{ #: Inner -> Inner:{ .foo: base.Void -> this.bar; .bar(x: base.Void): base.Void -> x; } }
 """));}
 @Test void anonEnclosingLiteralThisMisbinding_hintDoesNotShowFreshName(){fail("""
 002| Outer:{ #: G -> { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
@@ -400,12 +429,9 @@ Outer: { #: Inner -> Inner:{'self .foo: Innermost -> Innermost: { .a: base.Void 
 While inspecting method "G.foo" (line 2) > method "Outer#" (line 2)
 This call to method ".bar" cannot typecheck.
 Method ".bar" is not declared on type "Outer".
-Hint:
-The method parameter "this" here has type "Outer".
-
-The method ".bar" is defined in the object literal instance of "G".
-No parameter refers to instances of this literal.
-To declare one, use the single quote as in the example below:
+Parameter "this" has type "Outer".
+Method ".bar" is declared in the object literal instance of "G", which has no self name.
+A self name is declared with a single quote, as "'rect" in the example below:
   Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect
     .area: Nat -> width * height;
     .str: Str -> "area: "+(rect.area.str);
@@ -1095,7 +1121,7 @@ Foo:{#(a:A):G->{a}}
 While inspecting parameter "loooooong" > method "G#" (line 8) > method "User.m(_)" (line 7)
 Parameter "loooooong" has type "mut A".
 Parameter "loooooong" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "G" (line 8).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 A:{}
 G:{ #(): base.Void; }
@@ -1171,7 +1197,7 @@ While inspecting parameter "beer"
 Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
 A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
-Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
+Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
   Beer[X:imm,mut,read]:{ read .bar: Bar; }
@@ -1188,7 +1214,7 @@ While inspecting parameter "x"
 Parameter "x" has type "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
 A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
-Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
+Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
   User:{
@@ -1204,7 +1230,7 @@ While inspecting parameter "beer"
 Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
 A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
-Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
+Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
   Beer[X:imm,mut,read]:{ read .bar: Bar; }
@@ -1222,7 +1248,7 @@ While inspecting parameter "beer"
 Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
 A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
-Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
+Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
   Beer[X:imm,mut,read]:{ read .bar: Bar; }
@@ -1238,7 +1264,7 @@ Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
 A type declaration only sees the generic type parameters it declares itself; here "Foo" declares "Z".
-Hint: funnel "X" into "Foo" by writing "Foo[Z:..,X:..]", restating the bounds of "X".
+Funnel "X" into "Foo" by writing "Foo[Z:..,X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
   Beer[X:imm,mut,read]:{ read .bar: Bar; }
@@ -1396,7 +1422,7 @@ While inspecting object literal instance of "Sup" > method "User.m" (line 6)
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "Sup".
-Hint: add an implementation for ".k" inside the object literal.
+Add an implementation for ".k" inside the object literal.
 """, List.of("""
 Sup:{
   imm .h:base.Void;
@@ -1415,7 +1441,7 @@ While inspecting object literal "Bad" > method "User.m" (line 6)
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "Sup".
-Hint: add an implementation for ".k" inside the object literal.
+Add an implementation for ".k" inside the object literal.
 """, List.of("""
 Sup:{
   imm .h:base.Void;
@@ -1712,7 +1738,7 @@ While inspecting method "Plus.go" (line 5)
 This call to method "Plus+(_)" cannot typecheck.
 Argument 1 has type "Plus".
 That is not a subtype of "A" (the type required by the method signature).
-Hint: all method names have the same precedence, so an expression like "a.get + b.get" parses as "(a.get + b).get", not "a.get + (b.get)". If this argument needed a method applied to it first, wrap it in parentheses.
+All method names have the same precedence, so an expression like "a.get + b.get" parses as "(a.get + b).get", not "a.get + (b.get)". If this argument needed a method applied to it first, wrap it in parentheses.
 """, List.of("""
 A:{}
 Plus:{
@@ -1881,7 +1907,7 @@ While inspecting method "User.f" (line 5)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
 Object literal is of type "read A" instead of a subtype of "mut A".
-Hint: write "mut A" if you need a "mut" object literal.
+Write "mut A" if you need a "mut" object literal.
 
 Type required by each promotion:
 - "mut A" (As declared)
@@ -2309,7 +2335,7 @@ A:{
 While inspecting parameter "aaaa" > method "BB.foo" (line 4) > method "A.f(_)" (line 4)
 Parameter "aaaa" has type "mut A".
 Parameter "aaaa" can observe mutation; thus it cannot be captured in the "imm" object literal "BB" (line 4).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 Skip:{#[X:**](X):B->B}
 B:{}
@@ -2325,7 +2351,7 @@ A:{
 While inspecting parameter "aaaa" > method "B.foo" (line 4) > method "A.f(_)" (line 4)
 Parameter "aaaa" has type "mut A".
 Parameter "aaaa" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "B" (line 4).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 Skip:{#[X:**](X):B->B}
 B:{}
@@ -2514,7 +2540,7 @@ While inspecting the file
 Type "+421381834238972893748972389723" is out of range for "base.Int".
 "base.Int" must be representable as a 64-bit signed integer.
 Valid range: -9223372036854775808 .. 9223372036854775807.
-Hint: if you need arbitrary precision numbers, use "base.Num".
+If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Int -> +421381834238972893748972389723 }
@@ -2529,7 +2555,7 @@ While inspecting the file
 Type "421381834238972893748972389723" is out of range for "base.Nat".
 "base.Nat" must be representable as a 64-bit unsigned integer.
 Valid range: 0 .. 18446744073709551615.
-Hint: if you need arbitrary precision numbers, use "base.Num".
+If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Nat -> 421381834238972893748972389723 }
@@ -2574,7 +2600,7 @@ Type "+1.0e-99999999999" is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
 If rounded, the nearest representable value is "+0.0".
 Write "+1.0e-99999999999soft" to accept that rounding.
-Hint: if you need arbitrary precision numbers, use "base.Num".
+If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Float -> +1.0e-99999999999 }
@@ -2658,7 +2684,7 @@ Type "+1.0e-400" is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
 If rounded, the nearest representable value is "+0.0".
 Write "+1.0e-400soft" to accept that rounding.
-Hint: if you need arbitrary precision numbers, use "base.Num".
+If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Float -> +1.0e-400 }
@@ -2674,7 +2700,7 @@ Type "+0.1" is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
 If rounded, the nearest representable value is "+0.1000000000000000055511151231257827021181583404541015625".
 Write "+0.1soft" to accept that rounding.
-Hint: if you need arbitrary precision numbers, use "base.Num".
+If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Float -> +0.1 }
@@ -2690,7 +2716,7 @@ Type "+0.2" is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
 If rounded, the nearest representable value is "+0.200000000000000011102230246251565404236316680908203125".
 Write "+0.2soft" to accept that rounding.
-Hint: if you need arbitrary precision numbers, use "base.Num".
+If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Float -> +0.2 }
@@ -2757,7 +2783,7 @@ While inspecting object literal instance of "B" > method "Main.m" (line 3)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".
-Hint: add an implementation for ".foo" inside the object literal.
+Add an implementation for ".foo" inside the object literal.
 """, List.of("""
  A:{.foo:A}
  B:A{}
@@ -2771,7 +2797,7 @@ While inspecting object literal instance of "B" > method "Main.m" (line 3)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "B".
-Hint: add an implementation for ".foo" inside the object literal.
+Add an implementation for ".foo" inside the object literal.
 """, List.of("""
  A:{.foo:A->A}
  B:A{.foo:A}
@@ -2793,7 +2819,7 @@ The body of method ".get" of type declaration "B" is an expression returning "im
 Parameter "this" has type "imm B" instead of a subtype of "mut A".
 Signature as inherited by type declaration "B":
 -   mut A.get: mut A
-Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
+Type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
 Method ".get" is overloaded; to implement a specific overload only, write one of the following:
 - "read .get"
 - "mut .get"
@@ -2810,7 +2836,7 @@ The body of method ".get" of type declaration "B" is an expression returning "im
 Parameter "this" has type "imm B" instead of a subtype of "mut A".
 Signature as inherited by type declaration "B":
 -   mut A.get: mut A
-Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
+Type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
 Method ".get" is overloaded; to implement a specific overload only, write one of the following:
 - "imm .get"
 - "mut .get"
@@ -2827,7 +2853,7 @@ The body of method ".get" of type declaration "B" is an expression returning "im
 Parameter "this" has type "imm B" instead of a subtype of "mut A".
 Signature as inherited by type declaration "B":
 -   mut A.get: mut A
-Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
+Type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
 """, List.of("""
  A:{ mut .get: mut A; }
  B:A,base.CaptureFree{ .get->this; }
@@ -2841,7 +2867,7 @@ The body of method ".get" of type declaration "B" is an expression returning "im
 Parameter "this" has type "imm B" instead of a subtype of "mut A".
 Signature as inherited by type declaration "B":
 -   mut A.get: mut A
-Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
+Type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
 Method ".get" is overloaded; to implement a specific overload only, write one of the following:
 - "read .get"
 - "imm .get"
@@ -2859,7 +2885,7 @@ The body of method ".get" of type declaration "B" is an expression returning "im
 Parameter "this" has type "imm B" instead of a subtype of "mut A".
 Signature as inherited by type declaration "B":
 -   mut A.get: mut A
-Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
+Type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
 """, List.of("""
  A:{ read .get: read A; mut .get: mut A; }
  B:A,base.CaptureFree{ mut .get->this; }
@@ -2915,7 +2941,7 @@ This object literal is missing a required method.
 Missing: "mut .foo".
 Required by: "A".
 This object literal is neither "imm" nor "read", so its "mut" methods must be implemented.
-Hint: add an implementation for ".foo" inside the object literal.
+Add an implementation for ".foo" inside the object literal.
 """, List.of("""
  A:{mut .foo:A}
  B:A{}
@@ -4439,7 +4465,7 @@ While inspecting object literal instance of "Closed[A]" > method "User.m" (line 
 This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_]".
-Hint: add an implementation for ".close" inside the object literal.
+Add an implementation for ".close" inside the object literal.
 """, List.of("""
 Closed[T]:{ read .close: read T }
 A:Closed[A]{ .close->this }
@@ -4454,7 +4480,7 @@ While inspecting object literal instance of "Closed[B]" > method "User.m" (line 
 This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_]".
-Hint: add an implementation for ".close" inside the object literal.
+Add an implementation for ".close" inside the object literal.
 """, List.of("""
 Closed[T]:{ read .close: read T }
 B:{}
@@ -4469,7 +4495,7 @@ While inspecting object literal instance of "Closed[A,B]" > method "User.m" (lin
 This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_,_]".
-Hint: add an implementation for ".close" inside the object literal.
+Add an implementation for ".close" inside the object literal.
 """, List.of("""
 Closed[T,E]:{ read .close: read T }
 A:Closed[A,B]{ .close->this }
@@ -4485,7 +4511,7 @@ While inspecting object literal instance of "A" > method "User.m" (line 4)
 This object literal is missing a required method.
 Missing: "imm .name".
 Required by: "A".
-Hint: add an implementation for ".name" inside the object literal.
+Add an implementation for ".name" inside the object literal.
 """, List.of("""
 Closed[T]:{ read .close: read T }
 A:Closed[A]{ .name: A }
@@ -4657,7 +4683,7 @@ User:{ .f: read Sup -> Ids#({ .g -> Foo }) }
 While inspecting parameter "c" > method "Sup.run" (line 4) > method "User.f(_,_)" (line 4)
 Parameter "c" has type "mut Foo".
 Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 
 See inferred typing context below for how "Sup" was introduced:
 Two#[imm,Sup](s,Sup{mut .run:mut Foo->c})
@@ -4680,7 +4706,7 @@ User:{ .f(s: mut Sup, c: mut Foo): Foo -> Two#(s, mut Sup{ .run -> c }) }
 While inspecting parameter "c" > method "Box.get" (line 4) > method "User.f(_,_)" (line 4)
 Parameter "c" has type "mut Foo".
 Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Box" (line 4).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 
 See inferred typing context below for how "Box" was introduced:
 Two#[imm,Box](s,Box{read .get:read Foo->c})
@@ -4703,7 +4729,7 @@ User:{ .f(s: mut Box, c: mut Foo): Foo -> Two#(s, mut Box{ .get -> c }) }
 While inspecting parameter "c" > method "Sup.run" (line 4) > method "User.f(_,_)" (line 4)
 Parameter "c" has type "mut Foo".
 Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 
 See inferred typing context below for how "Sup" was introduced:
 Two#[imm,Sup](s,Sup{mut .run:mut Foo->c})
@@ -4841,7 +4867,7 @@ While inspecting method "User.f" (line 5)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
 Object literal is of type "read A" instead of a subtype of "mutH A".
-Hint: write "mut A" if you need a "mut" object literal (needed to satisfy the "mutH" requirement).
+Write "mut A" if you need a "mut" object literal (needed to satisfy the "mutH" requirement).
 
 Type required by each promotion:
 [###]
@@ -6249,12 +6275,9 @@ U:{ .m: base.Void -> Ig#(F#({ .a(x) -> base.Void; .b -> base.Void })) }
 While inspecting method "Two[base.Void].a" (line 4) > method "U.m" (line 4)
 This call to method ".b" cannot typecheck.
 Method ".b" is not declared on type "U".
-Hint:
-The method parameter "this" here has type "U".
-
-The method ".b" is defined in the object literal instance of "Two[base.Void]".
-No parameter refers to instances of this literal.
-To declare one, use the single quote as in the example below:
+Parameter "this" has type "U".
+Method ".b" is declared in the object literal instance of "Two[base.Void]", which has no self name.
+A self name is declared with a single quote, as "'rect" in the example below:
   Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect
     .area: Nat -> width * height;
     .str: Str -> "area: "+(rect.area.str);
@@ -6368,7 +6391,7 @@ While inspecting object literal instance of "A" > method "A.v" (line 3) > method
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "A".
-Hint: add an implementation for ".k" inside the object literal.
+Add an implementation for ".k" inside the object literal.
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 A:{ .k: A; .v: base.Void }
@@ -6382,7 +6405,7 @@ While inspecting object literal instance of "A" > method "A.v" (line 4) > method
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "A".
-Hint: add an implementation for ".k" inside the object literal.
+Add an implementation for ".k" inside the object literal.
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 A0:{}
@@ -7007,7 +7030,7 @@ While inspecting method "A#" (line 1)
 This call to method "mut base.Block[_].return(_)" cannot typecheck.
 Argument 1 has type "iso Nat".
 That is not a subtype of "mut base.ReturnStmt[Nat]" (the type required by the method signature).
-Hint: write the argument inside curly braces: the curly braces make an object literal instance of "base.ReturnStmt[Nat]", whose single method returns the argument.
+Write the argument inside curly braces: the curly braces make an object literal instance of "base.ReturnStmt[Nat]", whose single method returns the argument.
 """, List.of("""
 use base.Nat as Nat; A:{ #: Nat -> base.Block#.return 5 }
 """));}
@@ -7019,7 +7042,7 @@ While inspecting method "U.m(_)" (line 3)
 This call to method "U.take(_)" cannot typecheck.
 Argument 1 has type "mut B".
 That is not a subtype of "Get" (the type required by the method signature).
-Hint: write the argument inside curly braces: the curly braces make an object literal instance of "Get", whose single method returns the argument.
+Write the argument inside curly braces: the curly braces make an object literal instance of "Get", whose single method returns the argument.
 """, List.of("""
 B:{}
 Get:{ .get: mut B }
@@ -7033,7 +7056,7 @@ While inspecting method "U.m(_)" (line 3)
 This call to method "U.take(_)" cannot typecheck.
 Argument 1 has type "iso B".
 That is not a subtype of "mut Get" (the type required by the method signature).
-Hint: write the argument inside curly braces: the curly braces make an object literal instance of "Get", whose single method returns the argument.
+Write the argument inside curly braces: the curly braces make an object literal instance of "Get", whose single method returns the argument.
 """, List.of("""
 B:{}
 Get:{ mut .get: mut B }

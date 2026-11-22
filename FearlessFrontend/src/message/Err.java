@@ -33,7 +33,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var funnelled= disp(Join.of(Push.of(Xs, X).stream().map(s -> s+":.."), owner+"[", ",", "]", ""));
     return "Generic type parameter "+x+" is not in scope inside the type declaration "+dec+".\n"
       +"A type declaration only sees the generic type parameters it declares itself; here "+dec+" declares "+declares+".\n"
-      +"Hint: funnel "+x+" into "+dec+" by writing "+funnelled+", restating the bounds of "+x+".";
+      +"Funnel "+x+" into "+dec+" by writing "+funnelled+", restating the bounds of "+x+".";
   }
   public static String genArity(int n){ return Join.of(Collections.nCopies(n, "_"), "[", ",", "]", ""); }
   static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser and the well formedness errors only

@@ -78,7 +78,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +"Top level code can only contain type declarations.\n"
       +"A type declaration starts with a type name, like \"Point:{..}\".\n"
       +"Found instead: "+found(found)+".\n"
-      +lastTop.map(_ -> "Likely cause: an extra \"}\" closed a type declaration unintentionally.\n").orElse("")
+      +lastTop.map(t -> "A \"}\" may have closed the declaration of "+staticTypeDecName(t)+" too early.\n").orElse("")
       ).addSpan(at);
   }
   public FearlessException notADirective(Span at, String name){
@@ -117,8 +117,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException forgotSpace(Span at, String name){
     return Code.UnexpectedToken.of(
-      "Did you forget a space in "+disp(name)+" ?\n"
-      +"Did you mean "+disp(name.substring(0, name.length()-2)+" ->")+" ?\n"
+      "Method name "+disp(name)+" ends with \"->\": a space may be missing, as in "+disp(name.substring(0, name.length()-2)+" ->")+".\n"
     ).addSpan(at);
   }
   public FearlessException duplicatedMap(Span at, String what, String in){
@@ -191,7 +190,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var ex= hints.getFirst();
     return Code.WellFormedness.of(
       base
-    +"Likely cause: method declaration missing \".\" before the name.\n"
+    +"A method declaration may be missing \".\" before its name.\n"
     +Join.of(hints.stream().map(Err::disp),
       "Found unnamed methods with parameters: ", ", ", ".\n")
     +"To declare a method named "+disp(ex)+", write \"."+ex+"\" (dot "+ex+").\n"
@@ -376,7 +375,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var msg=
       "Unclosed "+disp(open.content())+" group.\n"
     +"Found a matching closer inside a"+where+" between here and the stopping point.\n"
-    +"Did you mean to place the closer outside the"+where+"?\n"
+    +"The closer may belong outside the"+where+".\n"
     +expected("", "Otherwise expected: ", "Otherwise expected one of: ", expectedClosers, tk -> tk.human);
     var primary= metaParser.Token.makeSpan(file, open, hiddenFragment);
     var secondary= metaParser.Token.makeSpan(file, open, hiddenContainer);
@@ -391,7 +390,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var msg=
       "Unopened "+disp(stop.content())+".\n"
     +"Found a matching opener hidden inside a"+where+" before this point.\n"
-    +"Did you mean to place the opener outside the"+where+"?";
+    +"The opener may belong outside the"+where+".";
     var primary= metaParser.Token.makeSpan(file, hiddenFragment, stop);
     var secondary= metaParser.Token.makeSpan(file, hiddenContainer, stop);
     return Code.Unopened.of(msg).addSpan(primary).addFrame("groups of parenthesis", secondary);

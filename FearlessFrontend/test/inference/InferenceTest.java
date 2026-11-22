@@ -858,6 +858,21 @@ A1:{ mut .foo:A1;}
 A2:{ .foo:A1;}
 B:A1,A2{ }
 """));}
+@Test void tooFewGenericTypeArguments(){fail("""
+In file: [###].fear
+
+002| User:{ .m(x:F[User]):User->this }
+   |             ^
+
+While inspecting a type name
+Type "F" is not declared with 1 generic type parameter in package "p".
+Type "F" is only declared with 2 generic type parameters.
+There may be too few generic type arguments.
+Error 7 WellFormedness
+""", List.of("""
+F[A,B]:{}
+User:{ .m(x:F[User]):User->this }
+"""));}
 @Test void inferMini3Err(){fail("""
 In file: [###].fear
 
@@ -867,7 +882,7 @@ In file: [###].fear
 While inspecting a type name
 Type "F" is not declared with 2 generic type parameters in package "p".
 Type "F" is only declared with 0 generic type parameters.
-Did you accidentally add or omit a generic type argument?
+There may be too many generic type arguments.
 Error 7 WellFormedness
 """, List.of("""
 F:{#[A,B](A):B}
@@ -1215,7 +1230,7 @@ Type "Block" is only declared with other numbers of generic type parameters.
 Candidates:
 - "Block"
 - "Block[_]"
-Did you accidentally add or omit a generic type argument?
+There may be too many generic type arguments.
 Error 7 WellFormedness
 """, List.of("""
 User:{
@@ -1235,7 +1250,7 @@ Type "Block" is only declared with other numbers of generic type parameters.
 Candidates:
 - "Block"
 - "Block[_]"
-Did you accidentally add or omit a generic type argument?
+There may be too many generic type arguments.
 
 Name "Block" stands for "base.Block" because of "use base.Block as Block".
 Error 7 WellFormedness
