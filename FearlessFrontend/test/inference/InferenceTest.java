@@ -1387,7 +1387,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".m" with 0 parameters redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, number of parameters and reference capability is already present.
 Error 7 WellFormedness
 """,
 List.of("""

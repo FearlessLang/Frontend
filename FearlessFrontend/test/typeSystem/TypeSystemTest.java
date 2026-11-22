@@ -933,7 +933,7 @@ User:{
 While inspecting object literal instance of "Foo" > method "F[Person,Car]#(_)" (line 7) > method "User.m" (line 7)
 Method "#(_)" inside the object literal instance of "F[Person,Car]" (line 7)
 is implemented with an expression returning "iso Foo".
-Object literal is of type "iso Foo" instead of a subtype of "Car".
+Object literal has type "iso Foo" instead of a subtype of "Car".
 Signature as inherited by object literal instance of "F[Person,Car]":
 -       F[Person,Car]#(Person): Car
 """, List.of("""
@@ -969,7 +969,7 @@ User:{
 
 While inspecting object literal "AA" > method "User.m" (line 4)
 The body of method ".m" of type declaration "User" is an expression returning "iso AA".
-Object literal is of type "iso AA" instead of a subtype of "B".
+Object literal has type "iso AA" instead of a subtype of "B".
 """, List.of("""
 A:{}
 B:{}
@@ -1906,7 +1906,7 @@ A:{
 While inspecting method "User.f" (line 5)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-Object literal is of type "read A" instead of a subtype of "mut A".
+Object literal has type "read A" instead of a subtype of "mut A".
 Write "mut A" if you need a "mut" object literal.
 
 Type required by each promotion:
@@ -2526,7 +2526,7 @@ Main:{ .m(s:S): S -> { .get(x) -> x }.get(s) }
 
 While inspecting object literal instance of "base.Float" > method "Main.m" (line 1)
 The body of method ".m" of type declaration "Main" is an expression returning "iso base.Float".
-Object literal is of type "iso base.Float" instead of a subtype of "base.Int".
+Object literal has type "iso base.Float" instead of a subtype of "base.Int".
 """, List.of("""
  Main:{ .m:base.Int -> +1.5 }
 """));}
@@ -2896,7 +2896,7 @@ Type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm"
 
 While inspecting object literal instance of "C" > method "B.get" (line 3)
 The body of method ".get" of type declaration "B" is an expression returning "iso C".
-Object literal is of type "iso C" instead of a subtype of "read A".
+Object literal has type "iso C" instead of a subtype of "read A".
 Signature as inherited by type declaration "B":
 -  read A.get: read A
 Method ".get" is overloaded; to implement a specific overload only, write one of the following:
@@ -2914,7 +2914,7 @@ Method ".get" is overloaded; to implement a specific overload only, write one of
 While inspecting object literal instance of "C" > method "A.get" (line 3) > method "B.m" (line 3)
 Method ".get" inside the object literal instance of "A" (line 3)
 is implemented with an expression returning "iso C".
-Object literal is of type "iso C" instead of a subtype of "read A".
+Object literal has type "iso C" instead of a subtype of "read A".
 Signature as inherited by object literal instance of "A":
 -  read A.get: read A
 """, List.of("""
@@ -3980,7 +3980,7 @@ User:{.f(c:C[A]):C[B]->c;}
 
 While inspecting object literal instance of "C[A]" > method "User.f(_)" (line 4)
 The body of method ".f(_)" of type declaration "User" is an expression returning "iso C[A]".
-Object literal is of type "iso C[A]" instead of a subtype of "C[B]".
+Object literal has type "iso C[A]" instead of a subtype of "C[B]".
 """, List.of("""
 A:{}
 B:{}
@@ -4050,7 +4050,7 @@ ExtStr:"beer"{}
 
 While inspecting object literal instance of "Sup" > method "B.m" (line 3)
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
-Object literal is of type "iso Sup" instead of a subtype of "Target".
+Object literal has type "iso Sup" instead of a subtype of "Target".
 """, List.of("""
 Sup:base.WidenTo[Target]{}
 Target:Sup{}
@@ -4063,7 +4063,7 @@ B:{.m:Target->Sup{}}
 
 While inspecting object literal instance of "Sup" > method "B.m" (line 3)
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
-Object literal is of type "iso Sup" instead of a subtype of "Target".
+Object literal has type "iso Sup" instead of a subtype of "Target".
 """, List.of("""
 Sup:{}
 Target:Sup{}
@@ -4076,7 +4076,7 @@ B:{.m:Target->Sup{}}
 
 While inspecting object literal instance of "Sup" > method "B.m" (line 3)
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
-Object literal is of type "iso Sup" instead of a subtype of "Target".
+Object literal has type "iso Sup" instead of a subtype of "Target".
 """, List.of("""
 Sup:base.WidenTo[Target]{ .foo:base.Str }
 Target:Sup{ .extra:base.Str }
@@ -4866,7 +4866,7 @@ User:{ .nested(css: L[L[C]]): C -> C; .t: C -> this.nested(Ls#(Ls#(C))) }
 While inspecting method "User.f" (line 5)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-Object literal is of type "read A" instead of a subtype of "mutH A".
+Object literal has type "read A" instead of a subtype of "mutH A".
 Write "mut A" if you need a "mut" object literal (needed to satisfy the "mutH" requirement).
 
 Type required by each promotion:
@@ -4887,7 +4887,7 @@ User:{
 
 While inspecting object literal instance of "C" > method "User.f" (line 4)
 The body of method ".f" of type declaration "User" is an expression returning "read C".
-Object literal is of type "read C" instead of a subtype of "mut A".
+Object literal has type "read C" instead of a subtype of "mut A".
 """, List.of("""
 A:{ mut .foo:A}
 C:{ mut .bar:C}
@@ -5997,7 +5997,7 @@ A:base.CaptureFree{ imm .foo: A -> base.Block#.let x= {this} .return {x} }
 
 While inspecting object literal instance of "base.Void" > method "A.str" (line 1)
 The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
-Object literal is of type "iso base.Void" instead of a subtype of "base.Str".
+Object literal has type "iso base.Void" instead of a subtype of "base.Str".
 Signature as inherited by type declaration "A":
 -  read base.ToStr.str: base.Str
 """, List.of("""
@@ -6009,7 +6009,7 @@ A:base.ToStr{ .str -> base.Void }
 
 While inspecting object literal instance of "base.Void" > method "A.str" (line 2)
 The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
-Object literal is of type "iso base.Void" instead of a subtype of "base.Str".
+Object literal has type "iso base.Void" instead of a subtype of "base.Str".
 Signature as inherited by type declaration "A":
 -  read Show.str: base.Str
 """, List.of("""
@@ -6935,7 +6935,7 @@ User:{ .go: A -> Take#{'s .mk -> A; .get -> s.mk }.mk }
 
 While inspecting object literal instance of "base.Str" > method "B.m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "iso base.Str".
-Object literal is of type "iso base.Str" instead of a subtype of "B".
+Object literal has type "iso base.Str" instead of a subtype of "B".
 """, List.of("""
 B:{ .m: B -> "a string literal longer than fifteen" }
 """));}
@@ -7232,7 +7232,7 @@ B:A{ .m(x): Sub -> x }
 
 While inspecting object literal instance of "Sup" > method "B.m(_)" (line 6)
 The body of method ".m(_)" of type declaration "B" is an expression returning "iso Sup".
-Object literal is of type "iso Sup" instead of a subtype of "Sub".
+Object literal has type "iso Sup" instead of a subtype of "Sub".
 Signatures as inherited by type declaration "B":
 -       P1.m(A): Sub
 -       P2.m(A): Sup
@@ -7251,7 +7251,7 @@ B:P1,P2{ .m(x): Sub -> Sup }
 While inspecting object literal instance of "Foo" > method "Fresh.k" (line 4) > method "B[_].m" (line 4)
 Method ".k" inside the object literal "Fresh" (line 4)
 is implemented with an expression returning "iso Foo".
-Object literal is of type "iso Foo" instead of a subtype of "K".
+Object literal has type "iso Foo" instead of a subtype of "K".
 Signature as inherited by object literal "Fresh":
 -       K.k: K
 """, List.of("""

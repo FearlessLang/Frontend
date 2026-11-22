@@ -67,7 +67,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "base.Void" > method "B.fromC" (line 1)
 The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
-Object literal is of type "iso base.Void" instead of a subtype of "a.A".
+Object literal has type "iso base.Void" instead of a subtype of "a.A".
 Signature as inherited by type declaration "B":
 -       a.A.fromC: a.A
 
@@ -92,7 +92,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "base.Void" > method "B.fromC" (line 1)
 The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
-Object literal is of type "iso base.Void" instead of a subtype of "a.A".
+Object literal has type "iso base.Void" instead of a subtype of "a.A".
 Signature as inherited by type declaration "B":
 -       a.A.fromC: a.A
 
@@ -505,7 +505,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "bb.Nat" > method "B.m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "iso bb.Nat".
-Object literal is of type "iso bb.Nat" instead of a subtype of "B".
+Object literal has type "iso bb.Nat" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
@@ -926,7 +926,7 @@ In file: [###].fear
 While inspecting object literal instance of "base.Void" > method "a.A.fromC" (line 1) > method "B.m" (line 1)
 Method ".fromC" inside the object literal instance of "a.A" (line 1)
 is implemented with an expression returning "iso base.Void".
-Object literal is of type "iso base.Void" instead of a subtype of "a.A".
+Object literal has type "iso base.Void" instead of a subtype of "a.A".
 Signature as inherited by object literal instance of "a.A":
 -       a.A.fromC: a.A
 
@@ -958,7 +958,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "bb.Str" > method "B.m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "iso bb.Str".
-Object literal is of type "iso bb.Str" instead of a subtype of "B".
+Object literal has type "iso bb.Str" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
@@ -972,7 +972,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "N" > method "B.m" (line 2)
 The body of method ".m" of type declaration "B" is an expression returning "iso N".
-Object literal is of type "iso N" instead of a subtype of "B".
+Object literal has type "iso N" instead of a subtype of "B".
 
 Name "N" stands for "bb.Nat" because of "use bb.Nat as N".
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
@@ -988,7 +988,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "bb.Int" > method "B.m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "iso bb.Int".
-Object literal is of type "iso bb.Int" instead of a subtype of "bb.Nat".
+Object literal has type "iso bb.Int" instead of a subtype of "bb.Nat".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
@@ -1050,7 +1050,7 @@ In file: [###].fear
 While inspecting object literal instance of "B" > method "X.fromC" (line 2) > method "B.m" (line 2)
 Method ".fromC" inside the object literal instance of "X" (line 2)
 is implemented with an expression returning "iso B".
-Object literal is of type "iso B" instead of a subtype of "X".
+Object literal has type "iso B" instead of a subtype of "X".
 Signature as inherited by object literal instance of "X":
 -       X.fromC: X
 
@@ -2059,7 +2059,7 @@ In file: [###].fear
 While inspecting method "B.f" (line 1)
 This call to method "a.Need#(_)" cannot typecheck.
 Argument 1 has type "read a.A2".
-Object literal is of type "read a.A2" instead of a subtype of "mut a.A2".
+Object literal has type "read a.A2" instead of a subtype of "mut a.A2".
 Write "mut a.A2" if you need a "mut" object literal.
 
 Type required by each promotion:
@@ -2816,7 +2816,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "L" > method "B.k" (line 2)
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
-Object literal is of type "iso L" instead of a subtype of "a.A".
+Object literal has type "iso L" instead of a subtype of "a.A".
 
 """+noteA+"""
 
@@ -2833,7 +2833,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "L" > method "B.k" (line 3)
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
-Object literal is of type "iso L" instead of a subtype of "a.A2".
+Object literal has type "iso L" instead of a subtype of "a.A2".
 
 """+noteA+"""
 
@@ -2851,7 +2851,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "bb.Nat" > method "B.m(_)" (line 1)
 The body of method ".m(_)" of type declaration "B" is an expression returning "iso bb.Nat".
-Object literal is of type "iso bb.Nat" instead of a subtype of "B".
+Object literal has type "iso bb.Nat" instead of a subtype of "B".
 
 """+noteBb+"""
 
@@ -2931,7 +2931,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "L" > method "B.k" (line 2)
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
-Object literal is of type "iso L" instead of a subtype of "bb.Str".
+Object literal has type "iso L" instead of a subtype of "bb.Str".
 
 """+noteBb+"""
 
@@ -3024,7 +3024,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".k" with 0 parameters redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, number of parameters and reference capability is already present.
 Error 7 WellFormedness
 """, Map.of("c", cA), mapA, """
 B:a.A{ .k:B -> this; .k:B -> this; }

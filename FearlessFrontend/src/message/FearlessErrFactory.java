@@ -51,7 +51,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var n= staticTypeDecName(lastTop.get());
     var hint= lastTop.get().s()+(lastTop.get().arity() == 0 ? ":..{...}" : "[..]:..{...}");
     return "Top level type declarations do not end with \";\".\n"
-         +"The definition of "+n+" ends with a semicolon. Remove it.\n"
+         +"The declaration of "+n+" ends with a semicolon. Remove it.\n"
          +"Write: "+disp(hint)+"\n"
          +"Not:   "+disp(hint+";")+"\n";
   }
@@ -150,7 +150,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var s= redeclaredMethSpan(ms, p);
     return Code.WellFormedness.of(
       "Method "+methodSig("", name.name())+" with "+count(name.name().arity(), "parameter")+" redeclared.\n"
-    +"A method with the same name, arity and reference capability is already present.\n")
+    +"A method with the same name, number of parameters and reference capability is already present.\n")
       .addSpan(s).addSpan(at);
   }
   public FearlessException methodMixedExplicitRC(List<M> ms, MName name, Span at){
@@ -185,16 +185,16 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       .flatMap(this::potentialMethodNames)
       .distinct().toList();
     var base= "Method with inferred name and "+count(count, "parameter")+" redeclared.\n"
-    +"A method with the inferred name and the same parameter count is already present above.\n";
+    +"A method with inferred name and the same number of parameters is already present.\n";
     if (hints.isEmpty()){ return Code.WellFormedness.of(base).addSpan(s).addSpan(at); }
     var ex= hints.getFirst();
     return Code.WellFormedness.of(
       base
     +"A method declaration may be missing \".\" before its name.\n"
     +Join.of(hints.stream().map(Err::disp),
-      "Found unnamed methods with parameters: ", ", ", ".\n")
+      "Parameters that may be method names written without \".\": ", ", ", ".\n")
     +"To declare a method named "+disp(ex)+", write \"."+ex+"\" (dot "+ex+").\n"
-    +"Without the dot, "+disp(ex)+" is interpreted as a parameter name for an anonymous method.\n"
+    +"Without the dot, "+disp(ex)+" is the only parameter of a method with inferred name.\n"
     ).addSpan(s).addSpan(at);
   }
   public FearlessException typeNameConflictsGeneric(Token name, Span at){
@@ -208,7 +208,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +".\nType names starting with \"_\" can only be used in their own package, and only by their simple name.\n").addSpan(at);
   }
   public FearlessException underscoreInEqSugar(MName m, Span at){
-    return Code.UnexpectedToken.of("The equals sugar cannot bind \"_\": it needs a name or a destructuring pattern.\n"
+    return Code.UnexpectedToken.of("The equals sugar cannot bind \"_\": it needs a name or a nominal pattern.\n"
       +eqSugarUse(m)).addSpan(at);
   }
   public FearlessException missingExprAfterEq(MName m, Span at){
@@ -221,7 +221,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +"The equals sugar is followed by the rest of the chain, which can use "+Join.of(xs.stream().map(Err::disp), "", " and ", "")+", as in \"Block#.let x = {5}.return {x}\".\n").addSpan(at);
   }
   private static String eqSugarUse(MName m){
-    return "Use: \""+m.s()+" x = expression\" or \""+m.s()+" {a,b} = expression\".\n";
+    return "Use: \""+m.s()+" x = expression\" or \""+m.s()+" {.a,.b} = expression\".\n";
   }
   public FearlessException spaceBeforeId(Span at, String id){
     return Code.UnexpectedToken.of(
@@ -232,13 +232,13 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException emptyDestructPattern(Span at){
     return Code.UnexpectedToken.of(
-      "This destructuring pattern extracts nothing.\n"
+      "This nominal pattern extracts nothing.\n"
       +"Write at least one chain, for example {.a}, instead of an empty {}.")
       .addSpan(at);
   }
   public FearlessException emptyDestructChain(Span at){
     return Code.UnexpectedToken.of(
-      "This destructuring pattern has an empty chain between commas.\n"
+      "This nominal pattern has an empty chain between commas.\n"
       +"Each comma must separate two non-empty chains; remove the stray comma, for example write {.a,.b} instead of {.a,,.b} or {,.a}.")
       .addSpan(at);
   }
@@ -276,9 +276,9 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +"It is declared by a nominal pattern: a pattern like \"{.a.b, .c}id\" declares the names \"bid\" and \"cid\".\n").addSpan(at);
   }
   public FearlessException patternsGetTooManyParameters(Span at, List<XPat.Destruct> ps, int n){
-    return Code.UnexpectedToken.of("This method header gets "+n+" parameters by using the nominal "+(ps.size() == 1 ? "pattern " : "patterns ")
+    return Code.UnexpectedToken.of("This method signature declares "+n+" names, using the nominal "+(ps.size() == 1 ? "pattern " : "patterns ")
       +Join.of(ps.stream().map(p -> disp(patternRepr(p))), "", " and ", "")+".\n"
-      +"A method header cannot use nominal patterns to get more than 32 parameters.\n").addSpan(at);
+      +"A method signature using nominal patterns cannot declare more than 32 names.\n").addSpan(at);
   }
   public FearlessException implicitWithParameters(Span at, int n){
     return Code.UnexpectedToken.of("This method declares "+count(n, "parameter")+" and its body uses \"::\".\n"
@@ -406,8 +406,8 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
   public FearlessException badTopSelfName(Span at, String name){
-    var msg= "Self name "+disp(name)+" is invalid in a top level type.\n"
-      +"The self name of a top level type can only be \"this\".\n";
+    var msg= "Self name "+disp(name)+" is invalid in a top level type declaration.\n"
+      +"The self name of a top level type declaration can only be \"this\".\n";
     return Code.WellFormedness.of(msg).addSpan(at);
   }
   public FearlessException noAbstractMethod(Sig sig, Span at){

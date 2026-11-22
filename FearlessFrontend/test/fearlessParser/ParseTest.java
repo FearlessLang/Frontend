@@ -170,8 +170,8 @@ In file: [###].fear
    | --~~~^^^~~~~~~~~~~~~~~~~~
 
 While inspecting type declaration body > type declaration > full file
-Self name "abc" is invalid in a top level type.
-The self name of a top level type can only be "this".
+Self name "abc" is invalid in a top level type declaration.
+The self name of a top level type declaration can only be "this".
 Error 7 WellFormedness
 """, """
 A:{ 'abc .foo:A->A + A; } //ill formed: the first layer has to be this or nothing
@@ -341,8 +341,8 @@ In file: [###].fear
    |   -~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
-The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
-Use: ".let x = expression" or ".let {a,b} = expression".
+The equals sugar cannot bind "_": it needs a name or a nominal pattern.
+Use: ".let x = expression" or ".let {.a,.b} = expression".
 Error 2 UnexpectedToken
 """, """
 A:{Block#.let _ = {5} .return {2} }
@@ -354,8 +354,8 @@ In file: [###].fear
    |   -~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
-The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
-Use: ".let x = expression" or ".let {a,b} = expression".
+The equals sugar cannot bind "_": it needs a name or a nominal pattern.
+Use: ".let x = expression" or ".let {.a,.b} = expression".
 Error 2 UnexpectedToken
 """, """
 A:{Block#.let[base.Nat] _ = {5} .return {2} }
@@ -379,8 +379,8 @@ In file: [###].fear
    |   -~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~--
 
 While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
-The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
-Use: ".let x = expression" or ".let {a,b} = expression".
+The equals sugar cannot bind "_": it needs a name or a nominal pattern.
+Use: ".let x = expression" or ".let {.a,.b} = expression".
 Error 2 UnexpectedToken
 """, """
 A:{(Block#.let[base.Nat] _ = {5} .return {2}) }
@@ -392,8 +392,8 @@ In file: [###].fear
    |   -~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~--
 
 While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
-The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
-Use: ".let x = expression" or ".let {a,b} = expression".
+The equals sugar cannot bind "_": it needs a name or a nominal pattern.
+Use: ".let x = expression" or ".let {.a,.b} = expression".
 Error 2 UnexpectedToken
 """, """
 A:{(Block#.let _ = {5} .return {2}) }
@@ -591,7 +591,7 @@ In file: [###].fear
 
 While inspecting expression in round parenthesis > expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
 Missing expression after "=" in the equals sugar.
-Use: ".let x = expression" or ".let {a,b} = expression".
+Use: ".let x = expression" or ".let {.a,.b} = expression".
 Error 2 UnexpectedToken
 """, """
 A:{ .m ->
@@ -1128,7 +1128,7 @@ In file: [###].fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Missing expression after "=" in the equals sugar.
-Use: ".let x = expression" or ".let {a,b} = expression".
+Use: ".let x = expression" or ".let {.a,.b} = expression".
 Error 2 UnexpectedToken
 """, """
 A:{ .m -> Block#.let y= .use(y) }
@@ -1248,7 +1248,7 @@ In file: [###].fear
    |   --~~~^^~~~--
 
 While inspecting nominal pattern > method parameters declaration > method declaration > type declaration body > type declaration > full file
-This destructuring pattern extracts nothing.
+This nominal pattern extracts nothing.
 Write at least one chain, for example {.a}, instead of an empty {}.
 Error 2 UnexpectedToken
 """, """
@@ -1263,7 +1263,7 @@ In file: [###].fear
    |     ---^^^^^^~~---
 
 While inspecting nominal pattern > method parameters declaration > method declaration > type declaration body > type declaration > full file
-This destructuring pattern has an empty chain between commas.
+This nominal pattern has an empty chain between commas.
 Each comma must separate two non-empty chains; remove the stray comma, for example write {.a,.b} instead of {.a,,.b} or {,.a}.
 Error 2 UnexpectedToken
 """, """
@@ -2892,7 +2892,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".foo" with 0 parameters redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, number of parameters and reference capability is already present.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2915,7 +2915,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".ban(_)" with 1 parameter redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, number of parameters and reference capability is already present.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2941,7 +2941,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".foo" with 0 parameters redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, number of parameters and reference capability is already present.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2967,11 +2967,11 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
-A method with the inferred name and the same parameter count is already present above.
+A method with inferred name and the same number of parameters is already present.
 A method declaration may be missing "." before its name.
-Found unnamed methods with parameters: "a", "b".
+Parameters that may be method names written without ".": "a", "b".
 To declare a method named "a", write ".a" (dot a).
-Without the dot, "a" is interpreted as a parameter name for an anonymous method.
+Without the dot, "a" is the only parameter of a method with inferred name.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2997,7 +2997,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameters redeclared.
-A method with the inferred name and the same parameter count is already present above.
+A method with inferred name and the same number of parameters is already present.
 Error 7 WellFormedness
 """, """
 A:{
@@ -3019,7 +3019,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
-A method with the inferred name and the same parameter count is already present above.
+A method with inferred name and the same number of parameters is already present.
 Error 7 WellFormedness
 """, """
 A:{ _->this; _->this }
@@ -3032,7 +3032,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameters redeclared.
-A method with the inferred name and the same parameter count is already present above.
+A method with inferred name and the same number of parameters is already present.
 Error 7 WellFormedness
 """, """
 A:{ (a,b)->a; (c,d)->c }
@@ -3049,7 +3049,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameters redeclared.
-A method with the inferred name and the same parameter count is already present above.
+A method with inferred name and the same number of parameters is already present.
 Error 7 WellFormedness
 """, """
 A:{
@@ -3379,11 +3379,11 @@ In file: [###].fear
 
 While inspecting type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
-A method with the inferred name and the same parameter count is already present above.
+A method with inferred name and the same number of parameters is already present.
 A method declaration may be missing "." before its name.
-Found unnamed methods with parameters: "x", "y".
+Parameters that may be method names written without ".": "x", "y".
 To declare a method named "x", write ".x" (dot x).
-Without the dot, "x" is interpreted as a parameter name for an anonymous method.
+Without the dot, "x" is the only parameter of a method with inferred name.
 Error 7 WellFormedness
 """, """
 Foo:{ .m : Point -> Point:{ x:base.Nat->0; y:base.Nat->0;} }
@@ -3515,13 +3515,31 @@ In file: [###].fear
 
 While inspecting type declaration > full file
 Top level type declarations do not end with ";".
-The definition of "B" ends with a semicolon. Remove it.
+The declaration of "B" ends with a semicolon. Remove it.
 Write: "B:..{...}"
 Not:   "B:..{...};"
 Error 2 UnexpectedToken
 """, """
 A:{}
 B:{};
+C:{}
+""");}
+@Test void topSemiAfterGenericDeclaration(){fail("""
+In file: [###].fear
+
+002| B[X]:{};
+   |        ^
+003| C:{}
+
+While inspecting type declaration > full file
+Top level type declarations do not end with ";".
+The declaration of "B[_]" ends with a semicolon. Remove it.
+Write: "B[..]:..{...}"
+Not:   "B[..]:..{...};"
+Error 2 UnexpectedToken
+""", """
+A:{}
+B[X]:{};
 C:{}
 """);}
 @Test void topSemiBeforeFirstDeclaration(){fail("""
@@ -3783,7 +3801,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
-A method with the inferred name and the same parameter count is already present above.
+A method with inferred name and the same number of parameters is already present.
 Error 7 WellFormedness
 """, """
 A:{ #(x:A):A; #(x:A,y:A):A }
@@ -3797,7 +3815,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 0 parameters redeclared.
-A method with the inferred name and the same parameter count is already present above.
+A method with inferred name and the same number of parameters is already present.
 Error 7 WellFormedness
 """, """
 A:{ this; this }
@@ -3841,16 +3859,27 @@ Error 2 UnexpectedToken
 """, """
 A:{.m(a:A):A->a.m {.b, .b}x = a; a}
 """);}
-@Test void patternsOfOneMethodHeaderGetTooManyParameters(){fail("""
+@Test void methodSignatureWithPatternsDeclaresTooManyNames(){fail("""
 In file: [###].fear
 
 [###]
 While inspecting method declaration > type declaration body > type declaration > full file
-This method header gets 33 parameters by using the nominal patterns "{.a1, .a2, .a3, .a4, .a5, .a6, .a7, .a8, .a9, .a10, .a11, .a12, .a13, .a14, .a15, .a16}" and "{.a17, .a18, .a19, .a20, .a21, .a22, .a23, .a24, .a25, .a26, .a27, .a28, .a29, .a30, .a31, .a32}".
-A method header cannot use nominal patterns to get more than 32 parameters.
+This method signature declares 33 names, using the nominal patterns "{.a1, .a2, .a3, .a4, .a5, .a6, .a7, .a8, .a9, .a10, .a11, .a12, .a13, .a14, .a15, .a16}" and "{.a17, .a18, .a19, .a20, .a21, .a22, .a23, .a24, .a25, .a26, .a27, .a28, .a29, .a30, .a31, .a32}".
+A method signature using nominal patterns cannot declare more than 32 names.
 Error 2 UnexpectedToken
 """, """
 A:{.m(x:A, {.a1, .a2, .a3, .a4, .a5, .a6, .a7, .a8, .a9, .a10, .a11, .a12, .a13, .a14, .a15, .a16}:A, {.a17, .a18, .a19, .a20, .a21, .a22, .a23, .a24, .a25, .a26, .a27, .a28, .a29, .a30, .a31, .a32}:A):A->x}
+""");}
+@Test void methodSignatureWithPlainNamesAndAPatternDeclaresTooManyNames(){fail("""
+In file: [###].fear
+
+[###]
+While inspecting method declaration > type declaration body > type declaration > full file
+This method signature declares 33 names, using the nominal pattern "{.a}".
+A method signature using nominal patterns cannot declare more than 32 names.
+Error 2 UnexpectedToken
+""", """
+A:{.m(x1:A, x2:A, x3:A, x4:A, x5:A, x6:A, x7:A, x8:A, x9:A, x10:A, x11:A, x12:A, x13:A, x14:A, x15:A, x16:A, x17:A, x18:A, x19:A, x20:A, x21:A, x22:A, x23:A, x24:A, x25:A, x26:A, x27:A, x28:A, x29:A, x30:A, x31:A, x32:A, {.a}:A):A->x1}
 """);}
 @Test void eqSugarPatternDeclaresTooManyNames(){fail("""
 In file: [###].fear
