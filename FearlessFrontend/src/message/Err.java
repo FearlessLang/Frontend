@@ -103,6 +103,24 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t), t.span()))); }
   static String count(int n, String noun){ return n+" "+noun+(n == 1 ? "" : "s"); }
   static String up(String s){ return s.substring(0, 1).toUpperCase(Locale.ROOT)+s.substring(1); }
+  private List<T.C> sources(Literal l, Sig s){
+    var cs= l.cs();
+    return cs.stream().filter(c -> cs.stream().noneMatch(o -> _decs.apply(o.name()).cs().stream().anyMatch(oc -> oc.name().equals(c.name())))
+      && _decs.apply(c.name()).ms().stream().anyMatch(dm -> dm.sig().m().equals(s.m()) && dm.sig().rc() == s.rc())).toList();
+  }
+  boolean sigs(Literal l, M m, boolean always){
+    var fm= TypeSystemErrors.srcM(l, m.sig());
+    var sources= sources(l, m.sig());
+    if (fm.isEmpty() || sources.isEmpty() || TypeSystemErrors.wholeSig(fm.get(), m.sig())){ return false; }
+    return sigs(expRepr(l), sources, sources.stream().map(c -> inherited(c, m.sig())).toList(), always);
+  }
+  private Sig inherited(T.C c, Sig s){
+    var d= _decs.apply(c.name());
+    var o= OneOr.of("Malformed methods", d.ms().stream().map(M::sig).filter(ps -> ps.m().equals(s.m()) && ps.rc() == s.rc()));
+    var xs= Push.of(B.xs(d.bs()), B.xs(o.bs()));
+    var ts= Push.of(c.ts(), s.bs().stream().<T>map(b -> new T.X(b.x(), TSpan.fromPos(Pos.unknown))).toList());
+    return new Sig(o.rc(), o.m(), s.bs(), TypeRename.ofT(o.ts(), xs, ts), TypeRename.of(o.ret(), xs, ts), o.origin(), o.abs(), o.span());
+  }
   boolean sigs(String who, List<T.C> heads, List<Sig> ss, boolean always){
     var original= Streams.zip(heads, ss).map((h,s) -> originals(h.name(), s)).toList();
     var renamed= Streams.zip(original, ss).anyMatch((os,s) -> os.stream().anyMatch(o -> !B.xs(o.bs()).equals(B.xs(s.bs()))));

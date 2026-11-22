@@ -40,6 +40,7 @@ import metaParser.Span;
 import pkgmerge.Package;
 import tools.Fs;
 import tools.SourceOracle.Ref;
+import typeSystem.TypeScope;
 import utils.Join;
 import utils.OneOr;
 import utils.Pos;
@@ -596,10 +597,19 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException methodTypeNotInferred(E.Literal at, M.Sig s, MName m, String what){
     return wf(err().line("Cannot infer the type of "+what+" of "+err().methodSig(m)+" in "+err().expRepr(at)+"."), s, at);
   }
-  public FearlessException literalImplementsTypeParameter(E.Literal at, IT t){
-    return wf(err()
+  public FearlessException literalImplementsTypeParameter(E.Literal at, IT t, TypeScope s, Function<TName,core.E.Literal> decs){
+    var x= OneOr.of("Type parameters", t.ftv());
+    var e= err(y -> y, n -> n, decs, List.of())
       .line(up(err().expRepr(at))+" cannot implement "+err().typeRepr(t)+".")
-      .line(disp(OneOr.of("Type parameters", t.ftv()))+" is a generic type parameter; object literals can only implement nominal types."), at);
+      .line(disp(x)+" is a generic type parameter; object literals can only implement nominal types.");
+    declaring(s, x).ifPresent(m -> e.sigs(m.l(), m.m(), true));
+    return wf(e, at);
+  }
+  private static Optional<TypeScope.Method> declaring(TypeScope s, String x){
+    if (s.isTop()){ return Optional.empty(); }
+    var m= (TypeScope.Method)s;
+    if (B.xs(m.m().sig().bs()).contains(x)){ return Optional.of(m); }
+    return declaring(s.outer(), x);
   }
   public FearlessException typeGrowsForever(E at){
     return wf(err()
