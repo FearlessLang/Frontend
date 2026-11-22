@@ -99,11 +99,13 @@ C:{ .m: C }
    | ^^^^^^^
 
 While inspecting type declaration "A"
-Supertypes disagree on the return type of method "imm .m" with 0 parameters.
-Candidates:
-- "B"
-- "C"
-Type declaration "A" must declare a method ".m" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .m".
+Signatures as inherited by type declaration "A":
+-       B.m: B
+-       C.m: C
+"A" must declare method ".m".
+"A.m" return type must be a subtype of "B" and "C".
+Such type currently visible: "A".
 """, List.of("""
 A:B,C{}
 B:{ .m: B }
@@ -114,11 +116,15 @@ C:{ .m: C }
    | ^^^^^^^^
 
 While inspecting type declaration "AA"
-Supertypes disagree on the return type of method "imm .m" with 0 parameters.
-Candidates:
-- "B"
-- "C"
-Type declaration "AA" must declare a method ".m" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .m".
+Signatures as inherited by type declaration "AA":
+-       B.m: B
+-       C.m: C
+"AA" must declare method ".m".
+"AA.m" return type must be a subtype of "B" and "C".
+Such types currently visible:
+- "A"
+- "AA"
 """, List.of("""
 A:AA{ .m: Int }
 Int:{}
@@ -250,11 +256,13 @@ List[T:*]:{}
    | ^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Supertypes disagree on the return type of method "imm .kk" with 0 parameters.
-Candidates:
-- "A"
-- "List[A]"
-Type declaration "A" must declare a method ".kk" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .kk".
+Signatures as inherited by type declaration "A":
+-       B[A].kk: A
+-       C[List[A]].kk: List[A]
+"A" must declare method ".kk".
+"A.kk" return type must be a subtype of "A" and "List[A]".
+No such type is currently visible.
 """, List.of("""
 A:B[A],C[List[A]]{}
 B[X:*]:K[X]{ .m: List[X] }
@@ -482,11 +490,13 @@ Bar[X:*]:{ .m: Foo[X] -> Foo[X:*]:{} }
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Supertypes disagree on the type of parameter 1 of method "imm .m(_)" with 1 parameter.
-Candidates:
-- "base.Int"
-- "base.Float"
-Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .m(_)".
+Signatures as inherited by type declaration "D":
+-       B.m(base.Int): base.Int
+-       C.m(base.Float): base.Float
+No type currently visible is a subtype of the return types: "base.Int" and "base.Float".
+"base.Int" is sealed, so no type outside package "base" can implement "base.Int".
+Type declaration "D" cannot implement all of those supertypes.
 """, List.of("""
 A[X:*]:{ .m(x:X):X->x }
 B:A[base.Int]{}
@@ -879,11 +889,12 @@ A:Foo[imm Bar],Foo[mut Beer]{ .get: Both -> Both }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Supertypes disagree on the return type of method "imm .get" with 0 parameters.
-Candidates:
-- "imm Bar"
-- "mut Beer"
-The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".get" can implement all the candidates.
+Supertypes disagree on the signature of method "imm .get".
+Signatures as inherited by type declaration "A":
+-       Foo[Bar].get: Bar
+-       Foo[mut Beer].get: mut Beer
+The return type differs in reference capability ("imm Bar", "mut Beer"), and an overriding method must keep the reference capability.
+Type declaration "A" cannot implement all of those supertypes.
 """, List.of("""
 Bar:{}
 Beer:{}
@@ -908,11 +919,12 @@ Sub[X:*]:Sup[X]{ .h(x: X): X }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Supertypes disagree on the return type of method "imm .get" with 0 parameters.
-Candidates:
-- "Y"
-- "imm Y"
-The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".get" can implement all the candidates.
+Supertypes disagree on the signature of method "imm .get".
+Signatures as inherited by type declaration "A[_]":
+-       Foo[Y].get: Y
+-       Foo[imm Y].get: imm Y
+The return type differs in reference capability ("Y", "imm Y"), and an overriding method must keep the reference capability.
+Type declaration "A[_]" cannot implement all of those supertypes.
 """, List.of("""
 Foo[T:*]:{ .get: T }
 A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
@@ -941,11 +953,12 @@ A[Y:imm]:Foo[Y],Bar[Y]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Supertypes disagree on the return type of method "imm .get" with 0 parameters.
-Candidates:
-- "Y"
-- "Bar"
-The candidates are different types and "Y" is a generic type parameter, so no method ".get" can implement all the candidates.
+Supertypes disagree on the signature of method "imm .get".
+Signatures as inherited by type declaration "A[_]":
+-       Foo[Y].get: Y
+-       Foo[Bar].get: Bar
+The return type differs, and "Y" is a generic type parameter: no type can be a subtype of "Y" and "Bar" while keeping the reference capability of each.
+Type declaration "A[_]" cannot implement all of those supertypes.
 """, List.of("""
 Bar:{}
 Foo[T:*]:{ .get: T }
@@ -956,11 +969,12 @@ A[Y:imm]:Foo[Y],Foo[Bar]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Supertypes disagree on the return type of method "imm .get" with 0 parameters.
-Candidates:
-- "Y"
-- "imm Bar"
-The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".get" can implement all the candidates.
+Supertypes disagree on the signature of method "imm .get".
+Signatures as inherited by type declaration "A[_]":
+-       Foo[Y].get: Y
+-       Foo[Bar].get: Bar
+The return type differs in reference capability ("Y", "imm Bar"), and an overriding method must keep the reference capability.
+Type declaration "A[_]" cannot implement all of those supertypes.
 """, List.of("""
 Bar:{}
 Foo[T:*]:{ .get: T }
@@ -993,11 +1007,12 @@ User:{ .asFoo(a: A[Baz]): Foo[Baz] -> a; .get(a: A[Baz]): Baz -> a.get; .make: A
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Supertypes disagree on the return type of method "imm .get" with 0 parameters.
-Candidates:
-- "Y"
-- "read/imm Y"
-The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".get" can implement all the candidates.
+Supertypes disagree on the signature of method "imm .get".
+Signatures as inherited by type declaration "A[_]":
+-       Foo[Y].get: Y
+-       Bar[Y].get: read/imm Y
+The return type differs in reference capability ("Y", "read/imm Y"), and an overriding method must keep the reference capability.
+Type declaration "A[_]" cannot implement all of those supertypes.
 """, List.of("""
 Foo[X:imm,mut]:{ .get: X }
 Bar[X:imm,mut]:{ .get: read/imm X }
@@ -1014,11 +1029,12 @@ A:Foo,Bar{}
    | ^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Supertypes disagree on the return type of method "imm .get" with 0 parameters.
-Candidates:
-- "T"
-- "read/imm T"
-The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".get" can implement all the candidates.
+Supertypes disagree on the signature of method "imm .get".
+Signatures as inherited by type declaration "A":
+-       Foo.get[T:mut]: T
+-       Bar.get[T:mut]: read/imm T
+The return type differs in reference capability ("T", "read/imm T"), and an overriding method must keep the reference capability.
+Type declaration "A" cannot implement all of those supertypes.
 """, List.of("""
 Foo:{ .get[T:mut]: T }
 Bar:{ .get[T:mut]: read/imm T }
@@ -1060,11 +1076,14 @@ C:A{.m[Y:imm,X:imm](x:Y,y:X):Y->x}
    |                         ^^^^^^^^^^^^^^^^
 
 While inspecting object literal "Both"
-Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
-Generic type parameter names may differ across supertypes; only the position matters.
-Candidates:
-- "imm"
-- "read"
+Supertypes disagree on the signature of method "imm .id(_)".
+Original signatures:
+-       Sup1.id[X](X): X
+-       Sup2.id[X:read](X): X
+Signatures as inherited by object literal "Both":
+-       Sup1.id[_AX](_AX): _AX
+-       Sup2.id[_BX:read](_BX): _BX
+The capability bounds of generic type parameter 1 differ, and an overriding method must keep the capability bounds.
 Object literal "Both" cannot implement all of those supertypes.
 """, List.of("""
 Sup1:{ .id[X:imm](x:X):X }
@@ -1076,11 +1095,15 @@ A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
    |                         ^^^^^^^^^^^^^^^^
 
 While inspecting object literal "Both"
-Supertypes disagree on the return type of method "imm .get" with 0 parameters.
-Candidates:
-- "Sup2"
-- "_AX"
-The candidates are different types and "_AX" is a generic type parameter, so no method ".get" can implement all the candidates.
+Supertypes disagree on the signature of method "imm .get".
+Original signatures:
+-       Sup1.get[X]: Sup2
+-       Sup2.get[X]: X
+Signatures as inherited by object literal "Both":
+-       Sup1.get[_AX]: Sup2
+-       Sup2.get[_AX]: _AX
+The return type differs, and "_AX" is a generic type parameter: no type can be a subtype of "Sup2" and "_AX" while keeping the reference capability of each.
+Object literal "Both" cannot implement all of those supertypes.
 """, List.of("""
 Sup1:{ .get[X]:Sup2 }
 Sup2:{ .get[X]:X }
@@ -1091,11 +1114,15 @@ A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
    |                         ^^^^^^^^^^^^^^^^
 
 While inspecting object literal "Both"
-Supertypes disagree on the return type of method "imm .get" with 0 parameters.
-Candidates:
-- "Sup1"
-- "X"
-The candidates are different types and "X" is a generic type parameter, so no method ".get" can implement all the candidates.
+Supertypes disagree on the signature of method "imm .get".
+Original signatures:
+-       Sup1.get[X]: Sup1
+-       Sup2.get[Y]: Y
+Signatures as inherited by object literal "Both":
+-       Sup1.get[X]: Sup1
+-       Sup2.get[X]: X
+The return type differs, and "X" is a generic type parameter: no type can be a subtype of "Sup1" and "X" while keeping the reference capability of each.
+Object literal "Both" cannot implement all of those supertypes.
 """, List.of("""
 Sup1:{ .get[X]:Sup1 }
 Sup2:{ .get[Y]:Y }
@@ -1106,11 +1133,15 @@ A:{ .m[Y](y:Y): Sup1 -> Both:Sup1,Sup2{} }
    |                         ^^^^^^^^^^^^^^^^
 
 While inspecting object literal "Both"
-Supertypes disagree on the return type of method "imm .get" with 0 parameters.
-Candidates:
-- "_AX"
-- "Sup1"
-The candidates are different types and "_AX" is a generic type parameter, so no method ".get" can implement all the candidates.
+Supertypes disagree on the signature of method "imm .get".
+Original signatures:
+-       Sup1.get[X]: X
+-       Sup2.get[X]: Sup1
+Signatures as inherited by object literal "Both":
+-       Sup1.get[_AX]: _AX
+-       Sup2.get[_AX]: Sup1
+The return type differs, and "_AX" is a generic type parameter: no type can be a subtype of "_AX" and "Sup1" while keeping the reference capability of each.
+Object literal "Both" cannot implement all of those supertypes.
 """, List.of("""
 Sup1:{ .get[X]:X }
 Sup2:{ .get[X]:Sup1 }
@@ -1121,11 +1152,13 @@ A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
-Candidates:
-- "Q1"
-- "Q2"
-Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       S1.foo: Q1
+-       S2.foo: Q2
+"B" must declare method ".foo".
+"B.foo" return type must be a subtype of "Q1" and "Q2".
+Such type currently visible: "Q1".
 """, List.of("""
 Q2:{}
 Q1:Q2{}
@@ -1138,11 +1171,15 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
-Candidates:
-- "mut Q1"
-- "mut Q2"
-Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       S1.foo: mut Q1
+-       S2.foo: mut Q2
+"B" must declare method ".foo".
+"B.foo" return type must be a subtype of "mut Q1" and "mut Q2".
+Such types currently visible:
+- "mut Q12"
+- "mut Q123"
 """, List.of("""
 Q1:{}
 Q2:{}
@@ -1157,11 +1194,13 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the type of parameter 1 of method "imm .foo(_)" with 1 parameter.
-Candidates:
-- "Q1"
-- "Q2"
-Type declaration "B" must declare a method ".foo(_)" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo(_)".
+Signatures as inherited by type declaration "B":
+-       S1.foo(Q1): S1
+-       S2.foo(Q2): S1
+"B" must declare method ".foo(_)".
+"B.foo(_)" parameter 1 type must be a supertype of "Q1" and "Q2".
+Such type currently visible: "Q0".
 """, List.of("""
 Q0:{}
 Q1:Q0{}
@@ -1175,11 +1214,13 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the type of parameter 1 of method "imm .foo(_)" with 1 parameter.
-Candidates:
-- "Q1"
-- "Q2"
-Type declaration "B" must declare a method ".foo(_)" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo(_)".
+Signatures as inherited by type declaration "B":
+-       S1.foo(Q1): S1
+-       S2.foo(Q2): S1
+"B" must declare method ".foo(_)".
+"B.foo(_)" parameter 1 type must be a supertype of "Q1" and "Q2".
+Such type currently visible: "Q2".
 """, List.of("""
 Q2:{}
 Q1:Q2{}
@@ -1192,11 +1233,15 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the type of parameter 1 of method "imm .foo(_)" with 1 parameter.
-Candidates:
-- "Q1"
-- "Q2"
-Type declaration "B" must declare a method ".foo(_)" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo(_)".
+Signatures as inherited by type declaration "B":
+-       S1.foo(Q1): Q1
+-       S2.foo(Q2): Q2
+"B" must declare method ".foo(_)".
+"B.foo(_)" parameter 1 type must be a supertype of "Q1" and "Q2".
+Such type currently visible: "Q0".
+"B.foo(_)" return type must be a subtype of "Q1" and "Q2".
+No such type is currently visible.
 """, List.of("""
 Q0:{}
 Q1:Q0{}
@@ -1210,11 +1255,13 @@ B:S1,S2{}
    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "imm .foo(_)" with 1 parameter.
-Candidates:
-- "Q1"
-- "Q2"
-Type declaration "B" must declare a method ".foo(_)" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo(_)".
+Signatures as inherited by type declaration "B":
+-       S1.foo(Q1): Q1
+-       S2.foo(Q2): Q2
+"B.foo(_)" must declare the return type.
+"B.foo(_)" return type must be a subtype of "Q1" and "Q2".
+No such type is currently visible.
 """, List.of("""
 Q0:{}
 Q1:Q0{}
@@ -1237,11 +1284,13 @@ B:S1,S2{ .foo(x: Q0): Q12 -> this.foo(x) }
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
-Candidates:
-- "base.Nat"
-- "base.Str"
-Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       S1.foo: base.Nat
+-       S2.foo: base.Str
+No type currently visible is a subtype of the return types: "base.Nat" and "base.Str".
+"base.Nat" is sealed, so no type outside package "base" can implement "base.Nat".
+Type declaration "B" cannot implement all of those supertypes.
 """, List.of("""
 S1:{ .foo: base.Nat }
 S2:{ .foo: base.Str }
@@ -1252,11 +1301,13 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "mut .foo" with 0 parameters.
-Candidates:
-- "Q1"
-- "Q2"
-Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "mut .foo".
+Signatures as inherited by type declaration "B":
+-   mut S1.foo: Q1
+-   mut S2.foo: Q2
+"B" must declare method "mut .foo".
+"B.foo" return type must be a subtype of "Q1" and "Q2".
+No such type is currently visible.
 """, List.of("""
 Q1:{}
 Q2:{}
@@ -1269,11 +1320,11 @@ B:S1,S2{}
    | ^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the capability bounds of generic type parameter 2 of method ".id(_)" with 1 parameter.
-Generic type parameter names may differ across supertypes; only the position matters.
-Candidates:
-- "imm"
-- "read"
+Supertypes disagree on the signature of method "imm .id(_)".
+Signatures as inherited by type declaration "B":
+-       Sup1.id[X,Y](X): X
+-       Sup2.id[X,Y:read](X): X
+The capability bounds of generic type parameter 2 differ, and an overriding method must keep the capability bounds.
 Type declaration "B" cannot implement all of those supertypes.
 """, List.of("""
 Sup1:{ .id[X,Y](x:X):X }
@@ -1285,11 +1336,12 @@ B:Sup1,Sup2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the type of parameter 1 of method "imm .foo(_)" with 1 parameter.
-Candidates:
-- "mut Q"
-- "read Q"
-The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".foo(_)" can implement all the candidates.
+Supertypes disagree on the signature of method "imm .foo(_)".
+Signatures as inherited by type declaration "B":
+-       S1.foo(mut Q): S1
+-       S2.foo(read Q): S1
+The type of parameter 1 differs in reference capability ("mut Q", "read Q"), and an overriding method must keep the reference capability.
+Type declaration "B" cannot implement all of those supertypes.
 """, List.of("""
 Q:{}
 S1:{ .foo(x: mut Q): S1 }
@@ -1301,11 +1353,12 @@ B:S1,S2{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Supertypes disagree on the type of parameter 1 of method "imm .set(_)" with 1 parameter.
-Candidates:
-- "Y"
-- "Bar"
-The candidates are different types and "Y" is a generic type parameter, so no method ".set(_)" can implement all the candidates.
+Supertypes disagree on the signature of method "imm .set(_)".
+Signatures as inherited by type declaration "A[_]":
+-       Foo[Y].set(Y): Bar
+-       Foo[Bar].set(Bar): Bar
+The type of parameter 1 differs, and "Y" is a generic type parameter: no type can be a supertype of "Y" and "Bar" while keeping the reference capability of each.
+Type declaration "A[_]" cannot implement all of those supertypes.
 """, List.of("""
 Bar:{}
 Foo[T:*]:{ .set(t: T): Bar }
@@ -1316,11 +1369,15 @@ A[Y:imm]:Foo[Y],Foo[Bar]{}
    |          ^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the type of parameter 1 of method "imm .foo(_)" with 1 parameter.
-Candidates:
-- "Q1"
-- "Q2"
-Type declaration "B" must declare a method ".foo(_)" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo(_)".
+Signatures as inherited by type declaration "B":
+-       S1.foo(Q1): Q1
+-       S2.foo(Q2): Q2
+"B.foo(_)" must declare the type of parameter 1 and the return type.
+"B.foo(_)" parameter 1 type must be a supertype of "Q1" and "Q2".
+Such type currently visible: "Q0".
+"B.foo(_)" return type must be a subtype of "Q1" and "Q2".
+No such type is currently visible.
 """, List.of("""
 Q0:{}
 Q1:Q0{}
@@ -1334,11 +1391,13 @@ B:S1,S2{ .foo(x) -> this.foo(x) }
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
-Candidates:
-- "Q"
-- "base.Nat"
-Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       S1.foo: Q
+-       S2.foo: base.Nat
+No type currently visible is a subtype of the return types: "Q" and "base.Nat".
+"base.Nat" is sealed, so no type outside package "base" can implement "base.Nat".
+Type declaration "B" cannot implement all of those supertypes.
 """, List.of("""
 Q:{}
 S1:{ .foo: Q }
@@ -1350,11 +1409,13 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
-Candidates:
-- "base.Bool"
-- "base.True"
-Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       S1.foo: base.Bool
+-       S2.foo: base.True
+"B" must declare method ".foo".
+"B.foo" return type must be a subtype of "base.Bool" and "base.True".
+Such type currently visible: "base.True".
 """, List.of("""
 S1:{ .foo: base.Bool }
 S2:{ .foo: base.True }
@@ -1365,11 +1426,14 @@ B:S1,S2{}
    | ^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "D[_]"
-Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
-Generic type parameter names may differ across supertypes; only the position matters.
-Candidates:
-- "imm"
-- "read"
+Supertypes disagree on the signature of method "imm .id(_)".
+Original signatures:
+-       Sup.id[X](X): X
+-       Other.id[Y:read](Y): Y
+Signatures as inherited by type declaration "D[_]":
+-       Mid[Y].id[_AX](_AX): _AX
+-       Other.id[_AY:read](_AY): _AY
+The capability bounds of generic type parameter 1 differ, and an overriding method must keep the capability bounds.
 Type declaration "D[_]" cannot implement all of those supertypes.
 """, List.of("""
 Sup:{ .id[X](x:X):X }
@@ -1382,11 +1446,13 @@ D[Y:*]:Mid[Y],Other{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the type of parameter 1 of method "imm .foo(_)" with 1 parameter.
-Candidates:
-- "Q1"
-- "Q2"
-Type declaration "B" must declare a method ".foo(_)" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo(_)".
+Signatures as inherited by type declaration "B":
+-       S1.foo(Q1): S1
+-       S2.foo(Q2): S1
+"B" must declare method ".foo(_)".
+"B.foo(_)" parameter 1 type must be a supertype of "Q1" and "Q2".
+Such type currently visible: "Q2".
 """, List.of("""
 B:S1,S2{}
 Q2:{}
@@ -1399,11 +1465,13 @@ S2:{ .foo(x: Q2): S1 }
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
-Candidates:
-- "Foo[Q1]"
-- "Foo[Q2]"
-Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       S1.foo: Foo[Q1]
+-       S2.foo: Foo[Q2]
+"B" must declare method ".foo".
+"B.foo" return type must be a subtype of "Foo[Q1]" and "Foo[Q2]".
+No such type is currently visible.
 """, List.of("""
 Q1:{}
 Q2:{}
@@ -1417,11 +1485,13 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
-Candidates:
-- "Foo[Q1]"
-- "Foo[Q2]"
-Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       S1.foo: Foo[Q1]
+-       S2.foo: Foo[Q2]
+"B" must declare method ".foo".
+"B.foo" return type must be a subtype of "Foo[Q1]" and "Foo[Q2]".
+Generic type currently visible implementing "Foo[_]": "G[_]".
 """, List.of("""
 Q1:{}
 Q2:{}
@@ -1436,11 +1506,13 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
-Candidates:
-- "Q1"
-- "Q2"
-Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       S1.foo: Q1
+-       S2.foo: Q2
+"B" must declare method ".foo".
+"B.foo" return type must be a subtype of "Q1" and "Q2".
+Generic type currently visible implementing "Q1" and "Q2": "Q12[_]".
 """, List.of("""
 Q1:{}
 Q2:{}
@@ -1454,11 +1526,13 @@ B:S1,S2{}
    | ^^^^^^^^^^^^^^
 
 While inspecting type declaration "B[_]"
-Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
-Candidates:
-- "A1"
-- "A2"
-Type declaration "B[_]" must declare a method ".foo" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B[_]":
+-       A1.foo: A1
+-       A2.foo: A2
+"B[_]" must declare method ".foo".
+"B[_].foo" return type must be a subtype of "A1" and "A2".
+Generic type currently visible implementing "A1" and "A2": "B[_]".
 """, List.of("""
 A1:{ .foo: A1 }
 A2:{ .foo: A2 }
@@ -1469,11 +1543,13 @@ B[Y:*]:A1,A2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
-Candidates:
-- "Q1"
-- "Q2"
-Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       S1.foo: Q1
+-       S2.foo: Q2
+"B" must declare method ".foo".
+"B.foo" return type must be a subtype of "Q1" and "Q2".
+Such type currently visible: "Q12".
 """, List.of("""
 Q1:{}
 Q2:{}
@@ -1487,11 +1563,12 @@ B:S1,S2{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Supertypes disagree on the return type of method "imm .get" with 0 parameters.
-Candidates:
-- "Y"
-- "read/imm Y"
-The candidates are different types and "Y" is a generic type parameter, so no method ".get" can implement all the candidates.
+Supertypes disagree on the signature of method "imm .get".
+Signatures as inherited by type declaration "A[_]":
+-       Foo[Y].get: Y
+-       Bar[Y].get: read/imm Y
+The return type differs, and "Y" is a generic type parameter: no type can be a subtype of "Y" and "read/imm Y" while keeping the reference capability of each.
+Type declaration "A[_]" cannot implement all of those supertypes.
 """, List.of("""
 Foo[X:imm,read]:{ .get: X }
 Bar[X:imm,read]:{ .get: read/imm X }
@@ -1502,11 +1579,15 @@ A[Y:imm,read]:Foo[Y],Bar[Y]{}
    |                       ^^^^^^^^^^^^^^^^
 
 While inspecting object literal "Both"
-Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
-Generic type parameter names may differ across supertypes; only the position matters.
-Candidates:
-- "imm"
-- "read"
+Supertypes disagree on the signature of method "imm .id(_)".
+Original signatures:
+-       T1.id[X](X): X
+-       T2.id[Y](Y): Y
+-       Other.id[Z:read](Z): Z
+Signatures as inherited by object literal "Both":
+-       Mid.id[_AX](_AX): _AX
+-       Other.id[Z:read](Z): Z
+The capability bounds of generic type parameter 1 differ, and an overriding method must keep the capability bounds.
 Object literal "Both" cannot implement all of those supertypes.
 """, List.of("""
 T1:{ .id[X](x:X):X }
@@ -1520,11 +1601,14 @@ A:{ .m[X](x:X): T1 -> Both:Mid,Other{} }
    | ^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B[_]"
-Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
-Generic type parameter names may differ across supertypes; only the position matters.
-Candidates:
-- "imm"
-- "read"
+Supertypes disagree on the signature of method "imm .id(_)".
+Original signatures:
+-       T1.id[X](X): X
+-       Other.id[Z:read](Z): Z
+Signatures as inherited by type declaration "B[_]":
+-       Mid[X].id[_AX](_AX): _AX
+-       Other.id[Z:read](Z): Z
+The capability bounds of generic type parameter 1 differ, and an overriding method must keep the capability bounds.
 Type declaration "B[_]" cannot implement all of those supertypes.
 """, List.of("""
 T1:{ .id[X](x:X):X }
@@ -1537,11 +1621,14 @@ B[X:*]:Mid[X],Other{}
    | ^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B[_]"
-Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
-Generic type parameter names may differ across supertypes; only the position matters.
-Candidates:
-- "imm"
-- "read"
+Supertypes disagree on the signature of method "imm .id(_)".
+Original signatures:
+-       Sup1.id[X](Sup1): Sup1
+-       Sup2.id[Y:read](Sup1): Sup1
+Signatures as inherited by type declaration "B[_]":
+-       Mid[Y].id[_AX](Sup1): Sup1
+-       Sup2.id[_AY:read](Sup1): Sup1
+The capability bounds of generic type parameter 1 differ, and an overriding method must keep the capability bounds.
 Type declaration "B[_]" cannot implement all of those supertypes.
 """, List.of("""
 Sup1:{ .id[X](x:Sup1):Sup1 }
@@ -1554,11 +1641,20 @@ B[Y:*]:Mid[Y],Sup2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
-Candidates:
-- "Q1"
-- "Q2"
-Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       S1.foo: Q1
+-       S2.foo: Q2
+"B" must declare method ".foo".
+"B.foo" return type must be a subtype of "Q1" and "Q2".
+Such types currently visible:
+- "C1"
+- "C2"
+- "C3"
+- "C4"
+- "C5"
+- "C6"
+- ... (1 more)
 """, List.of("""
 Q1:{}
 Q2:{}
@@ -1578,11 +1674,15 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the type of parameter 1 of method "imm .foo(_)" with 1 parameter.
-Candidates:
-- "Q1"
-- "Q2"
-Type declaration "B" must declare a method ".foo(_)" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo(_)".
+Signatures as inherited by type declaration "B":
+-       S1.foo(Q1): S1
+-       S2.foo(Q2): S1
+"B" must declare method ".foo(_)".
+"B.foo(_)" parameter 1 type must be a supertype of "Q1" and "Q2".
+Such types currently visible:
+- "Q0"
+- "R"
 """, List.of("""
 R:{}
 Q0:R{}
@@ -1597,12 +1697,14 @@ B:S1,S2{}
    | ^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
-Candidates:
-- "Q1"
-- "Q2"
-- "Q3"
-Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       S1.foo: Q1
+-       S2.foo: Q2
+-       S3.foo: Q3
+"B" must declare method ".foo".
+"B.foo" return type must be a subtype of "Q1", "Q2" and "Q3".
+No such type is currently visible.
 """, List.of("""
 Q1:{}
 Q2:{}
@@ -1617,11 +1719,16 @@ B:S1,S2,S3{}
    |                         ^^^^^^^^^^^^^^^^
 
 While inspecting object literal "Both"
-Supertypes disagree on the return type of method "imm .get(_)" with 1 parameter.
-Candidates:
-- "Foo[_AX]"
-- "Bar[_AX]"
-Object literal "Both" must declare a method ".get(_)" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .get(_)".
+Original signatures:
+-       Sup1.get[X](X): Foo[X]
+-       Sup2.get[Y](Y): Bar[Y]
+Signatures as inherited by object literal "Both":
+-       Sup1.get[_AX](_AX): Foo[_AX]
+-       Sup2.get[_AX](_AX): Bar[_AX]
+"Both" must declare method ".get(_)".
+"Both.get(_)" return type must be a subtype of "Foo[_AX]" and "Bar[_AX]".
+No such type is currently visible.
 """, List.of("""
 Foo[T:*]:{}
 Bar[T:*]:{}
@@ -1634,11 +1741,14 @@ A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
    |                         ^^^^^^^^^^^^^^^^
 
 While inspecting object literal "Both"
-Supertypes disagree on the number of generic type parameters of method ".id(_)" with 1 parameter.
-Candidates:
-- "[_AX:imm]"
-- "[]"
-Generic type parameter "X" of "Sup1.id(_)" is named "_AX" here.
+Supertypes disagree on the signature of method "imm .id(_)".
+Original signatures:
+-       Sup1.id[X](Sup1): Sup1
+-       Sup2.id(Sup1): Sup1
+Signatures as inherited by object literal "Both":
+-       Sup1.id[_AX](Sup1): Sup1
+-       Sup2.id(Sup1): Sup1
+The number of generic type parameters differs.
 Object literal "Both" cannot implement all of those supertypes.
 """, List.of("""
 Sup1:{ .id[X:imm](x:Sup1):Sup1 }

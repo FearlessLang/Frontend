@@ -502,11 +502,13 @@ In file: [###].fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
-Candidates:
-- "A1"
-- "A2"
-Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       A1.foo: A1
+-       A2.foo: A2
+"B" must declare method ".foo".
+"B.foo" return type must be a subtype of "A1" and "A2".
+Such type currently visible: "B".
 Error 7 WellFormedness""", List.of("""
 A1:{ .foo:A1;}
 A2:{ .foo:A2;}
@@ -519,11 +521,13 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
-Candidates:
-- "A1"
-- "A2"
-Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       A1.foo: A1
+-       A2.foo: A2
+"B.foo" must declare the return type.
+"B.foo" return type must be a subtype of "A1" and "A2".
+Such type currently visible: "B".
 Error 7 WellFormedness""", List.of("""
 A1:{ .foo:A1;}
 A2:{ .foo:A2;}
@@ -536,11 +540,12 @@ In file: [###].fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the type of parameter 2 of method "imm .foo(_,_)" with 2 parameters.
-Candidates:
-- "A1"
-- "A2"
-Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo(_,_)".
+Signatures as inherited by type declaration "B":
+-       A1.foo(A1, A1): A1
+-       A2.foo(A1, A2): A1
+No type currently visible is a supertype of the types of parameter 2: "A1" and "A2".
+Type declaration "B" cannot implement all of those supertypes.
 Error 7 WellFormedness""", List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
 A2:{ .foo(a:A1,b:A2):A1;}
@@ -553,11 +558,12 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the type of parameter 2 of method "imm .foo(_,_)" with 2 parameters.
-Candidates:
-- "A1"
-- "A2"
-Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .foo(_,_)".
+Signatures as inherited by type declaration "B":
+-       A1.foo(A1, A1): A1
+-       A2.foo(A1, A2): A1
+No type currently visible is a supertype of the types of parameter 2: "A1" and "A2".
+Type declaration "B" cannot implement all of those supertypes.
 Error 7 WellFormedness""", List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
 A2:{ .foo(a:A1,b:A2):A1;}
@@ -570,10 +576,11 @@ In file: [###].fear
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the number of generic type parameters of method ".foo" with 0 parameters.
-Candidates:
-- "[X:imm]"
-- "[]"
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       A1.foo[X]: A1
+-       A2.foo: A1
+The number of generic type parameters differs.
 Type declaration "B" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
@@ -588,10 +595,11 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the number of generic type parameters of method ".foo" with 0 parameters.
-Candidates:
-- "[X:imm]"
-- "[]"
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       A1.foo[X]: A1
+-       A2.foo: A1
+The number of generic type parameters differs.
 Type declaration "B" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
@@ -875,11 +883,11 @@ In file: [###].fear
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
-Generic type parameter names may differ across supertypes; only the position matters.
-Candidates:
-- "imm"
-- "read"
+Supertypes disagree on the signature of method "imm .id(_)".
+Signatures as inherited by type declaration "D":
+-       A.id[X](Box[X]): X
+-       C.id[Y:read](Box[Y]): Y
+The capability bounds of generic type parameter 1 differ, and an overriding method must keep the capability bounds.
 Type declaration "D" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
@@ -895,11 +903,11 @@ In file: [###].fear
    |       ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "D"
-Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
-Generic type parameter names may differ across supertypes; only the position matters.
-Candidates:
-- "imm"
-- "read"
+Supertypes disagree on the signature of method "imm .id(_)".
+Signatures as inherited by type declaration "D":
+-       A.id[X](Box[X]): X
+-       C.id[Y:read](Box[Y]): Y
+The capability bounds of generic type parameter 1 differ, and an overriding method must keep the capability bounds.
 Type declaration "D" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
@@ -948,11 +956,15 @@ In file: [###].fear
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Supertypes disagree on the type of parameter 1 of method "imm .m(_)" with 1 parameter.
-Candidates:
-- "Twice[Pair[X,Y]]"
-- "Twice[Pair[Y,X]]"
-Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .m(_)".
+Original signatures:
+-       A.m[X,Y](Twice[Pair[X,Y]]): X
+-       C.m[U,V](Twice[Pair[V,U]]): U
+Signatures as inherited by type declaration "D":
+-       A.m[X,Y](Twice[Pair[X,Y]]): X
+-       C.m[X,Y](Twice[Pair[Y,X]]): X
+No type currently visible is a supertype of the types of parameter 1: "Twice[Pair[X,Y]]" and "Twice[Pair[Y,X]]".
+Type declaration "D" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
 Pair[AA,BB]:{.fst:AA;.snd:BB;}

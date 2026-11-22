@@ -22,6 +22,7 @@ import core.FearlessException;
 import core.LiteralDeclarations;
 import core.MName;
 import core.RC;
+import core.Src;
 import core.TName;
 import core.TSpan;
 import fearlessFullGrammar.Declaration;
@@ -31,6 +32,7 @@ import fearlessFullGrammar.T.X;
 import inference.E;
 import inference.IT;
 import inference.M;
+import inject.Methods;
 import inject.Methods.Agreement;
 import inject.TypeRename;
 import metaParser.NameSuggester;
@@ -445,31 +447,97 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
         ? "Each method with "+count(n, "parameter")+" of the supertypes is already implemented by another method of "+err().expRepr(origin)+"."
         : "No supertype of "+err().expRepr(origin)+" has a method with "+count(n, "parameter")+".");
   }
-  public String retTypeDisagreement(){ return "the return type"; }
-  public String paramTypeDisagreement(int i){ return "the type of parameter "+(i+1); }
-  public FearlessException noAgreement(Agreement at, List<B> bs, List<IT> res, String msg){
-    var rc= at.rc().map(r -> r.toStrSpace(false)).orElse("");
-    var rcDiffers= res.stream().map(t -> t instanceof IT.RCC r ? EnumSet.of(r.rc().orElse(RC.imm)) : Kinding.intrinsicRCs(bs, TypeRename.itToT(t))).distinct().count() > 1;
-    var x= res.stream().filter(t -> !(t instanceof IT.RCC)).findFirst();
-    var e= err()
-      .line("Supertypes disagree on "+msg+" of method "+methodSig(rc, at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
-      .list("Candidates", res.stream().map(o -> option(rcDiffers, o)).toList());
-    var m= err().methodSig(at.mName());
-    if (rcDiffers){ return wf(e.line("The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method "+m+" can implement all the candidates."), at); }
-    if (x.isPresent()){ return wf(e.line("The candidates are different types and "+option(false, x.get())+" is a generic type parameter, so no method "+m+" can implement all the candidates."), at); }
-    return wf(e.line(up(err().expRepr(at.lit()))+" must declare a method "+m+" explicitly choosing the desired option."), at);
+  public FearlessException noAgreement(Methods meths, Agreement at, List<M.Sig> ss){
+    var bs= Push.of(at.lit().bs(), ss.getFirst().bs().get());
+    var ps= IntStream.rangeClosed(0, at.mName().arity()).filter(i -> missing(at, i) && !agree(bs, candidates(ss, i))).boxed().toList();
+    var impossible= ps.stream().flatMap(i -> impossible(meths, at, bs, ss, i).stream()).toList();
+    var e= sigBlock(meths, at, ss);
+    if (!impossible.isEmpty()){ impossible.forEach(e::line); return cannotImplement(e, at); }
+    e.line(at.written().isPresent()
+      ? err().methodSig("", at.lit(), at.mName())+" must declare "+and(ps.stream().map(i -> "the "+what(ss, i)).toList())+"."
+      : err().tNameADisp(at.lit().name())+" must declare method "+methodSig(at.rc().map(RC::toStrSpace).orElse(""), at.mName())+".");
+    ps.forEach(i -> requirement(e, meths, at, bs, ss, i));
+    return wf(e, at);
   }
+  private static boolean missing(Agreement at, int i){ return at.written().flatMap(w -> i == w.ts().size() ? w.ret() : w.ts().get(i)).isEmpty(); }
+  private static List<IT> candidates(List<M.Sig> ss, int i){ return ss.stream().map(s -> i == s.ts().size() ? s.ret().get() : s.ts().get(i).get()).distinct().toList(); }
+  private static boolean agree(List<B> bs, List<IT> res){ return res.stream().allMatch(t -> TypeRename.eqModXRC(bs, res.getFirst(), t)); }
+  private static String what(List<M.Sig> ss, int i){ return i == ss.getFirst().ts().size() ? "return type" : "type of parameter "+(i+1); }
+  private static List<IT.C> heads(List<IT> res){ return res.stream().map(t -> ((IT.RCC)t).c()).toList(); }
+  private Optional<String> impossible(Methods meths, Agreement at, List<B> bs, List<M.Sig> ss, int i){
+    var res= candidates(ss, i);
+    var what= what(ss, i);
+    var ret= i == ss.getFirst().ts().size();
+    var rel= ret ? "subtype" : "supertype";
+    var rcDiffers= res.stream().map(t -> t instanceof IT.RCC r ? EnumSet.of(r.rc().orElse(RC.imm)) : Kinding.intrinsicRCs(bs, TypeRename.itToT(t))).distinct().count() > 1;
+    if (rcDiffers){ return Optional.of("The "+what+" differs in reference capability ("+Join.of(res.stream().map(o -> option(true, o)), "", ", ", "")+"), and an overriding method must keep the reference capability."); }
+    var names= and(res.stream().map(o -> option(false, o)).toList());
+    var x= res.stream().filter(t -> !(t instanceof IT.RCC)).findFirst();
+    if (x.isPresent()){ return Optional.of("The "+what+" differs, and "+disp(OneOr.of("Type parameters", x.get().ftv()))+" is a generic type parameter: no type can be a "+rel+" of "+names+" while keeping the reference capability of each."); }
+    var cs= heads(res);
+    var none= "No type currently visible is a "+rel+" of the "+(ret ? "return types: " : "types of parameter "+(i+1)+": ")+names+".";
+    if (!ret){ return meths.commonSupertypes(bs, cs, at.lit().name()).isEmpty() ? Optional.of(none) : Optional.empty(); }
+    var sealed= meths.sealedElsewhere(cs, at.lit().name());
+    var some= !meths.genericSubtypes(cs, at.lit().name()).isEmpty() || !meths.commonSubtypes(bs, cs, at.lit().name()).isEmpty();
+    if (sealed.isEmpty() || some){ return Optional.empty(); }
+    var s= err().tNameADisp(sealed.get().name());
+    return Optional.of(none+"\n"+s+" is sealed, so no type outside package "+disp(Package.writtenPkg(map, sealed.get().name().pkgName()))+" can implement "+s+".");
+  }
+  private void requirement(Err e, Methods meths, Agreement at, List<B> bs, List<M.Sig> ss, int i){
+    var res= candidates(ss, i);
+    var ret= i == ss.getFirst().ts().size();
+    var first= (IT.RCC)res.getFirst();
+    var cs= heads(res);
+    var names= and(res.stream().map(o -> option(false, o)).toList());
+    e.line(err().methodSig("", at.lit(), at.mName())+(ret ? " return type must be a subtype of " : " parameter "+(i+1)+" type must be a supertype of ")+names+".");
+    var opts= (ret ? meths.commonSubtypes(bs, cs, at.lit().name()) : meths.commonSupertypes(bs, cs, at.lit().name())).stream().map(c -> option(false, new IT.RCC(first.rc(), c, first.span()))).sorted().toList();
+    var gens= ret ? meths.genericSubtypes(cs, at.lit().name()).stream().map(err()::tNameADisp).sorted().toList() : List.<String>of();
+    if (opts.isEmpty() && gens.isEmpty()){ e.line("No such type is currently visible."); return; }
+    if (!opts.isEmpty()){ options(e, "Such type"+(opts.size() == 1 ? "" : "s")+" currently visible", opts); }
+    if (!gens.isEmpty()){ options(e, "Generic type"+(gens.size() == 1 ? "" : "s")+" currently visible implementing "+and(cs.stream().map(IT.C::name).distinct().map(err()::tNameADisp).toList()), gens); }
+  }
+  private static void options(Err e, String heading, List<String> xs){
+    var limit= 6;
+    e.list(heading, xs.stream().limit(limit).toList());
+    if (xs.size() > limit){ e.bullet("... ("+(xs.size()-limit)+" more)"); }
+  }
+  private Err sigBlock(Methods meths, Agreement at, List<M.Sig> ss){
+    var rc= at.rc().map(r -> r.toStrSpace(false)).orElse("");
+    var e= err().line("Supertypes disagree on the signature of method "+methodSig(rc, at.mName())+".");
+    var sources= meths.sources(at.lit(), ss.getFirst());
+    assert sources.size() == ss.size();
+    var original= sources.stream().map(c -> originals(meths, c.name(), ss.getFirst())).toList();
+    var renamed= Streams.zip(original, ss).anyMatch((os,s) -> os.stream().anyMatch(o -> !B.xs(o.bs()).equals(B.xs(s.bs().get()))));
+    var flat= original.stream().flatMap(List::stream).toList();
+    if (renamed){ bullets(e, "Original signature", "Original signatures", e.sigLines(flat.stream().map(o -> head(meths.from(o.origin()))).toList(), flat)); }
+    bullets(e, "Signature as inherited by "+err().expRepr(at.lit()), "Signatures as inherited by "+err().expRepr(at.lit()), e.sigLines(TypeRename.itcToTC(sources), ss.stream().map(WellFormednessErrors::coreSig).toList()));
+    return e;
+  }
+  private List<core.Sig> originals(Methods meths, TName n, M.Sig s){
+    var d= meths.from(n);
+    var own= OneOr.opt("Malformed methods", d.ms().stream().map(core.M::sig).filter(o -> o.m().equals(s.m().get()) && o.rc() == s.rc().get()));
+    if (own.isEmpty()){ return List.of(); }
+    var sig= own.get();
+    var written= d.src() == Src.synthetic || TypeSystemErrors.srcM(d, sig).filter(fm -> TypeSystemErrors.wholeSig(fm, sig) && (sig.bs().isEmpty() || fm.sig().flatMap(fearlessFullGrammar.Sig::bs).isPresent())).isPresent();
+    if (written){ return List.of(new core.Sig(sig.rc(), sig.m(), sig.bs(), sig.ts(), sig.ret(), n, sig.abs(), sig.span())); }
+    var cs= d.cs().stream().map(core.T.C::name).toList();
+    return cs.stream().filter(c -> cs.stream().noneMatch(o -> meths.from(o).cs().stream().anyMatch(oc -> oc.name().equals(c)))).flatMap(c -> originals(meths, c, s).stream()).toList();
+  }
+  private static void bullets(Err e, String one, String many, List<String> lines){
+    e.line((lines.size() == 1 ? one : many)+":");
+    lines.forEach(e::bullet);
+  }
+  private static core.T.C head(core.E.Literal d){ return new core.T.C(d.name(), d.bs().stream().<core.T>map(b -> new core.T.X(b.x(), TSpan.fromPos(Pos.unknown))).toList()); }
+  private static core.Sig coreSig(M.Sig s){
+    return new core.Sig(s.rc().get(), s.m().get(), s.bs().get(), s.ts().stream().map(TypeRename::itToT).toList(), TypeRename.itToT(s.ret()), s.origin().get(), s.abs(), s.span());
+  }
+  private FearlessException cannotImplement(Err e, Agreement at){ return wf(e.line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes."), at); }
   private String option(boolean showImm, IT o){
     if (!(o instanceof IT.RCC rcc)){ return disp(o); }
     return err().typeRepr(!showImm, rcc);
   }
-  public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<M.Sig> ss, List<core.Sig> declared){
-    var e= err()
-      .line("Supertypes disagree on the number of generic type parameters of method "+err().methodSig(at.mName())
-        +" with "+count(at.mName().arity(), "parameter")+".")
-      .list("Candidates", ss.stream().map(s -> disp(s.bs().get())).distinct().toList());
-    Streams.zip(declared, ss).filterMap((d,s) -> renamed(err().methodSig("", d.origin(), d.m()), d.bs(), s.bs().get())).distinct().forEach(e::line);
-    return wf(e.line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes."), at);
+  public FearlessException methodGenericArityDisagreementBetweenSupers(Methods meths, Agreement at, List<M.Sig> ss){
+    return cannotImplement(sigBlock(meths, at, ss).line("The number of generic type parameters differs."), at);
   }
   public FearlessException methodGenericArityDisagreesWithSupers(Agreement at, List<B> userBs, List<M.Sig> ss){
     var n= ss.getFirst().bs().get().size();
@@ -479,18 +547,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     if (sups.size() > 1){ sups.forEach(e::bullet); }
     return wf(e, at);
   }
-  public FearlessException methodBsDisagreementBetweenSupers(Agreement at, List<List<B>> res){
-    assert res.size() >= 2;
-    var n= res.getFirst().size();
-    assert res.stream().allMatch(bs -> bs.size() == n);
-    var i= firstRcsDisagreementIndex(res);
-    var opts= res.stream().map(bs -> disp(Join.of(bs.get(i).rcs().stream(), "", ",", ""))).distinct().sorted().toList();
-    var m= err().methodSig(at.mName());
-    return wf(err()
-      .line("Supertypes disagree on the capability bounds of generic type parameter "+(i+1)+" of method "+m+" with "+count(at.mName().arity(), "parameter")+".")
-      .line("Generic type parameter names may differ across supertypes; only the position matters.")
-      .list("Candidates", opts)
-      .line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes."), at);
+  public FearlessException methodBsDisagreementBetweenSupers(Methods meths, Agreement at, List<M.Sig> ss){
+    var i= firstRcsDisagreementIndex(ss.stream().map(s -> s.bs().get()).distinct().toList());
+    return cannotImplement(sigBlock(meths, at, ss).line("The capability bounds of generic type parameter "+(i+1)+" differ, and an overriding method must keep the capability bounds."), at);
   }
   public FearlessException methodBsDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
     assert userBs.size() == superBs.size();
