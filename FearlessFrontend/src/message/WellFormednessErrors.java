@@ -41,11 +41,9 @@ import metaParser.Span;
 import pkgmerge.Package;
 import tools.Fs;
 import tools.SourceOracle.Ref;
-import typeSystem.Kinding;
 import utils.Join;
 import utils.OneOr;
 import utils.Pos;
-import java.util.EnumSet;
 import utils.Push;
 import utils.Streams;
 
@@ -469,17 +467,17 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var what= what(ss, i);
     var ret= i == ss.getFirst().ts().size();
     var rel= ret ? "subtype" : "supertype";
-    var rcDiffers= res.stream().map(t -> t instanceof IT.RCC r ? EnumSet.of(r.rc().orElse(RC.imm)) : Kinding.intrinsicRCs(bs, TypeRename.itToT(t))).distinct().count() > 1;
-    if (rcDiffers){ return Optional.of("The "+what+" differs in reference capability ("+Join.of(res.stream().map(o -> option(true, o)), "", ", ", "")+"), and an overriding method must keep the reference capability."); }
     var names= and(res.stream().map(o -> option(false, o)).toList());
     var x= res.stream().filter(t -> !(t instanceof IT.RCC)).findFirst();
-    if (x.isPresent()){ return Optional.of("The "+what+" differs, and "+disp(OneOr.of("Type parameters", x.get().ftv()))+" is a generic type parameter: no type can be a "+rel+" of "+names+" while keeping the reference capability of each."); }
+    var oneX= x.isPresent() && res.stream().allMatch(t -> t.withRC(RC.imm).equals(x.get().withRC(RC.imm)));
+    if (x.isPresent() && !oneX){ return Optional.of("The "+what+" differs, and "+disp(OneOr.of("Type parameters", x.get().ftv()))+" is a generic type parameter: no type can be a "+rel+" of "+names+"."); }
+    var rcDiffers= oneX || res.stream().map(t -> ((IT.RCC)t).rc().orElse(RC.imm)).distinct().count() > 1;
+    if (rcDiffers){ return Optional.of("The "+what+" differs in reference capability; overriding must keep the reference capability."); }
     var cs= heads(res);
     var none= "No type currently visible is a "+rel+" of the "+(ret ? "return types: " : "types of parameter "+(i+1)+": ")+names+".";
     if (!ret){ return meths.commonSupertypes(bs, cs, at.lit().name()).isEmpty() ? Optional.of(none) : Optional.empty(); }
     var sealed= meths.sealedElsewhere(cs, at.lit().name());
-    var some= !meths.genericSubtypes(cs, at.lit().name()).isEmpty() || !meths.commonSubtypes(bs, cs, at.lit().name()).isEmpty();
-    if (sealed.isEmpty() || some){ return Optional.empty(); }
+    if (sealed.isEmpty() || !meths.commonSubtypes(bs, cs, at.lit().name()).isEmpty()){ return Optional.empty(); }
     var s= err().tNameADisp(sealed.get().name());
     return Optional.of(none+"\n"+s+" is sealed, so no type outside package "+disp(Package.writtenPkg(map, sealed.get().name().pkgName()))+" can implement "+s+".");
   }
@@ -490,16 +488,15 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var cs= heads(res);
     var names= and(res.stream().map(o -> option(false, o)).toList());
     e.line(err().methodSig("", at.lit(), at.mName())+(ret ? " return type must be a subtype of " : " parameter "+(i+1)+" type must be a supertype of ")+names+".");
-    var opts= (ret ? meths.commonSubtypes(bs, cs, at.lit().name()) : meths.commonSupertypes(bs, cs, at.lit().name())).stream().map(c -> option(false, new IT.RCC(first.rc(), c, first.span()))).sorted().toList();
-    var gens= ret ? meths.genericSubtypes(cs, at.lit().name()).stream().map(err()::tNameADisp).sorted().toList() : List.<String>of();
-    if (opts.isEmpty() && gens.isEmpty()){ e.line("No such type is currently visible."); return; }
-    if (!opts.isEmpty()){ options(e, "Such type"+(opts.size() == 1 ? "" : "s")+" currently visible", opts); }
-    if (!gens.isEmpty()){ options(e, "Generic type"+(gens.size() == 1 ? "" : "s")+" currently visible implementing "+and(cs.stream().map(IT.C::name).distinct().map(err()::tNameADisp).toList()), gens); }
-  }
-  private static void options(Err e, String heading, List<String> xs){
+    var opts= (ret ? meths.commonSubtypes(bs, cs, at.lit().name()) : meths.commonSupertypes(bs, cs, at.lit().name())).stream().map(c -> instance(first.rc(), c)).distinct().sorted().toList();
+    if (opts.isEmpty()){ e.line("No such type is currently visible."); return; }
     var limit= 6;
-    e.list(heading, xs.stream().limit(limit).toList());
-    if (xs.size() > limit){ e.bullet("... ("+(xs.size()-limit)+" more)"); }
+    e.list("Such type"+(opts.size() == 1 ? "" : "s")+" currently visible", opts.stream().limit(limit).toList());
+    if (opts.size() > limit){ e.bullet("... ("+(opts.size()-limit)+" more)"); }
+  }
+  private String instance(Optional<RC> rc, IT.C c){
+    var ts= c.ts().stream().map(t -> t == IT.U.Instance ? "_" : err().typeReprRaw(t)).toList();
+    return disp(rc.map(RC::toStrSpace).orElse("")+err().cp().t.of(c.name())+Join.of(ts, "[", ",", "]", ""));
   }
   private Err sigBlock(Methods meths, Agreement at, List<M.Sig> ss){
     var rc= at.rc().map(r -> r.toStrSpace(false)).orElse("");
@@ -549,7 +546,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException methodBsDisagreementBetweenSupers(Methods meths, Agreement at, List<M.Sig> ss){
     var i= firstRcsDisagreementIndex(ss.stream().map(s -> s.bs().get()).distinct().toList());
-    return cannotImplement(sigBlock(meths, at, ss).line("The capability bounds of generic type parameter "+(i+1)+" differ, and an overriding method must keep the capability bounds."), at);
+    return cannotImplement(sigBlock(meths, at, ss).line("The capability bounds of generic type parameter "+(i+1)+" differ; overriding must keep the capability bounds."), at);
   }
   public FearlessException methodBsDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
     assert userBs.size() == superBs.size();
