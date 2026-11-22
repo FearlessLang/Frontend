@@ -189,7 +189,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("Missing: "+methodSig(s.rc()+" ", s.m())+".")
       .line(Join.of(requiredBy(at, s).stream().map(err()::tNameADisp), "Required by: ", " and ", "."));
     if (s.rc() == RC.mut){ e.line("This object literal is neither "+disp(RC.imm)+" nor "+disp(RC.read)+", so its "+disp(RC.mut)+" methods must be implemented."); }
-    if (!(at instanceof Type t && foreignSealed(t.type().c().name()))){ return addExpFrame(at, e.line("Hint: add an implementation for "+err().methodSig(s.m())+" inside the object literal.").ex(at)); }
+    if (!(at instanceof Type t && foreignSealed(t.type().c().name()))){ return addExpFrame(at, e.line("Add an implementation for "+err().methodSig(s.m())+" inside the object literal.").ex(at)); }
     var name= t.type().c().name();
     return addExpFrame(at, e
       .line("Sealed types can only be implemented in their own package.")
@@ -296,7 +296,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     e.sigs(l, m, true);
     visible(s).stream().skip(1).forEach(it -> e.sigs(it.l(), it.m(), false));
     var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
-    if (thisNotMut){ e.line("Hint: "+err().expRepr(l)+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+", so parameter "+disp(l.thisName())+" is \"imm\" in every method."); }
+    if (thisNotMut){ e.line(up(err().expRepr(l))+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+", so parameter "+disp(l.thisName())+" is \"imm\" in every method."); }
     overloadHint(e, l, m);
     return addExpFrame(at, e.ex(got.footerE.get(), at).addSpan(at.span().inner));
   }
@@ -343,7 +343,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
     +up(subject)+" can observe mutation; thus it cannot be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n"
-    +"Hint: capture an immutable copy instead, or move this use outside the object literal.";
+    +"Capture an immutable copy instead, or move this use outside the object literal.";
   }
   private String whyDropNotKinded(String subject, Change.NoT why){
     var bounds= disp(Join.of(why.l().bs(), "", ", ", "", ""));
@@ -383,7 +383,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   /// - method name exist but with different arity; error will list those other method signatures
   /// - method exists with right arity, but different receiver RCs; list those other method signatures
   ///Raised when checking method calls.
-  public FearlessException methodNotDeclared(TypeScope scope, Call c, Literal d){
+  public FearlessException methodNotDeclared(TypeScope scope, Call c, Literal d, T.RCC recv){
     var di= d.withRC(RC.imm);
     var _on= err().onTypeOrAnon(di);
     var subj= err().theTypeOrObjectLiteral(di);
@@ -396,7 +396,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var sameName= candidates.stream()
       .filter(s -> s.m().s().equals(name)).toList();
     if (sameName.isEmpty()){
-      addEnclosingLiteralHintIfReceiverIsThis(e, scope, c, name, subj);
+      addEnclosingLiteralHintIfReceiverIsThis(e, scope, c, recv);
       if (candidates.isEmpty()){ return withCallSpans(e.line(up(subj)+" does not have any methods.").typeErr(), c); }
       var names= candidates.stream().map(s -> s.m().s()).distinct().sorted().toList();
       NameSuggester.suggest(name, names, (_,cs,best) -> { bestNameMsg(e, on, candidates, cs, best); return null; } );
@@ -424,27 +424,19 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   static boolean isSelfName(TypeScope s, String x){
     return Stream.iterate(s, si -> !si.isTop(), TypeScope::outer).anyMatch(si -> si instanceof TypeScope.Method(var l, _, _) && l.thisName().equals(x));
   }
-  private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, String name, String on){
+  private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, T.RCC recv){
     var receiverIsThis= c.e() instanceof X(var xName, _) && xName.equals("this");
     if (!receiverIsThis){ return; }
     for (var s= scope; !s.isTop(); s = s.outer()){
       if (!(s instanceof TypeScope.Method(var l, _, _))){ continue; }
-      var has= l.ms().stream().anyMatch(m -> m.sig().m().s().equals(name));
+      var has= l.ms().stream().anyMatch(m -> m.sig().m().equals(c.name()));
       if (!has){ continue; }
-      var sig= err().methodSig(c.name());
-      var lit= l.infName() ? err().bestNameNoRc(l) : "of type "+err().tNameADisp(l.name());
+      var lit= "Method "+err().methodSig(c.name())+" is declared in the "+err().expRepr(l.withRC(RC.imm));
       var selfName= l.thisName();
-      e.line("Hint:")
-       .line("The method parameter \"this\" here has "+on+".")
-       .blank();
-      if (!selfName.equals("_")){
-        e.line("The method "+sig+" is defined in the object literal "+lit+"; the parameter "
-             +"referring to its instances is named "+disp(selfName)+".");
-        return;
-      }
-      e.line("The method "+sig+" is defined in the object literal "+lit+".")
-       .line("No parameter refers to instances of this literal.")
-       .line("To declare one, use the single quote as in the example below:")
+      e.line("Parameter \"this\" has type "+err().typeRepr(true, recv)+".");
+      if (!selfName.equals("_")){ e.line(lit+", whose self name is "+disp(selfName)+"."); return; }
+      e.line(lit+", which has no self name.")
+       .line("A self name is declared with a single quote, as \"'rect\" in the example below:")
        .line("  Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect")
        .line("    .area: Nat -> width * height;")
        .line("    .str: Str -> \"area: \"+(rect.area.str);")
@@ -532,7 +524,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .pCallCantBeSatisfied(d, c)
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
       .line("That is not a subtype of "+err().typeRepr(true, declared)+(inferred.isEmpty() ? " (the type required by the method signature)." : "."));
-    if (lambdaFits(ts, bs, declared, gotHdr)){ e.line("Hint: write the argument inside curly braces: the curly braces make an object literal instance of "+err().typeRepr(true, declared.withRC(RC.imm))+", whose single method returns the argument."); }
+    if (lambdaFits(ts, bs, declared, gotHdr)){ e.line("Write the argument inside curly braces: the curly braces make an object literal instance of "+err().typeRepr(true, declared.withRC(RC.imm))+", whose single method returns the argument."); }
     addNoPrecedenceHintIfOperator(e, ts.scope(), c);
     return withCallSpans(e.ex(c, c.es().get(argi), inferred), c.es().get(argi), c);
   }
@@ -548,7 +540,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var notOperator= name.startsWith(".") || name.equals("#");
     var receiver= s.outer() instanceof TypeScope.CallSite(var p, _) && p.e() == c;
     if (notOperator || !receiver){ return; }
-    e.line("Hint: all method names have the same precedence, so an expression like \"a.get + b.get\" "
+    e.line("All method names have the same precedence, so an expression like \"a.get + b.get\" "
          +"parses as \"(a.get + b).get\", not \"a.get + (b.get)\". "
          +"If this argument needed a method applied to it first, wrap it in parentheses.");
   }

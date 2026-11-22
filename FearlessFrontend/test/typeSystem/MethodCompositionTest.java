@@ -532,7 +532,7 @@ While inspecting object literal "C" > method "User#" (line 4)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "B".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 """, List.of("""
 A:{ .m:A->this }
 B:A{ .m:A }
@@ -553,7 +553,7 @@ While inspecting object literal "D" > method "User#" (line 7)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "C".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 """, List.of("""
 R:{}
 A:{ .m: R -> R }
@@ -607,7 +607,7 @@ While inspecting object literal "D" > method "User#" (line 7)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "P" and "K" and "X".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 """, List.of("""
 R:{}
 J:{ .m: R -> R }
@@ -625,7 +625,7 @@ While inspecting object literal "D" > method "User#" (line 6)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "A1" and "A2".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 """, List.of("""
 R:{}
 I1:{ .m: R -> R }
@@ -730,7 +730,7 @@ While inspecting object literal "C" > method "User#" (line 3)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "B".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 """, List.of("""
 A:{ .m:A->this }
 B:A{ .m:A }
@@ -744,7 +744,7 @@ While inspecting object literal "C" > method "User#" (line 3)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "B".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 """, List.of("""
 A:{ .m:A->this }
 B:A{ .m:A }

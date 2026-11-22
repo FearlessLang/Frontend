@@ -329,7 +329,7 @@ A:{ read .m[T:mut,imm,read,readH,mutH](par: T) : read L[mutH T] -> mut L[mutH T]
 While inspecting parameter "par" > method "L.absMeth" (line 3) > method "A.m(_)" (line 3)
 Parameter "par" has type "mut B".
 Parameter "par" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "L" (line 3).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 B:{}
 L:{ mut .absMeth: mut B }
@@ -342,7 +342,7 @@ A:{ read .m(par: mut B) : iso L -> iso L{.absMeth->par} }
 While inspecting parameter "par" > method "L.absMeth" (line 3) > method "A.m(_)" (line 3)
 Parameter "par" has type "read B".
 Parameter "par" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "L" (line 3).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 B:{}
 L:{ imm .absMeth: read B }
@@ -355,7 +355,7 @@ A:{ read .m(par: read B) : imm L -> imm L{.absMeth->par} }
 While inspecting parameter "a" > method "Foo#" (line 2) > method "Foos#(_)" (line 2)
 Parameter "a" has type "mut A".
 Parameter "a" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "Foo" (line 2).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 A:{}
 Foos:{ #(a: mut A): iso Foo -> iso Foo{a} }
@@ -842,7 +842,7 @@ This object literal is missing a required method.
 Missing: "mut .m".
 Required by: "B".
 This object literal is neither "imm" nor "read", so its "mut" methods must be implemented.
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 """, List.of("""
 B:{ mut .m: B }
 A:{ .b: mutH B -> {} }

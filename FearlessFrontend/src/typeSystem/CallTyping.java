@@ -19,7 +19,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   List<Reason> run(){
     var rcc0= recvRcc();
     var d= ts.decs().apply(rcc0.c().name());
-    var sig= sigOf(d);
+    var sig= sigOf(d, rcc0);
     checkTargsKinding(rcc0.c(), d, sig);
     var base= baseMType(rcc0.c(), d, sig);
     c.expectedRes().inner = base.t();
@@ -47,10 +47,10 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     if (t instanceof T.RCC x){ return x; }
     throw ts.tsE().methodReceiverIsTypeParameter(cts.scope(), c, t);
   }
-  private Sig sigOf(Literal d){
+  private Sig sigOf(Literal d, T.RCC recv){
     var sig= OneOr.opt("Methods with duplicates", d.ms().stream().map(M::sig)
       .filter(s -> s.m().equals(c.name()) && s.rc() == c.rc()))
-      .orElseThrow(() -> ts.tsE().methodNotDeclared(ts.scope(), c, d));
+      .orElseThrow(() -> ts.tsE().methodNotDeclared(ts.scope(), c, d, recv));
     assert sig.ts().size() == c.es().size();//ensured by well formedness
     if (sig.bs().size() == c.targs().size()){ return sig; }
     throw ts.tsE().methodTArgsArityError(d, c, sig.bs());
