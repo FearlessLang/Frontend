@@ -62,7 +62,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("Parameter "+disp(x)+" has type "+err().typeRepr(true, m.sig().ts().getFirst())+".")
       .typeErr().addSpan(span);
   }
-  private static Optional<fearlessFullGrammar.M> srcM(Literal l, Sig s){
+  static Optional<fearlessFullGrammar.M> srcM(Literal l, Sig s){
     List<fearlessFullGrammar.M> ms= switch (l.src().inner){
       case fearlessFullGrammar.Declaration d -> d.l().methods();
       case fearlessFullGrammar.E.Literal gl -> gl.methods();
@@ -71,7 +71,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     };
     return OneOr.opt("Malformed methods", ms.stream().filter(mi -> mi.span().inner.equals(s.span().inner)));
   }
-  private static boolean wholeSig(fearlessFullGrammar.M fm, Sig s){
+  static boolean wholeSig(fearlessFullGrammar.M fm, Sig s){
     return !fm.hasImplicit() && fm.sig().filter(gs -> (gs.rc().isPresent() || s.rc() == RC.imm) && gs.t().isPresent() && gs.parameters().stream().allMatch(p -> p.t().isPresent())).isPresent();
   }
   private Optional<T.C> parent(Literal l, Sig s){ return l.cs().stream().filter(c -> declared(c, s).isPresent()).findFirst(); }

@@ -120,11 +120,13 @@ In file: [###].fear
    | ^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "imm .m" with 0 parameters.
-Candidates:
-- "a.A"
-- "a.A2"
-Type declaration "B" must declare a method ".m" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .m".
+Signatures as inherited by type declaration "B":
+-       a.A.m: a.A
+-       a.A2.m: a.A2
+"B" must declare method ".m".
+"B.m" return type must be a subtype of "a.A" and "a.A2".
+Such type currently visible: "B".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness""", Map.of("c", "A:{.m:A->this} A2:{.m:A2->this}"), Map.of("a", "c"), """
@@ -2190,11 +2192,12 @@ In file: [###].fear
    | ^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the type of parameter 1 of method "imm .m(_)" with 1 parameter.
-Candidates:
-- "a.P"
-- "a.Q"
-Type declaration "B" must declare a method ".m(_)" explicitly choosing the desired option.
+Supertypes disagree on the signature of method "imm .m(_)".
+Signatures as inherited by type declaration "B":
+-       a.A1.m(a.P): a.P
+-       a.A2.m(a.Q): a.P
+No type currently visible is a supertype of the types of parameter 1: "a.P" and "a.Q".
+Type declaration "B" cannot implement all of those supertypes.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2208,11 +2211,12 @@ In file: [###].fear
    | ^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the return type of method "imm .m" with 0 parameters.
-Candidates:
-- "imm a.P"
-- "mut a.P"
-The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".m" can implement all the candidates.
+Supertypes disagree on the signature of method "imm .m".
+Signatures as inherited by type declaration "B":
+-       a.A1.m: a.P
+-       a.A2.m: mut a.P
+The return type differs in reference capability ("imm a.P", "mut a.P"), and an overriding method must keep the reference capability.
+Type declaration "B" cannot implement all of those supertypes.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2226,12 +2230,17 @@ In file: [###].fear
    | ^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B[_]"
-Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
-Generic type parameter names may differ across supertypes; only the position matters.
-Candidates:
-- "imm"
-- "read"
+Supertypes disagree on the signature of method "imm .id(_)".
+Original signatures:
+-       a.A1.id[X](X): X
+-       a.A2.id[Y:read](Y): Y
+Signatures as inherited by type declaration "B[_]":
+-       a.A1.id[_AX](_AX): _AX
+-       a.A2.id[Y:read](Y): Y
+The capability bounds of generic type parameter 1 differ, and an overriding method must keep the capability bounds.
 Type declaration "B[_]" cannot implement all of those supertypes.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "A1:{ .id[X](x:X):X } A2:{ .id[Y:read](y:Y):Y }"), mapA, """
 B[X:*]:a.A1,a.A2{}

@@ -101,6 +101,11 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t), t.span()))); }
   static String count(int n, String noun){ return n+" "+noun+(n == 1 ? "" : "s"); }
   static String up(String s){ return s.substring(0, 1).toUpperCase(Locale.ROOT)+s.substring(1); }
+  List<String> sigLines(List<T.C> heads, List<Sig> ss){ return Streams.zip(heads, ss).map(this::sigLine).distinct().toList(); }
+  private String sigLine(T.C h, Sig s){
+    var sig= cp().sig(s);
+    return sig.substring(0, 6)+cp().msgT(new T.RCC(RC.imm, h, h.span()))+sig.substring(6);
+  }
   static Optional<String> renamed(String parentSig, List<B> declared, List<B> here){
     var renamed= Streams.zip(declared, here).filter((d,h) -> !d.x().equals(h.x()));
     var from= renamed.map((d,_) -> disp(d.x())).toList();
@@ -109,7 +114,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return Optional.of("Generic type parameter"+(many ? "s " : " ")+and(from)+" of "+parentSig
       +(many ? " are named " : " is named ")+and(renamed.map((_,h) -> disp(h.x())).toList())+" here.");
   }
-  private static String and(List<String> xs){
+  static String and(List<String> xs){
     if (xs.size() == 1){ return xs.getFirst(); }
     return Join.of(xs.subList(0, xs.size()-1), "", ", ", "")+" and "+xs.getLast();
   }
