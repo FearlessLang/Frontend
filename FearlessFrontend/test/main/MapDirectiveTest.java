@@ -68,8 +68,8 @@ In file: [###].fear
 While inspecting object literal instance of "base.Void" > method "B.fromC" (line 1)
 The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
 Object literal is of type "iso base.Void" instead of a subtype of "a.A".
-Method ".fromC" inherited the signature from "a.A.fromC" as follows:
-.fromC: a.A
+Signature as inherited by type declaration "B":
+-       a.A.fromC: a.A
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cA), Map.of("a", "c"), """
@@ -93,8 +93,8 @@ In file: [###].fear
 While inspecting object literal instance of "base.Void" > method "B.fromC" (line 1)
 The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
 Object literal is of type "iso base.Void" instead of a subtype of "a.A".
-Method ".fromC" inherited the signature from "a.A.fromC" as follows:
-.fromC: a.A
+Signature as inherited by type declaration "B":
+-       a.A.fromC: a.A
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b instead of _e, _d", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", fe.render(o));
@@ -927,8 +927,8 @@ While inspecting object literal instance of "base.Void" > method "a.A.fromC" (li
 Method ".fromC" inside the object literal instance of "a.A" (line 1)
 is implemented with an expression returning "iso base.Void".
 Object literal is of type "iso base.Void" instead of a subtype of "a.A".
-Method ".fromC" inherited the signature from "a.A.fromC" as follows:
-.fromC: a.A
+Signature as inherited by object literal instance of "a.A":
+-       a.A.fromC: a.A
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
@@ -1051,8 +1051,8 @@ While inspecting object literal instance of "B" > method "X.fromC" (line 2) > me
 Method ".fromC" inside the object literal instance of "X" (line 2)
 is implemented with an expression returning "iso B".
 Object literal is of type "iso B" instead of a subtype of "X".
-Method ".fromC" inherited the signature from "X.fromC" as follows:
-.fromC: X
+Signature as inherited by object literal instance of "X":
+-       X.fromC: X
 
 Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -1906,8 +1906,8 @@ In file: [###].fear
 While inspecting object literal instance of "a.M" > method "B.baz(_)" (line 1)
 The method "mut a.M.bar" is dead code.
 The object literal instance of "a.M" is "read", so it will never be seen as "mut".
-Method ".bar" inherited the signature from "a.M.bar" as follows:
-mut .bar: mut a.M
+Signature as inherited by object literal instance of "a.M":
+-   mut a.M.bar: mut a.M
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
@@ -2086,8 +2086,8 @@ Capturing changes the type of parameter "x":
 - "mut a.D" becomes "read a.D" inside the "read" method ".get" (line 1).
 Capture adaptation trace:
 "mut a.D" --setToRead(line 1)--> "read a.D".
-Method ".get" inherited the signature from "a.Get.get" as follows:
-read .get: mut a.D
+Signature as inherited by object literal instance of "a.Get":
+-  read a.Get.get: mut a.D
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
@@ -2797,8 +2797,8 @@ While inspecting parameter "this" > method "X.fromC" (line 2) > method "B.k" (li
 Method ".fromC" inside the object literal instance of "X" (line 2)
 is implemented with an expression returning "B".
 Parameter "this" has type "B" instead of a subtype of "X".
-Method ".fromC" inherited the signature from "X.fromC" as follows:
-.fromC: X
+Signature as inherited by object literal instance of "X":
+-       X.fromC: X
 
 Name "X" stands for "a.A" because of "use a.A as X".
 """+noteA+"""

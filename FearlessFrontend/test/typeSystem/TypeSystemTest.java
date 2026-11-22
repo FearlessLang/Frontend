@@ -168,9 +168,10 @@ User:{ .m(b:B[User]):A -> b.foo[User,A](this,b) }
 While inspecting parameter "b" > method "B[_].foo(_,_)" (line 2)
 The body of method ".foo(_,_)" of type declaration "B[_]" is an expression returning "_BX".
 Parameter "b" has type "_BX" instead of a subtype of "_AX".
-Method ".foo(_,_)" inherited the signature from "A.foo(_,_)" as follows:
-.foo[_AX,_BX](a: _AX, b: _BX): _AX
-Generic type parameter "X" of "A.foo(_,_)" is named "_BX" here.
+Original signature:
+-       A.foo[_AX,X](_AX, X): _AX
+Signature as inherited by type declaration "B[_]":
+-       A.foo[_AX,_BX](_AX, _BX): _AX
 """, List.of("""
 A:{ .foo[_AX,X](a:_AX,b:X):_AX; }
 B[X]:A{ .foo(a,b)->b }
@@ -183,10 +184,14 @@ While inspecting parameter "x" > method "G.k(_)" (line 3) > method "B[_].m(_)" (
 Method ".k(_)" inside the object literal instance of "G" (line 3)
 is implemented with an expression returning "imm _AX".
 Parameter "x" has type "imm _AX" instead of a subtype of "_BX".
-Method ".k(_)" inherited the signature from "G.k(_)" as follows:
-.k[_BX](y: _BX): _BX
-Generic type parameter "X" of "G.k(_)" is named "_BX" here.
-Generic type parameter "X" of "Sup.m(_)" is named "_AX" here.
+Original signature:
+-       G.k[X](X): X
+Signature as inherited by object literal instance of "G":
+-       G.k[_BX](_BX): _BX
+Original signature:
+-       Sup.m[X](X): G
+Signature as inherited by type declaration "B[_]":
+-       Sup.m[_AX](_AX): G
 """, List.of("""
 G:{ .k[X](y:X):X; }
 Sup:{ .m[X](x:X):G; }
@@ -199,9 +204,10 @@ B[X]:Sup{ .m(x)->{ .k(y)->x } }
 While inspecting parameter "b" > method "B[_,_,_].foo(_,_,_)" (line 2)
 The body of method ".foo(_,_,_)" of type declaration "B[_,_,_]" is an expression returning "_AY".
 Parameter "b" has type "_AY" instead of a subtype of "_AX".
-Method ".foo(_,_,_)" inherited the signature from "A.foo(_,_,_)" as follows:
-.foo[_AX,_AY,_AZ](a: _AX, b: _AY, c: _AZ): _AX
-Generic type parameters "X", "Y" and "Z" of "A.foo(_,_,_)" are named "_AX", "_AY" and "_AZ" here.
+Original signature:
+-       A.foo[X,Y,Z](X, Y, Z): X
+Signature as inherited by type declaration "B[_,_,_]":
+-       A.foo[_AX,_AY,_AZ](_AX, _AY, _AZ): _AX
 """, List.of("""
 A:{ .foo[X,Y,Z](a:X,b:Y,c:Z):X; }
 B[X,Y,Z]:A{ .foo(a,b,c)->b }
@@ -213,9 +219,10 @@ B[X,Y,Z]:A{ .foo(a,b,c)->b }
 While inspecting parameter "e" > method "B[_,_,_,_,_].foo(_,_,_,_,_)" (line 2)
 The body of method ".foo(_,_,_,_,_)" of type declaration "B[_,_,_,_,_]" is an expression returning "_AZ".
 Parameter "e" has type "_AZ" instead of a subtype of "_AV".
-Method ".foo(_,_,_,_,_)" inherited the signature from "A.foo(_,_,_,_,_)" as follows:
-.foo[_AV,_AW,_AX,_AY,_AZ](a: _AV, b: _AW, c: _AX, d: _AY, e: _AZ): _AV
-Generic type parameters "V", "W", "X", "Y" and "Z" of "A.foo(_,_,_,_,_)" are named "_AV", "_AW", "_AX", "_AY" and "_AZ" here.
+Original signature:
+-       A.foo[V,W,X,Y,Z](V, W, X, Y, Z): V
+Signature as inherited by type declaration "B[_,_,_,_,_]":
+-       A.foo[_AV,_AW,_AX,_AY,_AZ](_AV, _AW, _AX, _AY, _AZ): _AV
 """, List.of("""
 A:{ .foo[V,W,X,Y,Z](a:V,b:W,c:X,d:Y,e:Z):V; }
 B[V,W,X,Y,Z]:A{ .foo(a,b,c,d,e)->e }
@@ -228,10 +235,14 @@ While inspecting parameter "y" > method "G.k(_,_)" (line 3) > method "B[_,_].m(_
 Method ".k(_,_)" inside the object literal instance of "G" (line 3)
 is implemented with an expression returning "imm _AY".
 Parameter "y" has type "imm _AY" instead of a subtype of "_BX".
-Method ".k(_,_)" inherited the signature from "G.k(_,_)" as follows:
-.k[_BX,_BY](a: _BX, b: _BY): _BX
-Generic type parameters "X" and "Y" of "G.k(_,_)" are named "_BX" and "_BY" here.
-Generic type parameters "X" and "Y" of "Sup.m(_,_)" are named "_AX" and "_AY" here.
+Original signature:
+-       G.k[X,Y](X, Y): X
+Signature as inherited by object literal instance of "G":
+-       G.k[_BX,_BY](_BX, _BY): _BX
+Original signature:
+-       Sup.m[X,Y](X, Y): G
+Signature as inherited by type declaration "B[_,_]":
+-       Sup.m[_AX,_AY](_AX, _AY): G
 """, List.of("""
 G:{ .k[X,Y](a:X,b:Y):X; }
 Sup:{ .m[X,Y](x:X,y:Y):G; }
@@ -245,11 +256,18 @@ While inspecting parameter "y" > method "H.h(_)" (line 4) > method "G.k(_,_)" (l
 Method ".h(_)" inside the object literal instance of "H" (line 4)
 is implemented with an expression returning "imm _AY".
 Parameter "y" has type "imm _AY" instead of a subtype of "_CX".
-Method ".h(_)" inherited the signature from "H.h(_)" as follows:
-.h[_CX](z: _CX): _CX
-Generic type parameter "X" of "H.h(_)" is named "_CX" here.
-Generic type parameters "X" and "Y" of "G.k(_,_)" are named "_BX" and "_BY" here.
-Generic type parameters "X" and "Y" of "Sup.m(_,_)" are named "_AX" and "_AY" here.
+Original signature:
+-       H.h[X](X): X
+Signature as inherited by object literal instance of "H":
+-       H.h[_CX](_CX): _CX
+Original signature:
+-       G.k[X,Y](X, Y): H
+Signature as inherited by object literal instance of "G":
+-       G.k[_BX,_BY](_BX, _BY): H
+Original signature:
+-       Sup.m[X,Y](X, Y): G
+Signature as inherited by type declaration "B[_,_]":
+-       Sup.m[_AX,_AY](_AX, _AY): G
 """, List.of("""
 H:{ .h[X](z:X):X; }
 G:{ .k[X,Y](a:X,b:Y):H; }
@@ -274,9 +292,10 @@ While inspecting parameter "x" > method "G.k(_)" (line 3) > method "B.m(_)" (lin
 Method ".k(_)" inside the object literal instance of "G" (line 3)
 is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
-Method ".k(_)" inherited the signature from "G.k(_)" as follows:
-.k[_AX](y: _AX): _AX
-Generic type parameter "X" of "G.k(_)" is named "_AX" here.
+Original signature:
+-       G.k[X](X): X
+Signature as inherited by object literal instance of "G":
+-       G.k[_AX](_AX): _AX
 """, List.of("""
 G:{ .k[X](y:X):X; }
 Sup:{ .m[X](x:X):G; }
@@ -290,9 +309,10 @@ While inspecting parameter "x" > method "G.k(_)" (line 3) > method "B.m(_)" (lin
 Method ".k(_)" inside the object literal instance of "G" (line 3)
 is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
-Method ".k(_)" inherited the signature from "G.k(_)" as follows:
-mut .k[_AX](y: _AX): _AX
-Generic type parameter "X" of "G.k(_)" is named "_AX" here.
+Original signature:
+-   mut G.k[X](X): X
+Signature as inherited by object literal instance of "G":
+-   mut G.k[_AX](_AX): _AX
 """, List.of("""
 G:{ mut .k[X](y:X):X; }
 Sup:{ .m[X](x:X):mut G; }
@@ -324,9 +344,10 @@ While inspecting parameter "this" > method "base.Todo!" (line 2) > method "A.foo
 Method "!" inside the object literal instance of "base.Todo" (line 2)
 is implemented with an expression returning "A".
 Parameter "this" has type "A" instead of a subtype of "_AR".
-Method "!" inherited the signature from "base.Todo!" as follows:
-![_AR:**]: _AR
-Generic type parameter "R" of "base.Todo!" is named "_AR" here.
+Original signature:
+-       base.Todo![R:**]: R
+Signature as inherited by object literal instance of "base.Todo":
+-       base.Todo![_AR:**]: _AR
 """, List.of("""
 R:{}
 A:{ .foo:base.Todo->{ ! -> this } }
@@ -418,8 +439,8 @@ While inspecting method call "#(_)" > method "G.v" (line 4) > method "Outer#" (l
 Method ".v" inside the object literal instance of "G" (line 4)
 is implemented with an expression returning "Box[G]".
 Method call "Boxes#(_)" has type "Box[G]" instead of a subtype of "base.Void".
-Method ".v" inherited the signature from "G.v" as follows:
-.v: base.Void
+Signature as inherited by object literal instance of "G":
+-       G.v: base.Void
 
 See inferred typing context below for how "G" was introduced:
 Outer:{#:G->G{'self .bar:base.Void->base.Void;.v:base.Void->Boxes#[imm,G](self)}}
@@ -887,8 +908,8 @@ While inspecting object literal instance of "Foo" > method "F[Person,Car]#(_)" (
 Method "#(_)" inside the object literal instance of "F[Person,Car]" (line 7)
 is implemented with an expression returning "iso Foo".
 Object literal is of type "iso Foo" instead of a subtype of "Car".
-Method "#(_)" inherited the signature from "F[Person,Car]#(_)" as follows:
-#(Person): Car
+Signature as inherited by object literal instance of "F[Person,Car]":
+-       F[Person,Car]#(Person): Car
 """, List.of("""
 Person:{}
 Car:{}
@@ -944,8 +965,8 @@ Capturing changes the type of parameter "loooooong":
 - "mut A" becomes "read A" inside the "read" method ".get" (line 5).
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
-Method ".get" inherited the signature from "Get.get" as follows:
-read .get: mut A
+Signature as inherited by object literal instance of "Get":
+-  read Get.get: mut A
 """, List.of("""
 A:{}
 Get:{ read .get: mut A; }
@@ -968,8 +989,8 @@ Capturing changes the type of parameter "loooooong":
 - "mut A" becomes "read A" inside the "read" method ".get" (line 5).
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
-Method ".get" inherited the signature from "Get.get" as follows:
-read .get: iso A
+Signature as inherited by object literal instance of "Get":
+-  read Get.get: iso A
 """, List.of("""
 A:{}
 Get:{ read .get: iso A; }
@@ -992,8 +1013,8 @@ Capturing changes the type of parameter "loooooong":
 - "mut A" becomes "read A" inside the "read" method ".get" (line 5).
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
-Method ".get" inherited the signature from "Get.get" as follows:
-read .get: iso A
+Signature as inherited by object literal instance of "Get":
+-  read Get.get: iso A
 """, List.of("""
 A:{}
 Get:{ read .get: iso A; }
@@ -1018,8 +1039,8 @@ Capturing changes the type of parameter "loooooong":
 - "read A" becomes "imm A" inside the "imm" method ".get" (line 6).
 Capture adaptation trace:
 "mut A" --setToRead(line 6)--> "read A" --strengthenToImm(line 6)--> "imm A".
-Method ".get" inherited the signature from "Get.get" as follows:
-.get: iso A
+Signature as inherited by object literal instance of "Get":
+-       Get.get: iso A
 """, List.of("""
 A:{}
 Get:{ imm .get: iso A; }
@@ -2161,8 +2182,8 @@ A:{ mut .baz(b: B):B->{}; }
 While inspecting object literal instance of "B" > method "A.baz(_)" (line 2)
 The method "mut B.bar" is dead code.
 The object literal instance of "B" is "read", so it will never be seen as "mut".
-Method ".bar" inherited the signature from "B.bar" as follows:
-mut .bar: mut B
+Signature as inherited by object literal instance of "B":
+-   mut B.bar: mut B
 """, List.of("""
 B:{ mut .bar:mut B }
 A:{ mut .baz(b: mut B):read B-> { .bar->b}; }
@@ -2770,8 +2791,8 @@ Hint: add an implementation for ".foo" inside the object literal.
 While inspecting parameter "this" > method "B.get" (line 2)
 The body of method ".get" of type declaration "B" is an expression returning "imm B".
 Parameter "this" has type "imm B" instead of a subtype of "mut A".
-Method ".get" inherited the signature from "A.get" as follows:
-mut .get: mut A
+Signature as inherited by type declaration "B":
+-   mut A.get: mut A
 Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
 Method ".get" is overloaded; to implement a specific overload only, write one of the following:
 - "read .get"
@@ -2787,8 +2808,8 @@ Method ".get" is overloaded; to implement a specific overload only, write one of
 While inspecting parameter "this" > method "B.get" (line 2)
 The body of method ".get" of type declaration "B" is an expression returning "imm B".
 Parameter "this" has type "imm B" instead of a subtype of "mut A".
-Method ".get" inherited the signature from "A.get" as follows:
-mut .get: mut A
+Signature as inherited by type declaration "B":
+-   mut A.get: mut A
 Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
 Method ".get" is overloaded; to implement a specific overload only, write one of the following:
 - "imm .get"
@@ -2804,8 +2825,8 @@ Method ".get" is overloaded; to implement a specific overload only, write one of
 While inspecting parameter "this" > method "B.get" (line 2)
 The body of method ".get" of type declaration "B" is an expression returning "imm B".
 Parameter "this" has type "imm B" instead of a subtype of "mut A".
-Method ".get" inherited the signature from "A.get" as follows:
-mut .get: mut A
+Signature as inherited by type declaration "B":
+-   mut A.get: mut A
 Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
 """, List.of("""
  A:{ mut .get: mut A; }
@@ -2818,8 +2839,8 @@ Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is
 While inspecting parameter "this" > method "B.get" (line 2)
 The body of method ".get" of type declaration "B" is an expression returning "imm B".
 Parameter "this" has type "imm B" instead of a subtype of "mut A".
-Method ".get" inherited the signature from "A.get" as follows:
-mut .get: mut A
+Signature as inherited by type declaration "B":
+-   mut A.get: mut A
 Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
 Method ".get" is overloaded; to implement a specific overload only, write one of the following:
 - "read .get"
@@ -2836,8 +2857,8 @@ Method ".get" is overloaded; to implement a specific overload only, write one of
 While inspecting parameter "this" > method "B.get" (line 2)
 The body of method ".get" of type declaration "B" is an expression returning "imm B".
 Parameter "this" has type "imm B" instead of a subtype of "mut A".
-Method ".get" inherited the signature from "A.get" as follows:
-mut .get: mut A
+Signature as inherited by type declaration "B":
+-   mut A.get: mut A
 Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
 """, List.of("""
  A:{ read .get: read A; mut .get: mut A; }
@@ -2850,8 +2871,8 @@ Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is
 While inspecting object literal instance of "C" > method "B.get" (line 3)
 The body of method ".get" of type declaration "B" is an expression returning "iso C".
 Object literal is of type "iso C" instead of a subtype of "read A".
-Method ".get" inherited the signature from "A.get" as follows:
-read .get: read A
+Signature as inherited by type declaration "B":
+-  read A.get: read A
 Method ".get" is overloaded; to implement a specific overload only, write one of the following:
 - "read .get"
 - "mut .get"
@@ -2868,8 +2889,8 @@ While inspecting object literal instance of "C" > method "A.get" (line 3) > meth
 Method ".get" inside the object literal instance of "A" (line 3)
 is implemented with an expression returning "iso C".
 Object literal is of type "iso C" instead of a subtype of "read A".
-Method ".get" inherited the signature from "A.get" as follows:
-read .get: read A
+Signature as inherited by object literal instance of "A":
+-  read A.get: read A
 """, List.of("""
  A:{ read .get: read A; mut .get: mut A; }
  C:{}
@@ -3972,8 +3993,8 @@ In file: [###].fear
 While inspecting parameter "::" > method "User.h(_)" (line 3)
 The body of method ".h(_)" of type declaration "User" is an expression returning "Sup".
 Parameter "::" has type "Sup" instead of a subtype of "base.Void".
-Method ".h(_)" inherited the signature from "Sup.h(_)" as follows:
-.h(Sup): base.Void
+Signature as inherited by type declaration "User":
+-       Sup.h(Sup): base.Void
 Error 8 TypeError
 """, List.of("""
 
@@ -4110,8 +4131,8 @@ While inspecting parameter "::" > method "base.BaseId[read Customer,Person]#(_)"
 Method "#(_)" inside the object literal instance of "base.BaseId[read Customer,Person]" (line 3)
 is implemented with an expression returning "read Customer".
 Parameter "::" has type "read Customer" instead of a subtype of "imm Person".
-Method "#(_)" inherited the signature from "base.BaseId[read Customer,Person]#(_)" as follows:
-#(read Customer): Person
+Signature as inherited by object literal instance of "base.BaseId[read Customer,Person]":
+-       base.BaseId[read Customer,Person]#(read Customer): Person
 """, List.of("""
 Person:{}
 Customer:Person{}
@@ -4147,8 +4168,8 @@ While inspecting parameter "::" > method "base.BaseId[Person,Customer]#(_)" (lin
 Method "#(_)" inside the object literal instance of "base.BaseId[Person,Customer]" (line 3)
 is implemented with an expression returning "Person".
 Parameter "::" has type "Person" instead of a subtype of "Customer".
-Method "#(_)" inherited the signature from "base.BaseId[Person,Customer]#(_)" as follows:
-#(Person): Customer
+Signature as inherited by object literal instance of "base.BaseId[Person,Customer]":
+-       base.BaseId[Person,Customer]#(Person): Customer
 """, List.of("""
 Person:{}
 Customer:Person{}
@@ -4543,8 +4564,8 @@ While inspecting parameter "o" > method "MF[Opt[E]]#" (line 13) > method "Contin
 Method "#" inside the object literal instance of "MF[Opt[E]]" (line 13)
 is implemented with an expression returning "mut Opt[E]".
 Parameter "o" has type "mut Opt[E]" instead of a subtype of "imm Opt[E]".
-Method "#" inherited the signature from "MF[Opt[E]]#" as follows:
-mut #: Opt[E]
+Signature as inherited by object literal instance of "MF[Opt[E]]":
+-   mut MF[Opt[E]]#: Opt[E]
 """, List.of("""
 use base.MF as MF;
 Blocks: { #[R:*]: mut Block[R] -> {} }
@@ -5951,8 +5972,8 @@ A:base.CaptureFree{ imm .foo: A -> base.Block#.let x= {this} .return {x} }
 While inspecting object literal instance of "base.Void" > method "A.str" (line 1)
 The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
 Object literal is of type "iso base.Void" instead of a subtype of "base.Str".
-Method ".str" inherited the signature from "base.ToStr.str" as follows:
-read .str: base.Str
+Signature as inherited by type declaration "A":
+-  read base.ToStr.str: base.Str
 """, List.of("""
 A:base.ToStr{ .str -> base.Void }
 """));}
@@ -5963,8 +5984,8 @@ A:base.ToStr{ .str -> base.Void }
 While inspecting object literal instance of "base.Void" > method "A.str" (line 2)
 The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
 Object literal is of type "iso base.Void" instead of a subtype of "base.Str".
-Method ".str" inherited the signature from "Show.str" as follows:
-read .str: base.Str
+Signature as inherited by type declaration "A":
+-  read Show.str: base.Str
 """, List.of("""
 use base.ToStr as Show;
 A:Show{ .str -> base.Void }
@@ -7038,9 +7059,11 @@ U:{ .take(f: F): B -> B; .m: B -> this.take(B) }
 While inspecting parameter "a" > method "B[_].m(_)" (line 5)
 The body of method ".m(_)" of type declaration "B[_]" is an expression returning "_AX".
 Parameter "a" has type "_AX" instead of a subtype of "R".
-Method ".m(_)" inherited the signature from "T1.m(_)" as follows:
-.m[_AX](a: _AX): R
-Generic type parameter "X" of "T1.m(_)" is named "_AX" here.
+Original signatures:
+-       T1.m[X](X): R
+-       T2.m[Y](Y): R
+Signature as inherited by type declaration "B[_]":
+-       Mid.m[_AX](_AX): R
 """, List.of("""
 R:{}
 T1:{ .m[X](x:X):R; }
@@ -7055,8 +7078,10 @@ B[X]:Mid{ .m(a)->a }
 While inspecting parameter "this" > method "B[_].m(_)" (line 3)
 The body of method ".m(_)" of type declaration "B[_]" is an expression returning "B[X]".
 Parameter "this" has type "B[X]" instead of a subtype of "_AX".
-Method ".m(_)" inherited the signature from "Mid[X].m(_)" as follows:
-.m[_AX](a: _AX): _AX
+Original signature:
+-       Top.m[X](X): X
+Signature as inherited by type declaration "B[_]":
+-       Mid[X].m[_AX](_AX): _AX
 """, List.of("""
 Top:{ .m[X](x:X):X; }
 Mid[X]:Top{ .m(x)->x }
@@ -7070,10 +7095,14 @@ While inspecting parameter "this" > method "Mid[Sup].k(_)" (line 4) > method "B[
 Method ".k(_)" inside the object literal instance of "Mid[Sup]" (line 4)
 is implemented with an expression returning "B[X]".
 Parameter "this" has type "B[X]" instead of a subtype of "_AAX".
-Method ".k(_)" inherited the signature from "Top.k(_)" as follows:
-.k[_AAX](y: _AAX): _AAX
-Generic type parameter "X" of "Top.k(_)" is named "_AAX" here.
-Generic type parameter "X" of "Sup.m(_)" is named "_AX" here.
+Original signature:
+-       Top.k[X](X): X
+Signature as inherited by object literal instance of "Mid[Sup]":
+-       Mid[Sup].k[_AAX](_AAX): _AAX
+Original signature:
+-       Sup.m[X](X): Mid[Sup]
+Signature as inherited by type declaration "B[_]":
+-       Sup.m[_AX](_AX): Mid[Sup]
 """, List.of("""
 Top:{ .k[X](y:X):X; }
 Mid[X]:Top{}
@@ -7087,9 +7116,10 @@ B[X]:Sup{ .m(x)->{ .k(y)->this } }
 While inspecting parameter "this" > method "B.a(_)" (line 5)
 The body of method ".a(_)" of type declaration "B" is an expression returning "B".
 Parameter "this" has type "B" instead of a subtype of "_AX".
-Method ".a(_)" inherited the signature from "Top1.a(_)" as follows:
-.a[_AX](x: _AX): _AX
-Generic type parameter "X" of "Top1.a(_)" is named "_AX" here.
+Original signature:
+-       Top1.a[X](X): X
+Signature as inherited by type declaration "B":
+-       P1[B].a[_AX](_AX): _AX
 """, List.of("""
 Top1:{ .a[X](x:X):X; }
 P1[X]:Top1{}
@@ -7104,8 +7134,8 @@ B:P1[B],P2[B]{ .a(x)->this }
 While inspecting parameter "this" > method "B.k(_)" (line 4)
 The body of method ".k(_)" of type declaration "B" is an expression returning "B".
 Parameter "this" has type "B" instead of a subtype of "_AX".
-Method ".k(_)" inherited the signature from "D2.k(_)" as follows:
-.k[_AX](a: _AX): _AX
+Signature as inherited by type declaration "B":
+-       D2.k[_AX](_AX): _AX
 """, List.of("""
 Top:{ .m[X](x:X):X; }
 Mid[X]:Top{}
@@ -7120,10 +7150,14 @@ While inspecting parameter "this" > method "G.k(_)" (line 3) > method "B[_].m(_)
 Method ".k(_)" inside the object literal instance of "G" (line 3)
 is implemented with an expression returning "B[X]".
 Parameter "this" has type "B[X]" instead of a subtype of "_AAX".
-Method ".k(_)" inherited the signature from "G.k(_)" as follows:
-.k[_AAX](y: _AAX): _AAX
-Generic type parameter "_AX" of "G.k(_)" is named "_AAX" here.
-Generic type parameter "X" of "Sup.m(_)" is named "_AX" here.
+Original signature:
+-       G.k[_AX](_AX): _AX
+Signature as inherited by object literal instance of "G":
+-       G.k[_AAX](_AAX): _AAX
+Original signature:
+-       Sup.m[X](X): G
+Signature as inherited by type declaration "B[_]":
+-       Sup.m[_AX](_AX): G
 """, List.of("""
 G:{ .k[_AX](y:_AX):_AX; }
 Sup:{ .m[X](x:X):G; }
@@ -7137,10 +7171,14 @@ While inspecting method call "#(_)" > method "G.k(_,_)" (line 4) > method "B[_,_
 Method ".k(_,_)" inside the object literal instance of "G" (line 4)
 is implemented with an expression returning "Ign".
 Method call "Ign#(_)" has type "Ign" instead of a subtype of "_BX".
-Method ".k(_,_)" inherited the signature from "G.k(_,_)" as follows:
-.k[_BX,_BY](a: _BX, b: _BY): _BX
-Generic type parameters "X" and "Y" of "G.k(_,_)" are named "_BX" and "_BY" here.
-Generic type parameters "X" and "Y" of "Sup.m(_,_)" are named "_AX" and "_AY" here.
+Original signature:
+-       G.k[X,Y](X, Y): X
+Signature as inherited by object literal instance of "G":
+-       G.k[_BX,_BY](_BX, _BY): _BX
+Original signature:
+-       Sup.m[X,Y](X, Y): G
+Signature as inherited by type declaration "B[_,_]":
+-       Sup.m[_AX,_AY](_AX, _AY): G
 
 See inferred typing context below for how "imm _AX" was introduced:
 B[X,Y]:Sup{.m[_AX,_AY](x:_AX,y:_AY):G->G{.k[_BX,_BY](a:_BX,b:_BY):_BX->Ign#[imm,imm _AX](x)}}
@@ -7149,5 +7187,38 @@ Ign:{ #[T](t:T):Ign -> this; }
 G:{ .k[X,Y](a:X,b:Y):X; }
 Sup:{ .m[X,Y](x:X,y:Y):G; }
 B[X,Y]:Sup{ .m(x,y)->{ .k(a,b)->Ign#x } }
+"""));}
+@Test void inheritedSignatureOfAMethodWritingANarrowerReturnType(){fail("""
+004| B:A{ .m(x): Sub -> x }
+   |      --------------^
+
+While inspecting parameter "x" > method "B.m(_)" (line 4)
+The body of method ".m(_)" of type declaration "B" is an expression returning "Sup".
+Parameter "x" has type "Sup" instead of a subtype of "Sub".
+Signature as inherited by type declaration "B":
+-       A.m(Sup): Sup
+""", List.of("""
+Sup:{}
+Sub:Sup{}
+A:{ .m(x: Sup): Sup; }
+B:A{ .m(x): Sub -> x }
+"""));}
+@Test void inheritedSignaturesFromTwoSupertypesWithDifferentReturnTypes(){fail("""
+006| B:P1,P2{ .m(x): Sub -> Sup }
+   |          --------------^^^
+
+While inspecting object literal instance of "Sup" > method "B.m(_)" (line 6)
+The body of method ".m(_)" of type declaration "B" is an expression returning "iso Sup".
+Object literal is of type "iso Sup" instead of a subtype of "Sub".
+Signatures as inherited by type declaration "B":
+-       P1.m(A): Sub
+-       P2.m(A): Sup
+""", List.of("""
+A:{}
+Sup:{}
+Sub:Sup{}
+P1:{ .m(x: A): Sub; }
+P2:{ .m(x: A): Sup; }
+B:P1,P2{ .m(x): Sub -> Sup }
 """));}
 }

@@ -39,8 +39,8 @@ B:A[FortyTwo]{ .count -> FortyTwo; .sum -> FortyTwo{} }
 While inspecting object literal instance of "FortyThree" > method "B.sum" (line 5)
 The body of method ".sum" of type declaration "B" is an expression returning "iso FortyThree".
 Object literal is of type "iso FortyThree" instead of a subtype of "FortyTwo".
-Method ".sum" inherited the signature from "A[FortyTwo].sum" as follows:
-.sum: FortyTwo
+Signature as inherited by type declaration "B":
+-       A[FortyTwo].sum: FortyTwo
 """, List.of("""
 Res1:{} Res2:{}
 FortyTwo:{ .get: Res1 -> Res1 }
@@ -55,8 +55,8 @@ B:A[FortyTwo]{ .count -> FortyTwo; .sum -> FortyThree }
 While inspecting parameter "n" > method "B.sum(_)" (line 4)
 The body of method ".sum(_)" of type declaration "B" is an expression returning "mut FortyTwo".
 Parameter "n" has type "mut FortyTwo" instead of a subtype of "imm FortyTwo".
-Method ".sum(_)" inherited the signature from "A[FortyTwo].sum(_)" as follows:
-mut .sum(n: mut FortyTwo): FortyTwo
+Signature as inherited by type declaration "B":
+-   mut A[FortyTwo].sum(mut FortyTwo): FortyTwo
 """, List.of("""
 Res1:{}
 FortyTwo:{ .get: Res1 -> Res1 }

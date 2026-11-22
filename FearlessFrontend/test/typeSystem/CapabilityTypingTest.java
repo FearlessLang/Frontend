@@ -74,8 +74,8 @@ Capturing changes the type of parameter "a":
 - "mut A" becomes "read A" inside the "read" method ".a1" (line 2).
 Capture adaptation trace:
 "mut A" --setToRead(line 2)--> "read A".
-Method ".a1" inherited the signature from "Container.a1" as follows:
-read .a1: mut A
+Signature as inherited by object literal instance of "Container":
+-  read Container.a1: mut A
 """, List.of("""
 A:{}
 ContainerF:{ #(a: mut A): mutH Container -> { .a1 -> a; .a2 -> a } }
@@ -107,8 +107,8 @@ The capability of the methods changes the type of parameter "this":
 - "mut A" becomes "read A" inside the "read" method ".me" (line 2).
 Capture adaptation trace:
 "mut A" --setToRead(line 2)--> "read A".
-Method ".get" inherited the signature from "F.get" as follows:
-mut .get: mut A
+Signature as inherited by object literal instance of "F":
+-   mut F.get: mut A
 """, List.of("""
 F:{ mut .get: mut A }
 A:{ read .me: mut F -> mut F{ .get -> this } }
@@ -125,8 +125,8 @@ The capability of the methods changes the type of parameter "this":
 - "mut A" becomes "read A" inside the "read" method ".get" (line 2).
 Capture adaptation trace:
 "mut A" --setToRead(line 2)--> "read A".
-Method ".get" inherited the signature from "F.get" as follows:
-read .get: mut A
+Signature as inherited by object literal instance of "F":
+-  read F.get: mut A
 """, List.of("""
 F:{ read .get: mut A }
 A:{ mut .me: mut F -> mut F{ read .get -> this } }
@@ -547,8 +547,8 @@ B:A{ .m1 -> this; .m2 -> this.m1 }
 While inspecting parameter "this" > method "B.m1" (line 2)
 The body of method ".m1" of type declaration "B" is an expression returning "mut B".
 Parameter "this" has type "mut B" instead of a subtype of "imm A".
-Method ".m1" inherited the signature from "A.m1" as follows:
-mut .m1: A
+Signature as inherited by type declaration "B":
+-   mut A.m1: A
 Method ".m1" is overloaded; to implement a specific overload only, write one of the following:
 - "imm .m1"
 - "mut .m1"

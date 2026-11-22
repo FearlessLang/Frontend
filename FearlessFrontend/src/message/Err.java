@@ -18,6 +18,8 @@ import metaParser.Span;
 import typeSystem.TypeSystem.*;
 import utils.Bug;
 import utils.Join;
+import utils.OneOr;
+import utils.Pos;
 import utils.Push;
 import utils.Streams;
 
@@ -101,18 +103,34 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t), t.span()))); }
   static String count(int n, String noun){ return n+" "+noun+(n == 1 ? "" : "s"); }
   static String up(String s){ return s.substring(0, 1).toUpperCase(Locale.ROOT)+s.substring(1); }
-  List<String> sigLines(List<T.C> heads, List<Sig> ss){ return Streams.zip(heads, ss).map(this::sigLine).distinct().toList(); }
+  boolean sigs(String who, List<T.C> heads, List<Sig> ss, boolean always){
+    var original= Streams.zip(heads, ss).map((h,s) -> originals(h.name(), s)).toList();
+    var renamed= Streams.zip(original, ss).anyMatch((os,s) -> os.stream().anyMatch(o -> !B.xs(o.bs()).equals(B.xs(s.bs()))));
+    if (!renamed && !always){ return false; }
+    var flat= original.stream().flatMap(List::stream).toList();
+    if (renamed){ bullets("Original signature", "Original signatures", sigLines(flat.stream().map(o -> head(_decs.apply(o.origin()))).toList(), flat)); }
+    bullets("Signature as inherited by "+who, "Signatures as inherited by "+who, sigLines(heads, ss));
+    return true;
+  }
+  private List<Sig> originals(TName n, Sig s){
+    var d= _decs.apply(n);
+    var own= OneOr.opt("Malformed methods", d.ms().stream().map(M::sig).filter(o -> o.m().equals(s.m()) && o.rc() == s.rc()));
+    if (own.isEmpty()){ return List.of(); }
+    var sig= own.get();
+    var written= d.src() == Src.synthetic ? sig.origin().equals(n) : TypeSystemErrors.srcM(d, sig).filter(fm -> TypeSystemErrors.wholeSig(fm, sig)).isPresent();
+    if (written){ return List.of(new Sig(sig.rc(), sig.m(), sig.bs(), sig.ts(), sig.ret(), n, sig.abs(), sig.span())); }
+    var cs= d.cs().stream().map(T.C::name).toList();
+    return cs.stream().filter(c -> cs.stream().noneMatch(o -> _decs.apply(o).cs().stream().anyMatch(oc -> oc.name().equals(c)))).flatMap(c -> originals(c, s).stream()).toList();
+  }
+  private void bullets(String one, String many, List<String> lines){
+    line((lines.size() == 1 ? one : many)+":");
+    lines.forEach(this::bullet);
+  }
+  private static T.C head(Literal d){ return new T.C(d.name(), d.bs().stream().<T>map(b -> new T.X(b.x(), TSpan.fromPos(Pos.unknown))).toList()); }
+  private List<String> sigLines(List<T.C> heads, List<Sig> ss){ return Streams.zip(heads, ss).map(this::sigLine).distinct().toList(); }
   private String sigLine(T.C h, Sig s){
     var sig= cp().sig(s);
     return sig.substring(0, 6)+cp().msgT(new T.RCC(RC.imm, h, h.span()))+sig.substring(6);
-  }
-  static Optional<String> renamed(String parentSig, List<B> declared, List<B> here){
-    var renamed= Streams.zip(declared, here).filter((d,h) -> !d.x().equals(h.x()));
-    var from= renamed.map((d,_) -> disp(d.x())).toList();
-    if (from.isEmpty()){ return Optional.empty(); }
-    var many= from.size() > 1;
-    return Optional.of("Generic type parameter"+(many ? "s " : " ")+and(from)+" of "+parentSig
-      +(many ? " are named " : " is named ")+and(renamed.map((_,h) -> disp(h.x())).toList())+" here.");
   }
   static String and(List<String> xs){
     if (xs.size() == 1){ return xs.getFirst(); }
