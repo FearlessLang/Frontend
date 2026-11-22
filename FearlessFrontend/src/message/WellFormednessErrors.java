@@ -441,7 +441,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return err()
       .line("Cannot infer signature and name for a method with "+count(n, "parameter")+".")
       .line(taken
-        ? "Each method with "+count(n, "parameter")+" of the supertypes is already implemented by another method of "+err().expRepr(origin)+"."
+        ? "Each method with "+count(n, "parameter")+" of the supertypes is already overridden by another method of "+err().expRepr(origin)+"."
         : "No supertype of "+err().expRepr(origin)+" has a method with "+count(n, "parameter")+".");
   }
   public FearlessException noAgreement(Methods meths, Agreement at, List<M.Sig> ss){

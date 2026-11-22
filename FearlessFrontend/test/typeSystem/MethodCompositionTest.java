@@ -1980,11 +1980,45 @@ U:{ .u(f: F[A,A]): A -> A; .k: A -> this.u{ a, b -> a } }
 
 While inspecting type declaration "B"
 Cannot infer signature and name for a method with 1 parameter.
-Each method with 1 parameter of the supertypes is already implemented by another method of type declaration "B".
+Each method with 1 parameter of the supertypes is already overridden by another method of type declaration "B".
 Methods of the supertypes:
 - ".m(_)"
 """, List.of("""
 A:{ .m(a: A): A }
 B:A{ .m(a) -> this; a -> this }
+"""));}
+@Test void unnamedMethodImplementsTheOtherReceiverCapability(){ok(List.of("""
+A:{ mut .m(a: A): A }
+B:A{ imm .m(a: A): A -> this; a -> a }
+"""));}
+@Test void unnamedMethodAfterANamedMethodTakingEveryReceiverCapability(){failWf("""
+002| B:A{ .m(a: A): A -> this; a -> this }
+   | --------------------------^^^^^^^^^--
+
+While inspecting type declaration "B"
+Cannot infer signature and name for a method with 1 parameter.
+Each method with 1 parameter of the supertypes is already overridden by another method of type declaration "B".
+Methods of the supertypes:
+- "mut .m(_)"
+""", List.of("""
+A:{ mut .m(a: A): A }
+B:A{ .m(a: A): A -> this; a -> this }
+"""));}
+@Test void unnamedMethodAfterANamedAbstractMethod(){failWf("""
+002| B:A{ .m(a: A): A; a -> this }
+   | ------------------^^^^^^^^^--
+
+While inspecting type declaration "B"
+Cannot infer signature and name for a method with 1 parameter.
+Each method with 1 parameter of the supertypes is already overridden by another method of type declaration "B".
+Methods of the supertypes:
+- ".m(_)"
+""", List.of("""
+A:{ .m(a: A): A }
+B:A{ .m(a: A): A; a -> this }
+"""));}
+@Test void unnamedMethodImplementsTheMutOverloadOfAnImmLiteral(){ok(List.of("""
+A:{ mut .m(a: A): A; imm .m(a: A): A }
+C:{ .f: A -> A{ .m(a) -> a; b -> b } }
 """));}
 }
