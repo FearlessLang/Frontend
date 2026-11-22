@@ -21,6 +21,7 @@ import inference.Gamma;
 import inference.IT;
 import inference.IT.RCC;
 import inference.M;
+import typeSystem.TypeScope;
 import utils.Bug;
 import utils.OneOr;
 import utils.Push;
@@ -99,7 +100,7 @@ public record InjectionSteps(Methods meths, int cap){
     ei = s.nextStar(bs, g, ei);
     g.latePass();
     ei = s.nextStar(bs, g, ei);
-    return new core.M(mCore.sig(), xs, m.names(), Optional.of(new ToCore(bs, meths).of(ei, e)));
+    return new core.M(mCore.sig(), xs, m.names(), Optional.of(new ToCore(bs, meths, TypeScope.top().pushM(di, mCore)).of(ei, e)));
   }
   E meet(E e, IT t){
     if (e instanceof E.Type tt){ return meetT(tt, t); }

@@ -25,8 +25,6 @@ import typeSystem.TypeSystem;
 import utils.Bug;
 import utils.Join;
 import utils.OneOr;
-import utils.Pos;
-import utils.Push;
 import utils.Range;
 import utils.Streams;
 import core.*;
@@ -75,24 +73,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   static boolean wholeSig(fearlessFullGrammar.M fm, Sig s){
     return !fm.hasImplicit() && fm.sig().filter(gs -> (gs.rc().isPresent() || s.rc() == RC.imm) && gs.t().isPresent() && gs.parameters().stream().allMatch(p -> p.t().isPresent()) && (s.bs().isEmpty() || gs.bs().isPresent())).isPresent();
-  }
-  private List<T.C> sources(Literal l, Sig s){
-    var cs= l.cs();
-    return cs.stream().filter(c -> cs.stream().noneMatch(o -> decs.apply(o.name()).cs().stream().anyMatch(oc -> oc.name().equals(c.name())))
-      && decs.apply(c.name()).ms().stream().anyMatch(dm -> dm.sig().m().equals(s.m()) && dm.sig().rc() == s.rc())).toList();
-  }
-  private boolean sigs(Err e, Literal l, M m, boolean always){
-    var fm= srcM(l, m.sig());
-    var sources= sources(l, m.sig());
-    if (fm.isEmpty() || sources.isEmpty() || wholeSig(fm.get(), m.sig())){ return false; }
-    return e.sigs(err().expRepr(l), sources, sources.stream().map(c -> inherited(c, m.sig())).toList(), always);
-  }
-  private Sig inherited(T.C c, Sig s){
-    var d= decs.apply(c.name());
-    var o= OneOr.of("Malformed methods", d.ms().stream().map(M::sig).filter(ps -> ps.m().equals(s.m()) && ps.rc() == s.rc()));
-    var xs= Push.of(B.xs(d.bs()), B.xs(o.bs()));
-    var ts= Push.of(c.ts(), s.bs().stream().<T>map(b -> new T.X(b.x(), TSpan.fromPos(Pos.unknown))).toList());
-    return new Sig(o.rc(), o.m(), s.bs(), TypeRename.ofT(o.ts(), xs, ts), TypeRename.of(o.ret(), xs, ts), o.origin(), o.abs(), o.span());
   }
   public FearlessException mCallFrame(Literal l, M m, FearlessException fe){
     return fe.addFrame("method "+err().methodSig("", l, m.sig().m())+" (line "+m.sig().span().inner.startLine()+")", m.sig().span().inner);
@@ -256,7 +236,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var e= err()
       .line("The method "+err().methodSig(s.rc().toStrSpace(), l, s.m())+" is dead code.")
       .line("The "+err().expRepr(l.withRC(RC.imm))+" is "+disp(l.rc())+", so it will never be seen as "+disp(RC.mut)+".");
-    if (!sigs(e, l, got, true)){ e.line("But it implements method "+m+", which requires a "+disp(RC.mut)+" receiver."); }
+    if (!e.sigs(l, got, true)){ e.line("But it implements method "+m+", which requires a "+disp(RC.mut)+" receiver."); }
     return addExpFrame(l, e.typeErr().addSpan(s.span().inner));
   }
   public FearlessException selfNameDeadCode(Literal l){
@@ -309,9 +289,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       : "Method "+meth+" inside the "+err().expRepr(l)+" (line "+l.span().inner.startLine()+")"
         +"\nis implemented with an expression returning "+got0+".");
     e.line(up(got.info(printed)));
-    sigs(e, l, m, true);
+    e.sigs(l, m, true);
     for (TypeScope it= s.outer(); !it.isTop(); it = it.outer()){
-      if (it instanceof TypeScope.Method(var li, var mi, _)){ sigs(e, li, mi, false); }
+      if (it instanceof TypeScope.Method(var li, var mi, _)){ e.sigs(li, mi, false); }
     }
     var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
     if (thisNotMut){ e.line("Hint: "+err().expRepr(l)+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+", so parameter "+disp(l.thisName())+" is \"imm\" in every method."); }

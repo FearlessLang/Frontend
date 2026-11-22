@@ -31,6 +31,7 @@ import naming.FreshPrefix;
 import pkgmerge.Package;
 import tools.Fs;
 import typeSystem.Kinding;
+import typeSystem.TypeScope;
 import utils.OneOr;
 import utils.Push;
 import utils.Streams;
@@ -207,7 +208,7 @@ public record Methods(
     assert InjectionToInferenceVisitor.duplicatedSupertypes(d.bs(), d.cs()).isEmpty();
     assert !d.infName() || !d.thisName().equals("_") || d.ms().stream().anyMatch(m -> m.impl().isPresent());
     p.log().logInferenceDeclaration(d, cs);
-    var ms= d.ms().stream().map(new ToCore(List.of(), this)::mSynthetic).toList();
+    var ms= d.ms().stream().map(new ToCore(List.of(), this, TypeScope.top())::mSynthetic).toList();
     cache.put(d.name(), new core.E.Literal(d.rc().orElse(RC.imm), d.name(), d.bs(), cs, d.thisName(), ms, d.src(), d.infName()));
   }
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){

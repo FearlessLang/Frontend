@@ -853,6 +853,10 @@ A:{ .m[X:imm,mut](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get ->
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "_AX".
 "_AX" is a generic type parameter; object literals can only implement nominal types.
+Original signature:
+-       Sup.m[X:*]: X
+Signature as inherited by type declaration "B[_]":
+-       Sup.m[_AX:*]: _AX
 """, List.of("""
 Sup:{ .m[X:*]: X; }
 B[X:*]:Sup{ .m -> {} }
@@ -864,6 +868,10 @@ B[X:*]:Sup{ .m -> {} }
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "_AX".
 "_AX" is a generic type parameter; object literals can only implement nominal types.
+Original signature:
+-       Sup.m[X:*]: K[X]
+Signature as inherited by type declaration "B[_]":
+-       Sup.m[_AX:*]: K[_AX]
 """, List.of("""
 Sup:{ .m[X:*]: K[X]; }
 K[Y:*]:{ .k: Y; }
@@ -876,6 +884,10 @@ B[X:*]:Sup{ .m -> { .k -> {} } }
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "_AY".
 "_AY" is a generic type parameter; object literals can only implement nominal types.
+Original signature:
+-       Mid.m[Y:*]: Y
+Signature as inherited by type declaration "B[_]":
+-       Mid.m[_AY:*]: _AY
 """, List.of("""
 Top:{ .m[X:*]: X; }
 Mid:Top{ .m[Y:*]: Y; }
@@ -888,6 +900,10 @@ B[Y:*]:Mid{ .m -> {} }
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "_AY".
 "_AY" is a generic type parameter; object literals can only implement nominal types.
+Original signature:
+-       Mid.m[Y:*]: Y
+Signature as inherited by type declaration "B[_]":
+-       Mid.m[_AY:*]: _AY
 """, List.of("""
 Top:{ .m[X:*]: X; }
 Between:Top{}
@@ -901,6 +917,12 @@ B[Y:*]:Top,Mid{ .m -> {} }
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "_AX".
 "_AX" is a generic type parameter; object literals can only implement nominal types.
+Original signatures:
+-       S1.m[X:*]: X
+-       S2.m[Z:*]: Z
+Signatures as inherited by type declaration "B[_]":
+-       C1.m[_AX:*]: _AX
+-       S2.m[_AX:*]: _AX
 """, List.of("""
 S1:{ .m[X:*]: X; }
 C1:S1{}
@@ -914,6 +936,10 @@ B[X:*]:C1,S2{ .m -> {} }
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "Y".
 "Y" is a generic type parameter; object literals can only implement nominal types.
+Original signature:
+-       Sup.m[X:*,Y:*]: Y
+Signature as inherited by type declaration "B[_]":
+-       Sup.m[_AX:*,Y:*]: Y
 """, List.of("""
 Sup:{ .m[X:*,Y:*]: Y; }
 B[X:*]:Sup{ .m -> {} }
@@ -925,8 +951,56 @@ B[X:*]:Sup{ .m -> {} }
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "Z".
 "Z" is a generic type parameter; object literals can only implement nominal types.
+Original signature:
+-       Sup.m[X:*]: X
+Signature as inherited by type declaration "B[_]":
+-       Sup.m[Z:*]: Z
 """, List.of("""
 Sup:{ .m[X:*]: X; }
 B[X:*]:Sup{ .m[Z:*] -> {} }
+"""));}
+@Test void literalCannotImplementATypeVariableOfARefinedSignature(){failWf("""
+005| B[X:*]:Top,Mid{ .m -> { .k -> {} } }
+   |                               ^^
+
+While inspecting object literal "{...}"
+Object literal "{...}" cannot implement "_AX".
+"_AX" is a generic type parameter; object literals can only implement nominal types.
+Original signature:
+-       Mid.m[X:*]: K2[X]
+Signature as inherited by type declaration "B[_]":
+-       Mid.m[_AX:*]: K2[_AX]
+""", List.of("""
+K[Y:*]:{ .k: Y; }
+K2[Y:*]:K[Y]{}
+Top:{ .m[X:*]: K[X]; }
+Mid:Top{ .m[X:*]: K2[X]; }
+B[X:*]:Top,Mid{ .m -> { .k -> {} } }
+"""));}
+@Test void literalCannotImplementATypeVariableOfANamedLiteral(){failWf("""
+003| B:Sup{ .m[X:*] -> Fresh[X:*]:Box[X]{ .get -> {} } }
+   |                                              ^^
+
+While inspecting object literal "{...}"
+Object literal "{...}" cannot implement "X".
+"X" is a generic type parameter; object literals can only implement nominal types.
+""", List.of("""
+Box[X:*]:{ .get: X; }
+Sup:{ .m[X:*]: Box[X]; }
+B:Sup{ .m[X:*] -> Fresh[X:*]:Box[X]{ .get -> {} } }
+"""));}
+@Test void literalCannotImplementATypeVariableOfANestedMethod(){failWf("""
+003| B:Sup{ .m -> { .k -> {} } }
+   |                      ^^
+
+While inspecting object literal "{...}"
+Object literal "{...}" cannot implement "Y".
+"Y" is a generic type parameter; object literals can only implement nominal types.
+Signature as inherited by object literal instance of "K":
+-       K.k[Y:*]: Y
+""", List.of("""
+K:{ .k[Y:*]: Y; }
+Sup:{ .m: K; }
+B:Sup{ .m -> { .k -> {} } }
 """));}
 }

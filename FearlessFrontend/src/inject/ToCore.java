@@ -15,13 +15,14 @@ import core.TSpan;
 import inference.Gamma;
 import inference.IT;
 import offensiveUtils.EqTransparent;
+import typeSystem.TypeScope;
 import utils.Bug;
 import utils.OneOr;
 import utils.Pos;
 import utils.Push;
 import utils.Streams;
 
-public record ToCore(List<B> ctx, Methods meths){
+public record ToCore(List<B> ctx, Methods meths, TypeScope scope){
   core.E of(inference.E exp, inference.E orig){ return switch (exp){
     case inference.E.X(var name, _, var src, _) -> new core.E.X(name, src);
     case inference.E.Type(var type, _, var src, _) -> type(type, src);
@@ -44,15 +45,14 @@ public record ToCore(List<B> ctx, Methods meths){
     var bs= !e.infName() ? e.bs() : Streams.of(B.xs(e.bs()).stream(), free.ftvCs(e.cs()), free.ftvMs(e.ms()), free.ftvMs(o.ms())).distinct().map(x -> B.get(ctx, x)).toList();
     assert !e.infName() || B.xs(ctx).containsAll(B.xs(bs));
     var name= e.name().withArity(bs.size());
-    var inner= new ToCore(e.infName() ? Push.of(ctx, bs).stream().distinct().toList() : bs, meths);
-    if (!(e.t() instanceof IT.RCC) && !e.t().undecided()){ throw meths.p().err().literalImplementsTypeParameter(e, e.t()); }
+    var inner= new ToCore(e.infName() ? Push.of(ctx, bs).stream().distinct().toList() : bs, meths, e.infName() ? scope : TypeScope.top());
+    if (!(e.t() instanceof IT.RCC) && !e.t().undecided()){ throw meths.p().err().literalImplementsTypeParameter(e, e.t(), scope, meths::_from); }
     var csIT= distinctTypes(inner.ctx(), Push.of(o.cs(), e.cs()));
     for (var c : csIT){ checkHead(e, c); }
     assert !e.infName() || !e.thisName().equals("_") || e.t().undecided() || e.ms().stream().anyMatch(m -> m.impl().isPresent());
-    var ms= inner.mapMs(e.ms(), o.ms(), e).stream().map(m -> withOrigin(m, e.name(), name)).toList();
-    var cs= TypeRename.itcToTC(csIT);
     assert InjectionToInferenceVisitor.duplicatedSupertypes(inner.ctx(), csIT).isEmpty();
-    return new core.E.Literal(rc, name, bs, cs, e.thisName(), ms, e.src(), e.infName());
+    var head= new core.E.Literal(rc, name, bs, TypeRename.itcToTC(csIT), e.thisName(), List.of(), e.src(), e.infName());
+    return head.withMs(inner.mapMs(e.ms(), o.ms(), e, head).stream().map(m -> withOrigin(m, e.name(), name)).toList());
   }
   static List<IT.C> distinctTypes(List<B> bs, List<IT.C> cs){
     var res= new ArrayList<IT.C>();
@@ -128,24 +128,25 @@ public record ToCore(List<B> ctx, Methods meths){
     case inference.E.Literal l -> l.ms().stream().flatMap(m -> m.impl().stream()).flatMap(i -> calls(i.e()));
     case inference.E.X _, inference.E.Type _ -> Stream.of();
   };}
-  private List<core.M> mapMs(List<inference.M> es, List<inference.M> os, inference.E.Literal at){
+  private List<core.M> mapMs(List<inference.M> es, List<inference.M> os, inference.E.Literal at, core.E.Literal head){
     return es.stream()
-      .map(me -> m(me, me.impl().isEmpty() ? me : matchM(os, me), at))
+      .map(me -> m(me, me.impl().isEmpty() ? me : matchM(os, me), at, head))
       .toList();
   }
   private static inference.M matchM(List<inference.M> os, inference.M e){
     var s= e.sig().span();
     return OneOr.of("Failing to connect methods @"+s, os.stream().filter(o -> o.sig().span() == s));
   }
-  private core.M m(inference.M e, inference.M o, inference.E.Literal at){
+  private core.M m(inference.M e, inference.M o, inference.E.Literal at, core.E.Literal head){
     var s= sig(e.sig(), o.sig(), at);
+    var abs= new core.M(s, e.xs(), e.names(), Optional.empty());
     if (e.impl().isEmpty()){
       assert o.impl().isEmpty();
-      return new core.M(s, e.xs(), e.names(), Optional.empty());
+      return abs;
     }
     var ei= e.impl().get();
     var oi= o.impl().get();
-    var inner= new ToCore(Push.of(ctx, s.bs()).stream().distinct().toList(), meths);
+    var inner= new ToCore(Push.of(ctx, s.bs()).stream().distinct().toList(), meths, scope.pushM(head, abs));
     return new core.M(s, e.xs(), e.names(), Optional.of(inner.of(ei.e(), oi.e())));
   }
   core.Sig sig(inference.M.Sig inf, inference.M.Sig usr, inference.E.Literal at){
