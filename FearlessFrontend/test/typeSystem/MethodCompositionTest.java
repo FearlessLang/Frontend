@@ -1546,6 +1546,48 @@ S1:{ .foo: Foo[Q1] }
 S2:{ .foo: Bar }
 B:S1,S2{}
 """));}
+@Test void supertypesDisagreeOnTheReturnTypeWithAGenericSubtypeWhoseBoundRejectsTheArgument(){failWf("""
+007| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       S1.foo: Foo[mut Q1]
+-       S2.foo: Bar
+"B" must declare method ".foo".
+"B.foo" return type must be a subtype of "Foo[mut Q1]" and "Bar".
+No such type is currently visible.
+""", List.of("""
+Q1:{}
+Bar:{}
+Foo[T:*]:{}
+G[T:imm]:Foo[T],Bar{}
+S1:{ .foo: Foo[mut Q1] }
+S2:{ .foo: Bar }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeOnTheReturnTypeWithAGenericSubtypeNeedingAnotherCapability(){failWf("""
+007| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the signature of method "imm .foo".
+Signatures as inherited by type declaration "B":
+-       S1.foo: Foo[Q1]
+-       S2.foo: Bar
+"B" must declare method ".foo".
+"B.foo" return type must be a subtype of "Foo[Q1]" and "Bar".
+Such type currently visible: "G[mut Q1]".
+""", List.of("""
+Q1:{}
+Bar:{}
+Foo[T:*]:{}
+G[T:mut]:Foo[imm T],Bar{}
+S1:{ .foo: Foo[Q1] }
+S2:{ .foo: Bar }
+B:S1,S2{}
+"""));}
 @Test void supertypesDisagreeOnTheReturnTypeWithAGenericCommonSubtype(){failWf("""
 006| B:S1,S2{}
    | ^^^^^^^^^

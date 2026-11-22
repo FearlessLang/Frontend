@@ -30,6 +30,7 @@ import metaParser.Span;
 import naming.FreshPrefix;
 import pkgmerge.Package;
 import tools.Fs;
+import typeSystem.Kinding;
 import utils.OneOr;
 import utils.Push;
 import utils.Streams;
@@ -407,14 +408,18 @@ public record Methods(
   private static boolean visibleType(IT.C c, TName at){ return (c.name().isPublic() || c.name().pkgName().equals(at.pkgName())) && c.ts().stream().allMatch(t -> visibleType(t, at)); }
   public List<IT.C> commonSubtypes(List<B> bs, List<IT.C> cs, TName at){
     var heads= cs.stream().map(IT.C::name).distinct().toList();
-    var args= Stream.concat(Stream.<IT>of(IT.U.Instance), cs.stream().flatMap(c -> args(c.ts()))).distinct().toList();
+    var args= cs.stream().flatMap(c -> args(c.ts())).flatMap(t -> Stream.concat(Stream.of(t), Stream.of(RC.values()).map(t::withRC))).distinct().toList();
     var subs= names().filter(n -> optionType(n, at) && Stream.concat(Stream.of(n), superNames(n)).toList().containsAll(heads))
-      .flatMap(n -> instances(args, n.arity()).map(ts -> new IT.C(n, ts)))
+      .flatMap(n -> instances(bounds(n).stream().map(b -> kinded(bs, b, args)).toList()).map(ts -> new IT.C(n, ts)))
       .filter(d -> visibleType(d, at) && cs.stream().allMatch(o -> isSub(bs, d, o))).toList();
     return subs.stream().filter(d -> subs.stream().noneMatch(o -> !o.equals(d) && instanceOf(d, o))).toList();
   }
+  private List<B> bounds(TName n){ var d= _from(n); return d != null ? d.bs() : pending.get(n).bs(); }
+  private static List<IT> kinded(List<B> bs, B b, List<IT> args){ return Push.of(IT.U.Instance, args.stream().filter(t -> b.rcs().containsAll(Kinding.intrinsicRCs(bs, TypeRename.itToT(t)))).toList()); }
   private static Stream<IT> args(List<IT> ts){ return ts.stream().flatMap(t -> Stream.concat(Stream.of(t), t instanceof IT.RCC r ? args(r.c().ts()) : Stream.of())); }
-  private static Stream<List<IT>> instances(List<IT> args, int n){ return n == 0 ? Stream.of(List.of()) : instances(args, n-1).flatMap(ts -> args.stream().map(a -> Push.of(ts, a))); }
+  private static Stream<List<IT>> instances(List<List<IT>> args){
+    return args.isEmpty() ? Stream.of(List.of()) : instances(args.subList(0, args.size()-1)).flatMap(ts -> args.getLast().stream().map(a -> Push.of(ts, a)));
+  }
   private static boolean instanceOf(IT.C d, IT.C o){ return d.name().equals(o.name()) && Streams.zip(o.ts(), d.ts()).allMatch((a,b) -> a == IT.U.Instance || a.equals(b)); }
   public List<IT.C> commonSupertypes(List<B> bs, List<IT.C> cs, TName at){
     return Stream.concat(Stream.of(cs.getFirst()), supers(cs.getFirst()).stream()).distinct()
