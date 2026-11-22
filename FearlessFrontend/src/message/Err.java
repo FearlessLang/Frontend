@@ -248,7 +248,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   FearlessException typeErr(){ return withNotes(Code.TypeError); }
   FearlessException ex(E footerE, E focus){ return ex(footerE, focus, List.of()); }
   FearlessException ex(E footerE, E focus, List<T> inferred){
-    var ts= Push.of(inferred.stream().map(t -> typeRepr(true, t)).toList(), inferredTargs(focus)).stream().distinct().toList();
+    var ts= Push.of(inferred, inferredTargs(focus)).stream().map(t -> typeRepr(true, t)).distinct().toList();
     if (footerE instanceof X || footerE instanceof Type || ts.isEmpty()){ return typeErr(); }
     var body= text();
     var cp= _cp.apply(true);
@@ -257,10 +257,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var header= "See inferred typing context below for how "+what+" introduced"+(cp.omitted ? " (\"...\" marks omitted code):\n" : ":\n");
     return Code.TypeError.of(() -> withNotes(body)+"\n\n"+header+footer);
   }
-  private List<String> inferredTargs(E e){
+  List<T> inferredTargs(E e){
     if (!(e instanceof Call c)){ return List.of(); }
-    var own= inferredTargs(c) ? c.targs().stream().map(t -> typeRepr(true, t)).toList() : List.<String>of();
-    return Push.of(own, inferredTargs(c.e()));
+    return Push.of(inferredTargs(c) ? c.targs() : List.of(), inferredTargs(c.e()));
   }
   static boolean inferredTargs(Call c){
     var written= c.src().inner instanceof fearlessFullGrammar.E.Call(_, _, var sq, _, _, _, _) && sq.filter(s -> !s.ts().isEmpty()).isPresent();

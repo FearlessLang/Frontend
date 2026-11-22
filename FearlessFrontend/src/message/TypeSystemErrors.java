@@ -25,6 +25,7 @@ import typeSystem.TypeSystem;
 import utils.Bug;
 import utils.Join;
 import utils.OneOr;
+import utils.Push;
 import utils.Range;
 import utils.Streams;
 import core.*;
@@ -214,6 +215,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     declaring(scope, OneOr.of("Type parameters", TypeRename.tToIT(req).ftv())).ifPresent(m -> e.sigs(m.l(), m.m(), true));
     return addExpFrame(at, e.typeErr());
   }
+  private static List<T> types(Literal l, M m){ return Streams.of(m.sig().ts().stream(), Stream.of(m.sig().ret()), l.cs().stream().flatMap(c -> c.ts().stream())).toList(); }
   static Optional<TypeScope.Method> declaring(TypeScope s, String x){ return OneOr.opt("Type parameter declared twice", visible(s).stream().filter(m -> B.xs(m.m().sig().bs()).contains(x))); }
   private static List<TypeScope.Method> visible(TypeScope scope){
     var res= new ArrayList<TypeScope.Method>();
@@ -293,8 +295,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       : "Method "+meth+" inside the "+err().expRepr(l)+" (line "+l.span().inner.startLine()+")"
         +"\nis implemented with an expression returning "+got0+".");
     e.line(up(got.info(printed)));
-    e.sigs(l, m, true);
-    visible(s).stream().skip(1).forEach(it -> e.sigs(it.l(), it.m(), false));
+    var stated= new ArrayList<T>(Push.of(got.stated, e.inferredTargs(at)));
+    if (e.sigs(l, m, true)){ stated.addAll(types(l, m)); }
+    for (var it : visible(s).stream().skip(1).toList()){
+      var used= it.m().sig().bs().stream().anyMatch(b -> stated.stream().anyMatch(t -> mentions(t, b.x())));
+      if (used && e.sigs(it.l(), it.m(), false)){ stated.addAll(types(it.l(), it.m())); }
+    }
     var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
     if (thisNotMut){ e.line("Hint: "+err().expRepr(l)+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+", so parameter "+disp(l.thisName())+" is \"imm\" in every method."); }
     overloadHint(e, l, m);

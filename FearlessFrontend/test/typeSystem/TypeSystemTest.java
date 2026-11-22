@@ -261,10 +261,6 @@ Original signature:
 Signature as inherited by object literal instance of "H":
 -       H.h[_CX](_CX): _CX
 Original signature:
--       G.k[X,Y](X, Y): H
-Signature as inherited by object literal instance of "G":
--       G.k[_BX,_BY](_BX, _BY): H
-Original signature:
 -       Sup.m[X,Y](X, Y): G
 Signature as inherited by type declaration "B[_,_]":
 -       Sup.m[_AX,_AY](_AX, _AY): G
@@ -7099,10 +7095,6 @@ Original signature:
 -       Top.k[X](X): X
 Signature as inherited by object literal instance of "Mid[Sup]":
 -       Mid[Sup].k[_AAX](_AAX): _AAX
-Original signature:
--       Sup.m[X](X): Mid[Sup]
-Signature as inherited by type declaration "B[_]":
--       Sup.m[_AX](_AX): Mid[Sup]
 """, List.of("""
 Top:{ .k[X](y:X):X; }
 Mid[X]:Top{}
@@ -7154,10 +7146,6 @@ Original signature:
 -       G.k[_AX](_AX): _AX
 Signature as inherited by object literal instance of "G":
 -       G.k[_AAX](_AAX): _AAX
-Original signature:
--       Sup.m[X](X): G
-Signature as inherited by type declaration "B[_]":
--       Sup.m[_AX](_AX): G
 """, List.of("""
 G:{ .k[_AX](y:_AX):_AX; }
 Sup:{ .m[X](x:X):G; }
@@ -7236,5 +7224,52 @@ Foo:{}
 K:{ .k: K; }
 Sup:{ .m[X:*]: K; }
 B[X:*]:Sup{ .m -> Fresh:K{ .k -> Foo{} } }
+"""));}
+@Test void enclosingSignatureShownThroughTheSignatureOfAnInnerMethod(){fail("""
+004| B[X]:Sup{ .m(x)->{ .k(a,t)->{ .h(z)->a } } }
+   |                    -----------~~~~~~~^--
+
+While inspecting parameter "a" > method "H.h(_)" (line 4) > method "F[_AX].k(_,_)" (line 4) > method "B[_].m(_)" (line 4)
+Method ".h(_)" inside the object literal instance of "H" (line 4)
+is implemented with an expression returning "imm _BX".
+Parameter "a" has type "imm _BX" instead of a subtype of "_CX".
+Original signature:
+-       H.h[X](X): X
+Signature as inherited by object literal instance of "H":
+-       H.h[_CX](_CX): _CX
+Original signature:
+-       F[T].k[X](X, T): H
+Signature as inherited by object literal instance of "F[_AX]":
+-       F[_AX].k[_BX](_BX, _AX): H
+Original signature:
+-       Sup.m[X](X): F[X]
+Signature as inherited by type declaration "B[_]":
+-       Sup.m[_AX](_AX): F[_AX]
+""", List.of("""
+F[T]:{ .k[X](a:X,t:T):H; }
+H:{ .h[X](z:X):X; }
+Sup:{ .m[X](x:X):F[X]; }
+B[X]:Sup{ .m(x)->{ .k(a,t)->{ .h(z)->a } } }
+"""));}
+@Test void enclosingSignatureNotShownWhenOnlyTheTypingContextHasIt(){fail("""
+004| B[X]:Sup{ .m(x)->{ .k(a)->Ign#a } }
+   |           ---------~~~~~~~^^^^^--
+
+While inspecting method call "#(_)" > method "G.k(_)" (line 4) > method "B[_].m(_)" (line 4)
+Method ".k(_)" inside the object literal instance of "G" (line 4)
+is implemented with an expression returning "Ign".
+Method call "Ign#(_)" has type "Ign" instead of a subtype of "_BX".
+Original signature:
+-       G.k[X](X): X
+Signature as inherited by object literal instance of "G":
+-       G.k[_BX](_BX): _BX
+
+See inferred typing context below for how "_BX" was introduced:
+B[X]:Sup{.m[_AX](x:_AX):G->G{.k[_BX](a:_BX):_BX->Ign#[imm,_BX](a)}}
+""", List.of("""
+Ign:{ #[T](t:T):Ign -> this; }
+G:{ .k[X](a:X):X; }
+Sup:{ .m[X](x:X):G; }
+B[X]:Sup{ .m(x)->{ .k(a)->Ign#a } }
 """));}
 }
