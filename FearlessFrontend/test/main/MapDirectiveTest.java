@@ -2219,6 +2219,23 @@ Error 7 WellFormedness
 """, Map.of("c", "P:{} A1:{ .m:P } A2:{ .m:mut P }"), mapA, """
 B:a.A1,a.A2{}
 """); }
+  @Test void sweepBoundsDisagreementOfRenamedGenericsBetweenMappedSupertypes(){ fail("""
+In file: [###].fear
+
+001| B[X:*]:a.A1,a.A2{}
+   | ^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B[_]"
+Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
+Generic type parameter names may differ across supertypes; only the position matters.
+Candidates:
+- "imm"
+- "read"
+Type declaration "B[_]" cannot implement all of those supertypes.
+Error 7 WellFormedness
+""", Map.of("c", "A1:{ .id[X](x:X):X } A2:{ .id[Y:read](y:Y):Y }"), mapA, """
+B[X:*]:a.A1,a.A2{}
+"""); }
   @Test void sweepGenericArityOfALiteralOfAMappedType(){ fail("""
 In file: [###].fear
 
