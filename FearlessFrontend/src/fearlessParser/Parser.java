@@ -383,13 +383,13 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     if (top){ checkCommonTopLevelIssues(); }
     var startPos= index();
     var c= parseTName();
-    if (top){ errFactory().noteTop(c); }
     var _= expectValidate(back("simple type name"), UppercaseId, _XId); //to get error if of form foo.Bar
     var bs= parseIf(peek(_SquareGroup), () -> parseBs(top, "A type declaration"));
     var Xs= bsXs(bs);
     var outer= names;
     names = top ? names.add(List.of(), Xs) : names.setFunnelledXs(c.s(), Xs);
     c = c.withArity(Xs.size());
+    if (top){ errFactory().noteTop(c); }
     expect("type declaration colon", Colon);
     var cs= parseImpl();
     assert peek(_CurlyGroup);

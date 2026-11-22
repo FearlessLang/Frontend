@@ -39,7 +39,7 @@ public final class Reason{
       default -> throw Bug.unreachable();
     };
     var show= onlyRC(ts, bs, got, expected);
-    var base= "Object literal is of type "+es.err().expReprDirect(!show, blame)+" instead of a subtype of "+es.err().typeRepr(!show, expected)+".";
+    var base= "Object literal has type "+es.err().expReprDirect(!show, blame)+" instead of a subtype of "+es.err().typeRepr(!show, expected)+".";
     if (!explRC){ return new Reason(got, show, base, es.printed(), () -> baseFooterE(ts.scope(), got, expected)); }
     return hintExplicitRC(es, ts, got, show, base, er, rc, blame);
   }

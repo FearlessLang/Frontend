@@ -82,7 +82,7 @@ A[T:*,T:*]:{ .foo(a: T, b: T): A }
 
 While inspecting type declaration body > type declaration > full file
 Method ".a" with 0 parameters redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, number of parameters and reference capability is already present.
 """, List.of("""
 A:{ .a: A; .a: A }
 """));}
@@ -128,8 +128,8 @@ Foo:{ .m1: Foo -> Foo{ 'unique
 003|   }
 
 While inspecting type declaration body > type declaration > full file
-Self name "self" is invalid in a top level type.
-The self name of a top level type can only be "this".
+Self name "self" is invalid in a top level type declaration.
+The self name of a top level type declaration can only be "this".
 """, List.of("""
 A:{ 'self
   .me: A -> self;
