@@ -1071,6 +1071,564 @@ Sup1:{ .id[X:imm](x:X):X }
 Sup2:{ .id[X:read](x:X):X }
 A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
 """));}
+@Test void supertypesDisagreeOnTheReturnTypeWithTheGenericOfTheSecondSupertype(){failWf("""
+003| A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+   |                         ^^^^^^^^^^^^^^^^
+
+While inspecting object literal "Both"
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
+Candidates:
+- "Sup2"
+- "_AX"
+The candidates are different types and "_AX" is a generic type parameter, so no method ".get" can implement all the candidates.
+""", List.of("""
+Sup1:{ .get[X]:Sup2 }
+Sup2:{ .get[X]:X }
+A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+"""));}
+@Test void supertypesDisagreeOnTheReturnTypeWithAGenericMatchedByPosition(){failWf("""
+003| A:{ .m[Y](y:Y): Sup1 -> Both:Sup1,Sup2{} }
+   |                         ^^^^^^^^^^^^^^^^
+
+While inspecting object literal "Both"
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
+Candidates:
+- "Sup1"
+- "X"
+The candidates are different types and "X" is a generic type parameter, so no method ".get" can implement all the candidates.
+""", List.of("""
+Sup1:{ .get[X]:Sup1 }
+Sup2:{ .get[Y]:Y }
+A:{ .m[Y](y:Y): Sup1 -> Both:Sup1,Sup2{} }
+"""));}
+@Test void supertypesDisagreeOnTheReturnTypeInsideAGenericMethod(){failWf("""
+003| A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+   |                         ^^^^^^^^^^^^^^^^
+
+While inspecting object literal "Both"
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
+Candidates:
+- "_AX"
+- "Sup1"
+The candidates are different types and "_AX" is a generic type parameter, so no method ".get" can implement all the candidates.
+""", List.of("""
+Sup1:{ .get[X]:X }
+Sup2:{ .get[X]:Sup1 }
+A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+"""));}
+@Test void supertypesDisagreeOnTheReturnTypeWithAReturnTypeImplementingTheOther(){failWf("""
+005| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
+Candidates:
+- "Q1"
+- "Q2"
+Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+""", List.of("""
+Q2:{}
+Q1:Q2{}
+S1:{ .foo: Q1 }
+S2:{ .foo: Q2 }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeOnTheReturnTypeWithAnExistingCommonSubtype(){failWf("""
+007| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
+Candidates:
+- "mut Q1"
+- "mut Q2"
+Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+""", List.of("""
+Q1:{}
+Q2:{}
+Q12:Q1,Q2{}
+Q123:Q12{}
+S1:{ .foo: mut Q1 }
+S2:{ .foo: mut Q2 }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeOnAParameterTypeWithACommonSupertype(){failWf("""
+006| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the type of parameter 1 of method "imm .foo(_)" with 1 parameter.
+Candidates:
+- "Q1"
+- "Q2"
+Type declaration "B" must declare a method ".foo(_)" explicitly choosing the desired option.
+""", List.of("""
+Q0:{}
+Q1:Q0{}
+Q2:Q0{}
+S1:{ .foo(x: Q1): S1 }
+S2:{ .foo(x: Q2): S1 }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeOnAParameterTypeImplementedByTheOther(){failWf("""
+005| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the type of parameter 1 of method "imm .foo(_)" with 1 parameter.
+Candidates:
+- "Q1"
+- "Q2"
+Type declaration "B" must declare a method ".foo(_)" explicitly choosing the desired option.
+""", List.of("""
+Q2:{}
+Q1:Q2{}
+S1:{ .foo(x: Q1): S1 }
+S2:{ .foo(x: Q2): S1 }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeOnAParameterTypeAndOnTheReturnType(){failWf("""
+006| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the type of parameter 1 of method "imm .foo(_)" with 1 parameter.
+Candidates:
+- "Q1"
+- "Q2"
+Type declaration "B" must declare a method ".foo(_)" explicitly choosing the desired option.
+""", List.of("""
+Q0:{}
+Q1:Q0{}
+Q2:Q0{}
+S1:{ .foo(x: Q1): Q1 }
+S2:{ .foo(x: Q2): Q2 }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeOnTheReturnTypeWhenTheParameterTypeIsWritten(){failWf("""
+006| B:S1,S2{ .foo(x: Q0) -> this.foo(x) }
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the return type of method "imm .foo(_)" with 1 parameter.
+Candidates:
+- "Q1"
+- "Q2"
+Type declaration "B" must declare a method ".foo(_)" explicitly choosing the desired option.
+""", List.of("""
+Q0:{}
+Q1:Q0{}
+Q2:Q0{}
+S1:{ .foo(x: Q1): Q1 }
+S2:{ .foo(x: Q2): Q2 }
+B:S1,S2{ .foo(x: Q0) -> this.foo(x) }
+"""));}
+@Test void supertypesAgreeWhenTheWrittenSignatureChoosesTheTypes(){ok(List.of("""
+Q0:{}
+Q1:Q0{}
+Q2:Q0{}
+Q12:Q1,Q2{}
+S1:{ .foo(x: Q1): Q1 }
+S2:{ .foo(x: Q2): Q2 }
+B:S1,S2{ .foo(x: Q0): Q12 -> this.foo(x) }
+"""));}
+@Test void supertypesDisagreeOnASealedReturnTypeOfAnotherPackage(){failWf("""
+003| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
+Candidates:
+- "base.Nat"
+- "base.Str"
+Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+""", List.of("""
+S1:{ .foo: base.Nat }
+S2:{ .foo: base.Str }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeOnTheReturnTypeOfMutMethods(){failWf("""
+005| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the return type of method "mut .foo" with 0 parameters.
+Candidates:
+- "Q1"
+- "Q2"
+Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+""", List.of("""
+Q1:{}
+Q2:{}
+S1:{ mut .foo: Q1 }
+S2:{ mut .foo: Q2 }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeOnTheBoundsOfTheSecondGenericTypeParameter(){failWf("""
+003| B:Sup1,Sup2{}
+   | ^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the capability bounds of generic type parameter 2 of method ".id(_)" with 1 parameter.
+Generic type parameter names may differ across supertypes; only the position matters.
+Candidates:
+- "imm"
+- "read"
+Type declaration "B" cannot implement all of those supertypes.
+""", List.of("""
+Sup1:{ .id[X,Y](x:X):X }
+Sup2:{ .id[X,Y:read](x:X):X }
+B:Sup1,Sup2{}
+"""));}
+@Test void supertypesDisagreeOnTheCapabilityOfAParameterType(){failWf("""
+004| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the type of parameter 1 of method "imm .foo(_)" with 1 parameter.
+Candidates:
+- "mut Q"
+- "read Q"
+The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".foo(_)" can implement all the candidates.
+""", List.of("""
+Q:{}
+S1:{ .foo(x: mut Q): S1 }
+S2:{ .foo(x: read Q): S1 }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeOnAParameterTypeThatIsAGenericTypeParameter(){failWf("""
+003| A[Y:imm]:Foo[Y],Foo[Bar]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A[_]"
+Supertypes disagree on the type of parameter 1 of method "imm .set(_)" with 1 parameter.
+Candidates:
+- "Y"
+- "Bar"
+The candidates are different types and "Y" is a generic type parameter, so no method ".set(_)" can implement all the candidates.
+""", List.of("""
+Bar:{}
+Foo[T:*]:{ .set(t: T): Bar }
+A[Y:imm]:Foo[Y],Foo[Bar]{}
+"""));}
+@Test void supertypesDisagreeOnTwoTypesTheWrittenMethodLeavesOut(){failWf("""
+006| B:S1,S2{ .foo(x) -> this.foo(x) }
+   |          ^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the type of parameter 1 of method "imm .foo(_)" with 1 parameter.
+Candidates:
+- "Q1"
+- "Q2"
+Type declaration "B" must declare a method ".foo(_)" explicitly choosing the desired option.
+""", List.of("""
+Q0:{}
+Q1:Q0{}
+Q2:Q0{}
+S1:{ .foo(x: Q1): Q1 }
+S2:{ .foo(x: Q2): Q2 }
+B:S1,S2{ .foo(x) -> this.foo(x) }
+"""));}
+@Test void supertypesDisagreeOnASealedReturnTypeThatIsNotTheFirst(){failWf("""
+004| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
+Candidates:
+- "Q"
+- "base.Nat"
+Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+""", List.of("""
+Q:{}
+S1:{ .foo: Q }
+S2:{ .foo: base.Nat }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeOnASealedReturnTypeWithAVisibleSubtype(){failWf("""
+003| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
+Candidates:
+- "base.Bool"
+- "base.True"
+Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+""", List.of("""
+S1:{ .foo: base.Bool }
+S2:{ .foo: base.True }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeOnBoundsOfAMethodInheritedThroughAGenericSupertype(){failWf("""
+004| D[Y:*]:Mid[Y],Other{}
+   | ^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "D[_]"
+Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
+Generic type parameter names may differ across supertypes; only the position matters.
+Candidates:
+- "imm"
+- "read"
+Type declaration "D[_]" cannot implement all of those supertypes.
+""", List.of("""
+Sup:{ .id[X](x:X):X }
+Mid[X:*]:Sup{}
+Other:{ .id[Y:read](y:Y):Y }
+D[Y:*]:Mid[Y],Other{}
+"""));}
+@Test void supertypesDisagreeOnAParameterTypeDeclaredAfterTheLiteral(){failWf("""
+001| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the type of parameter 1 of method "imm .foo(_)" with 1 parameter.
+Candidates:
+- "Q1"
+- "Q2"
+Type declaration "B" must declare a method ".foo(_)" explicitly choosing the desired option.
+""", List.of("""
+B:S1,S2{}
+Q2:{}
+Q1:Q2{}
+S1:{ .foo(x: Q1): S1 }
+S2:{ .foo(x: Q2): S1 }
+"""));}
+@Test void supertypesDisagreeOnReturnTypesWithTheSameGenericType(){failWf("""
+006| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
+Candidates:
+- "Foo[Q1]"
+- "Foo[Q2]"
+Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+""", List.of("""
+Q1:{}
+Q2:{}
+Foo[T:*]:{ .get: T }
+S1:{ .foo: Foo[Q1] }
+S2:{ .foo: Foo[Q2] }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeOnReturnTypesWithTheSameGenericTypeImplementedByAGenericType(){failWf("""
+007| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
+Candidates:
+- "Foo[Q1]"
+- "Foo[Q2]"
+Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+""", List.of("""
+Q1:{}
+Q2:{}
+Foo[T:*]:{ .get: T }
+G[T:*]:Foo[T]{}
+S1:{ .foo: Foo[Q1] }
+S2:{ .foo: Foo[Q2] }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeOnTheReturnTypeWithAGenericCommonSubtype(){failWf("""
+006| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
+Candidates:
+- "Q1"
+- "Q2"
+Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+""", List.of("""
+Q1:{}
+Q2:{}
+Q12[T:*]:Q1,Q2{}
+S1:{ .foo: Q1 }
+S2:{ .foo: Q2 }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeOnTheReturnTypeOfAGenericLiteral(){failWf("""
+003| B[Y:*]:A1,A2{}
+   | ^^^^^^^^^^^^^^
+
+While inspecting type declaration "B[_]"
+Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
+Candidates:
+- "A1"
+- "A2"
+Type declaration "B[_]" must declare a method ".foo" explicitly choosing the desired option.
+""", List.of("""
+A1:{ .foo: A1 }
+A2:{ .foo: A2 }
+B[Y:*]:A1,A2{}
+"""));}
+@Test void supertypesDisagreeOnTheReturnTypeWithANestedCommonSubtype(){failWf("""
+006| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
+Candidates:
+- "Q1"
+- "Q2"
+Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+""", List.of("""
+Q1:{}
+Q2:{}
+Holder:{ .h: Q1 -> Q12:Q1,Q2{} }
+S1:{ .foo: Q1 }
+S2:{ .foo: Q2 }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeOnTheReturnTypeOfAGenericTypeParameterWithTwoBounds(){failWf("""
+003| A[Y:imm,read]:Foo[Y],Bar[Y]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A[_]"
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
+Candidates:
+- "Y"
+- "read/imm Y"
+The candidates are different types and "Y" is a generic type parameter, so no method ".get" can implement all the candidates.
+""", List.of("""
+Foo[X:imm,read]:{ .get: X }
+Bar[X:imm,read]:{ .get: read/imm X }
+A[Y:imm,read]:Foo[Y],Bar[Y]{}
+"""));}
+@Test void supertypesDisagreeOnAMethodMergedInASupertype(){failWf("""
+005| A:{ .m[X](x:X): T1 -> Both:Mid,Other{} }
+   |                       ^^^^^^^^^^^^^^^^
+
+While inspecting object literal "Both"
+Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
+Generic type parameter names may differ across supertypes; only the position matters.
+Candidates:
+- "imm"
+- "read"
+Object literal "Both" cannot implement all of those supertypes.
+""", List.of("""
+T1:{ .id[X](x:X):X }
+T2:{ .id[Y](y:Y):Y }
+Mid:T1,T2{}
+Other:{ .id[Z:read](z:Z):Z }
+A:{ .m[X](x:X): T1 -> Both:Mid,Other{} }
+"""));}
+@Test void supertypesDisagreeOnAMethodImplementedWithAnInferredSignature(){failWf("""
+004| B[X:*]:Mid[X],Other{}
+   | ^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B[_]"
+Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
+Generic type parameter names may differ across supertypes; only the position matters.
+Candidates:
+- "imm"
+- "read"
+Type declaration "B[_]" cannot implement all of those supertypes.
+""", List.of("""
+T1:{ .id[X](x:X):X }
+Mid[X:*]:T1{ .id(x) -> x }
+Other:{ .id[Z:read](z:Z):Z }
+B[X:*]:Mid[X],Other{}
+"""));}
+@Test void supertypesDisagreeOnAMethodWrittenWithoutItsGenericTypeParameters(){failWf("""
+004| B[Y:*]:Mid[Y],Sup2{}
+   | ^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B[_]"
+Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
+Generic type parameter names may differ across supertypes; only the position matters.
+Candidates:
+- "imm"
+- "read"
+Type declaration "B[_]" cannot implement all of those supertypes.
+""", List.of("""
+Sup1:{ .id[X](x:Sup1):Sup1 }
+Mid[X:*]:Sup1{ .id(x:Sup1):Sup1 -> x }
+Sup2:{ .id[Y:read](y:Sup1):Sup1 }
+B[Y:*]:Mid[Y],Sup2{}
+"""));}
+@Test void supertypesDisagreeOnTheReturnTypeWithManyCommonSubtypes(){failWf("""
+012| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
+Candidates:
+- "Q1"
+- "Q2"
+Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+""", List.of("""
+Q1:{}
+Q2:{}
+C1:Q1,Q2{}
+C2:Q1,Q2{}
+C3:Q1,Q2{}
+C4:Q1,Q2{}
+C5:Q1,Q2{}
+C6:Q1,Q2{}
+C7:Q1,Q2{}
+S1:{ .foo: Q1 }
+S2:{ .foo: Q2 }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeOnAParameterTypeWithSeveralCommonSupertypes(){failWf("""
+007| B:S1,S2{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the type of parameter 1 of method "imm .foo(_)" with 1 parameter.
+Candidates:
+- "Q1"
+- "Q2"
+Type declaration "B" must declare a method ".foo(_)" explicitly choosing the desired option.
+""", List.of("""
+R:{}
+Q0:R{}
+Q1:Q0{}
+Q2:Q0{}
+S1:{ .foo(x: Q1): S1 }
+S2:{ .foo(x: Q2): S1 }
+B:S1,S2{}
+"""));}
+@Test void supertypesDisagreeAmongThreeSupertypes(){failWf("""
+007| B:S1,S2,S3{}
+   | ^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
+Candidates:
+- "Q1"
+- "Q2"
+- "Q3"
+Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
+""", List.of("""
+Q1:{}
+Q2:{}
+Q3:{}
+S1:{ .foo: Q1 }
+S2:{ .foo: Q2 }
+S3:{ .foo: Q3 }
+B:S1,S2,S3{}
+"""));}
+@Test void supertypesDisagreeOnAGenericReturnTypeInsideAGenericMethod(){failWf("""
+005| A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+   |                         ^^^^^^^^^^^^^^^^
+
+While inspecting object literal "Both"
+Supertypes disagree on the return type of method "imm .get(_)" with 1 parameter.
+Candidates:
+- "Foo[_AX]"
+- "Bar[_AX]"
+Object literal "Both" must declare a method ".get(_)" explicitly choosing the desired option.
+""", List.of("""
+Foo[T:*]:{}
+Bar[T:*]:{}
+Sup1:{ .get[X](x:X): Foo[X] }
+Sup2:{ .get[Y](y:Y): Bar[Y] }
+A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+"""));}
 @Test void supertypesDisagreeOnGenericArityInsideAGenericMethod(){failWf("""
 003| A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
    |                         ^^^^^^^^^^^^^^^^

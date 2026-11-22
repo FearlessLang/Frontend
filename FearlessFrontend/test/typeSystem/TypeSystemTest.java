@@ -7031,4 +7031,123 @@ B:{}
 F:{ #(x: B): B }
 U:{ .take(f: F): B -> B; .m: B -> this.take(B) }
 """));}
+@Test void renamedGenericOfAMergedSignature(){fail("""
+005| B[X]:Mid{ .m(a)->a }
+   |           -------^
+
+While inspecting parameter "a" > method "B[_].m(_)" (line 5)
+The body of method ".m(_)" of type declaration "B[_]" is an expression returning "_AX".
+Parameter "a" has type "_AX" instead of a subtype of "R".
+Method ".m(_)" inherited the signature from "T1.m(_)" as follows:
+.m[_AX](a: _AX): R
+Generic type parameter "X" of "T1.m(_)" is named "_AX" here.
+""", List.of("""
+R:{}
+T1:{ .m[X](x:X):R; }
+T2:{ .m[Y](y:Y):R -> R; }
+Mid:T1,T2{}
+B[X]:Mid{ .m(a)->a }
+"""));}
+@Test void renamedGenericKeptFromASupertype(){fail("""
+003| B[X]:Mid[X]{ .m(a)->this }
+   |              -------^^^^
+
+While inspecting parameter "this" > method "B[_].m(_)" (line 3)
+The body of method ".m(_)" of type declaration "B[_]" is an expression returning "B[X]".
+Parameter "this" has type "B[X]" instead of a subtype of "_AX".
+Method ".m(_)" inherited the signature from "Mid[X].m(_)" as follows:
+.m[_AX](a: _AX): _AX
+""", List.of("""
+Top:{ .m[X](x:X):X; }
+Mid[X]:Top{ .m(x)->x }
+B[X]:Mid[X]{ .m(a)->this }
+"""));}
+@Test void renamedGenericOfAFreshNameRenamedAgain(){fail("""
+004| B[X]:Sup{ .m(x)->{ .k(y)->this } }
+   |           ---------~~~~~~~^^^^--
+
+While inspecting parameter "this" > method "Mid[Sup].k(_)" (line 4) > method "B[_].m(_)" (line 4)
+Method ".k(_)" inside the object literal instance of "Mid[Sup]" (line 4)
+is implemented with an expression returning "B[X]".
+Parameter "this" has type "B[X]" instead of a subtype of "_AAX".
+Method ".k(_)" inherited the signature from "Top.k(_)" as follows:
+.k[_AAX](y: _AAX): _AAX
+Generic type parameter "X" of "Top.k(_)" is named "_AAX" here.
+Generic type parameter "X" of "Sup.m(_)" is named "_AX" here.
+""", List.of("""
+Top:{ .k[X](y:X):X; }
+Mid[X]:Top{}
+Sup:{ .m[X](x:X):Mid[Sup]; }
+B[X]:Sup{ .m(x)->{ .k(y)->this } }
+"""));}
+@Test void renamedGenericKeptFromTwoSupertypes(){fail("""
+005| B:P1[B],P2[B]{ .a(x)->this }
+   |                -------^^^^
+
+While inspecting parameter "this" > method "B.a(_)" (line 5)
+The body of method ".a(_)" of type declaration "B" is an expression returning "B".
+Parameter "this" has type "B" instead of a subtype of "_AX".
+Method ".a(_)" inherited the signature from "Top1.a(_)" as follows:
+.a[_AX](x: _AX): _AX
+Generic type parameter "X" of "Top1.a(_)" is named "_AX" here.
+""", List.of("""
+Top1:{ .a[X](x:X):X; }
+P1[X]:Top1{}
+Top2:{ .b[X](x:X):X; }
+P2[X]:Top2{}
+B:P1[B],P2[B]{ .a(x)->this }
+"""));}
+@Test void renamedGenericKeptAlsoFromAWrittenName(){fail("""
+004| B:D2,Mid[B]{ .k(a)->this }
+   |              -------^^^^
+
+While inspecting parameter "this" > method "B.k(_)" (line 4)
+The body of method ".k(_)" of type declaration "B" is an expression returning "B".
+Parameter "this" has type "B" instead of a subtype of "_AX".
+Method ".k(_)" inherited the signature from "D2.k(_)" as follows:
+.k[_AX](a: _AX): _AX
+""", List.of("""
+Top:{ .m[X](x:X):X; }
+Mid[X]:Top{}
+D2:{ .k[_AX](a:_AX):_AX; }
+B:D2,Mid[B]{ .k(a)->this }
+"""));}
+@Test void renamedGenericNotShownByAnotherRenameLine(){fail("""
+003| B[X]:Sup{ .m(x)->{ .k(y)->this } }
+   |           ---------~~~~~~~^^^^--
+
+While inspecting parameter "this" > method "G.k(_)" (line 3) > method "B[_].m(_)" (line 3)
+Method ".k(_)" inside the object literal instance of "G" (line 3)
+is implemented with an expression returning "B[X]".
+Parameter "this" has type "B[X]" instead of a subtype of "_AAX".
+Method ".k(_)" inherited the signature from "G.k(_)" as follows:
+.k[_AAX](y: _AAX): _AAX
+Generic type parameter "_AX" of "G.k(_)" is named "_AAX" here.
+Generic type parameter "X" of "Sup.m(_)" is named "_AX" here.
+""", List.of("""
+G:{ .k[_AX](y:_AX):_AX; }
+Sup:{ .m[X](x:X):G; }
+B[X]:Sup{ .m(x)->{ .k(y)->this } }
+"""));}
+@Test void renamedGenericShownOnlyInTheInferredTypingContext(){fail("""
+004| B[X,Y]:Sup{ .m(x,y)->{ .k(a,b)->Ign#x } }
+   |             -----------~~~~~~~~~^^^^^--
+
+While inspecting method call "#(_)" > method "G.k(_,_)" (line 4) > method "B[_,_].m(_,_)" (line 4)
+Method ".k(_,_)" inside the object literal instance of "G" (line 4)
+is implemented with an expression returning "Ign".
+Method call "Ign#(_)" has type "Ign" instead of a subtype of "_BX".
+Method ".k(_,_)" inherited the signature from "G.k(_,_)" as follows:
+.k[_BX,_BY](a: _BX, b: _BY): _BX
+Generic type parameters "X" and "Y" of "G.k(_,_)" are named "_BX" and "_BY" here.
+Generic type parameters "X" and "Y" of "Sup.m(_,_)" are named "_AX" and "_AY" here.
+
+See inferred typing context below for how "imm _AX" was introduced:
+B[X,Y]:Sup{.m[_AX,_AY](x:_AX,y:_AY):G->G{.k[_BX,_BY](a:_BX,b:_BY):_BX->Ign#[imm,imm _AX](x)}}
+""", List.of("""
+Ign:{ #[T](t:T):Ign -> this; }
+G:{ .k[X,Y](a:X,b:Y):X; }
+Sup:{ .m[X,Y](x:X,y:Y):G; }
+B[X,Y]:Sup{ .m(x,y)->{ .k(a,b)->Ign#x } }
+"""));}
 }
