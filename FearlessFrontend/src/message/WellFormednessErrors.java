@@ -22,7 +22,6 @@ import core.FearlessException;
 import core.LiteralDeclarations;
 import core.MName;
 import core.RC;
-import core.Src;
 import core.TName;
 import core.TSpan;
 import fearlessFullGrammar.Declaration;
@@ -45,7 +44,6 @@ import utils.Join;
 import utils.OneOr;
 import utils.Pos;
 import utils.Push;
-import utils.Streams;
 
 public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<String,String> mapSources, LinkedHashSet<String> printed){
   public WellFormednessErrors(String pkgName){ this(pkgName, Map.of(), Map.of(), new LinkedHashSet<>()); }
@@ -500,31 +498,12 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   private Err sigBlock(Methods meths, Agreement at, List<M.Sig> ss){
     var rc= at.rc().map(r -> r.toStrSpace(false)).orElse("");
-    var e= err().line("Supertypes disagree on the signature of method "+methodSig(rc, at.mName())+".");
+    var e= err(y -> y, x -> x, meths::from, List.of()).line("Supertypes disagree on the signature of method "+methodSig(rc, at.mName())+".");
     var sources= meths.sources(at.lit(), ss.getFirst());
     assert sources.size() == ss.size();
-    var original= sources.stream().map(c -> originals(meths, c.name(), ss.getFirst())).toList();
-    var renamed= Streams.zip(original, ss).anyMatch((os,s) -> os.stream().anyMatch(o -> !B.xs(o.bs()).equals(B.xs(s.bs().get()))));
-    var flat= original.stream().flatMap(List::stream).toList();
-    if (renamed){ bullets(e, "Original signature", "Original signatures", e.sigLines(flat.stream().map(o -> head(meths.from(o.origin()))).toList(), flat)); }
-    bullets(e, "Signature as inherited by "+err().expRepr(at.lit()), "Signatures as inherited by "+err().expRepr(at.lit()), e.sigLines(TypeRename.itcToTC(sources), ss.stream().map(WellFormednessErrors::coreSig).toList()));
+    e.sigs(err().expRepr(at.lit()), TypeRename.itcToTC(sources), ss.stream().map(WellFormednessErrors::coreSig).toList(), true);
     return e;
   }
-  private List<core.Sig> originals(Methods meths, TName n, M.Sig s){
-    var d= meths.from(n);
-    var own= OneOr.opt("Malformed methods", d.ms().stream().map(core.M::sig).filter(o -> o.m().equals(s.m().get()) && o.rc() == s.rc().get()));
-    if (own.isEmpty()){ return List.of(); }
-    var sig= own.get();
-    var written= d.src() == Src.synthetic || TypeSystemErrors.srcM(d, sig).filter(fm -> TypeSystemErrors.wholeSig(fm, sig) && (sig.bs().isEmpty() || fm.sig().flatMap(fearlessFullGrammar.Sig::bs).isPresent())).isPresent();
-    if (written){ return List.of(new core.Sig(sig.rc(), sig.m(), sig.bs(), sig.ts(), sig.ret(), n, sig.abs(), sig.span())); }
-    var cs= d.cs().stream().map(core.T.C::name).toList();
-    return cs.stream().filter(c -> cs.stream().noneMatch(o -> meths.from(o).cs().stream().anyMatch(oc -> oc.name().equals(c)))).flatMap(c -> originals(meths, c, s).stream()).toList();
-  }
-  private static void bullets(Err e, String one, String many, List<String> lines){
-    e.line((lines.size() == 1 ? one : many)+":");
-    lines.forEach(e::bullet);
-  }
-  private static core.T.C head(core.E.Literal d){ return new core.T.C(d.name(), d.bs().stream().<core.T>map(b -> new core.T.X(b.x(), TSpan.fromPos(Pos.unknown))).toList()); }
   private static core.Sig coreSig(M.Sig s){
     return new core.Sig(s.rc().get(), s.m().get(), s.bs().get(), s.ts().stream().map(TypeRename::itToT).toList(), TypeRename.itToT(s.ret()), s.origin().get(), s.abs(), s.span());
   }
