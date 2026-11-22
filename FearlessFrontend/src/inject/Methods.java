@@ -216,8 +216,7 @@ public record Methods(
     var changed= false;
     for (var m : ms){//for methods WITH name
       if (m.sig().m().isEmpty()){ continue; }
-      var name= m.sig().m().get();
-      ss.removeIf(s -> s.m().get().equals(name));
+      ss.removeAll(taken(m.sig(), ss, origin));
       res.add(m);
     }
     for (var m : ms){//for methods WITHOUT name
@@ -244,24 +243,21 @@ public record Methods(
     }
     throw noSource(origin, m);
   }
+  private static List<M.Sig> taken(M.Sig named, List<M.Sig> ss, E.Literal origin){
+    var rc= named.rc();
+    var taken= ss.stream().filter(s -> s.m().equals(named.m()) && (rc.isEmpty() || rc.equals(s.rc()))).toList();
+    var inferredRcOverloads= rc.isEmpty() && taken.stream().map(M.Sig::rc).distinct().count() > 1;
+    var neverMut= InjectionSteps.noH(origin.rc().or(origin.t()::explicitRC).orElse(RC.imm)).isReadOrImm();
+    if (!inferredRcOverloads || !neverMut){ return taken; }
+    return taken.stream().filter(s -> s.rc().get() != RC.mut).toList();
+  }
   List<M> pairWithSig(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
     var res= new ArrayList<M>();
     var changed= false;
     for (var m : ms){
-      var name= m.sig().m().get();
-      var rc= m.sig().rc();
-      var taken= ss.stream().filter(s -> s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc()))).toList();
+      var taken= taken(m.sig(), ss, origin);
       ss.removeAll(taken);
       var match= taken.stream().collect(Collectors.groupingBy(s -> s.rc().get(), LinkedHashMap::new, Collectors.toList()));
-      var inferredRcOverloads= rc.isEmpty() && match.size() > 1;
-      if (inferredRcOverloads){
-        var litRc= origin.rc().or(origin.t()::explicitRC).orElse(RC.imm);
-        var neverMut= InjectionSteps.noH(litRc).isReadOrImm();
-        if (neverMut){
-          var dead= match.remove(RC.mut);
-          if (dead != null){ ss.addAll(dead); }
-        }
-      }
       List<List<M.Sig>> groups= match.isEmpty() ? List.of(List.of()) : List.copyOf(match.values());
       var first= true;
       for (var matches : groups){
