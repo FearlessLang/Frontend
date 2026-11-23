@@ -85,7 +85,7 @@ public final class Reason{
     if (!(cur instanceof Keep k)){ return ""; }
     var s= k.m().sig();
     return steps(es, k.tail())+"\n- "+es.err().typeRepr(false, k.tail().currentT())+" becomes "+es.err().typeRepr(false, k.currentT())
-      +" inside the "+disp(s.rc())+" method "+es.err().methodSig(s.m())+" (line "+s.span().inner.startLine()+").";
+      +" inside the "+disp(s.rc())+" method "+methodSig(s.m())+" (line "+s.span().inner.startLine()+").";
   }
   private static String vpaTrace(TypeSystemErrors es, WithT cur){
     if (!(cur instanceof Keep k)){ return es.err().typeRepr(false, cur.currentT()); }

@@ -51,13 +51,13 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var span= m.e().get().span().inner;
     var asOnX= m.e().get() instanceof Call c && c.e() instanceof X(var recv, _) && recv.equals(x) && c.name().equals(new MName(".as", 1));
     if (!asOnX){ return e
-      .line("The body of "+err().methodSig(m.sig().m())+" must be "+disp(x)+" or "+disp(x+".as{...}")+".")
+      .line("The body of "+methodSig(m.sig().m())+" must be "+disp(x)+" or "+disp(x+".as{...}")+".")
       .line("Only those two shapes are the identity function.")
       .typeErr().addSpan(span);
     }
     return e
-      .line("The body of "+err().methodSig(m.sig().m())+" calls "+err().methodSig(new MName(".as", 1))+" on parameter "+disp(x)+".")
-      .line("Calling "+err().methodSig(new MName(".as", 1))+" counts as the identity function only when\nthe receiver has a type implementing "+err().tNameADisp(LiteralDeclarations.baseContainer)+".")
+      .line("The body of "+methodSig(m.sig().m())+" calls "+methodSig(new MName(".as", 1))+" on parameter "+disp(x)+".")
+      .line("Calling "+methodSig(new MName(".as", 1))+" counts as the identity function only when\nthe receiver has a type implementing "+err().tNameADisp(LiteralDeclarations.baseContainer)+".")
       .line("Parameter "+disp(x)+" has type "+err().typeRepr(true, m.sig().ts().getFirst())+".")
       .typeErr().addSpan(span);
   }
@@ -90,7 +90,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     assert current.m().equals(parent.m());
     var e= err()
       .line("Invalid method signature for "+err().methodSig(current.rc().toStrSpace(), l, current.m())+".")
-      .line("The method "+err().methodSig(current.m())+" "+got+".")
+      .line("The method "+methodSig(current.m())+" "+got+".")
       .line("But "+err().methodSig(current.rc().toStrSpace(), parent.origin(), current.m())+" "+want+".")
       .line(why);
     return addExpFrame(l, e.ex(l).addSpan(current.span().inner));
@@ -176,7 +176,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("Missing: "+methodSig(s.rc()+" ", s.m())+".")
       .line(Join.of(requiredBy(at, s).stream().map(err()::tNameADisp), "Required by: ", " and ", "."));
     if (s.rc() == RC.mut){ e.line("This object literal is neither "+disp(RC.imm)+" nor "+disp(RC.read)+", so its "+disp(RC.mut)+" methods must be implemented."); }
-    if (!(at instanceof Type t && foreignSealed(t.type().c().name()))){ return addExpFrame(at, e.line("Add an implementation for "+err().methodSig(s.m())+" inside the object literal.").ex(at)); }
+    if (!(at instanceof Type t && foreignSealed(t.type().c().name()))){ return addExpFrame(at, e.line("Add an implementation for "+methodSig(s.m())+" inside the object literal.").ex(at)); }
     var name= t.type().c().name();
     return addExpFrame(at, e
       .line("Sealed types can only be implemented in their own package.")
@@ -262,7 +262,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     assert !got.isEmpty();
     var got0= err().typeRepr(!got.showImm, got.best);
     var e= err();
-    var meth= err().methodSig(m.sig().m());
+    var meth= methodSig(m.sig().m());
     var top= l.thisName().equals("this");
     e.line(top
       ? "The body of method "+meth+" of "+err().expRepr(l)+" is an expression returning "+got0+"."
@@ -280,7 +280,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var written= srcM(l, m.sig()).flatMap(fearlessFullGrammar.M::sig).flatMap(fearlessFullGrammar.Sig::rc).isPresent();
     var overloads= l.ms().stream().map(M::sig).filter(s -> !s.abs() && s.m().equals(m.sig().m())).map(s -> methodSig(s.rc()+" ", s.m())).toList();
     if (written || overloads.size() < 2){ return; }
-    e.bullets("Method "+err().methodSig(m.sig().m())+" is overloaded; to implement a specific overload only, write one of the following:", overloads);
+    e.bullets("Method "+methodSig(m.sig().m())+" is overloaded; to implement a specific overload only, write one of the following:", overloads);
   }
 
 
@@ -345,7 +345,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var candidates= d.ms().stream().map(M::sig).toList();
     var sameName= candidates.stream().filter(s -> s.m().s().equals(name)).toList();
     if (sameName.isEmpty()){
-      var e= err().pCallCantBeSatisfied(c).line("Method "+err().methodSig(c.name())+" is not declared on "+on+".");
+      var e= err().pCallCantBeSatisfied(c).line("Method "+methodSig(c.name())+" is not declared on "+on+".");
       addEnclosingLiteralHintIfReceiverIsThis(e, scope, c, recv);
       if (candidates.isEmpty()){ return withCallSpans(e.line(up(subj)+" does not have any methods.").typeErr(), c); }
       var names= candidates.stream().map(s -> s.m().s()).distinct().sorted().toList();
@@ -354,7 +354,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var sameArity= sameName.stream().filter(s -> s.m().arity() == c.es().size()).toList();
     if (sameArity.isEmpty()){
       var avail= Join.of(sameName.stream().map(s -> s.m().arity()).distinct().sorted().map(String::valueOf), "", " or ", "");
-      var forms= sameName.stream().map(s -> methodSig("", s.m())).distinct().sorted().toList();
+      var forms= sameName.stream().map(s -> methodSig(s.m())).distinct().sorted().toList();
       return withCallSpans(err()
         .pCallCantBeSatisfied(c)
         .line((forms.size() == 1 ? "There is a method " : "There are methods ")+Join.of(forms, "", " and ", "")+" on "+on+",\nbut with a different number of arguments.")
@@ -365,7 +365,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var availRc= Join.of(rcs.stream().map(Err::disp), "", " and ", ".");
     return withCallSpans(err()
       .pCallCantBeSatisfied(c)
-      .line("Method "+err().methodSig(c.name())+" exists on "+on+", but not with the requested capability.")
+      .line("Method "+methodSig(c.name())+" exists on "+on+", but not with the requested capability.")
       .line("This call requires a method with capability "+disp(c.rc())+".")
       .line("Available capabilities for this method: "+availRc)
       .typeErr(), c);
@@ -379,7 +379,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var declaredIn= scope.methods().map(TypeScope.Method::l).filter(l -> declares(l, c.name())).findFirst();
     if (declaredIn.isEmpty()){ return; }
     var l= declaredIn.get();
-    var lit= "Method "+err().methodSig(c.name())+" is declared in the "+err().expRepr(l);
+    var lit= "Method "+methodSig(c.name())+" is declared in the "+err().expRepr(l);
     var selfName= l.thisName();
     e.line("Parameter \"this\" has type "+err().typeRepr(true, recv)+".");
     if (!selfName.equals("_")){ e.line(lit+", whose self name is "+disp(selfName)+"."); return; }
@@ -403,7 +403,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   public FearlessException methodTArgsArityError(Literal d, Call c, List<B> bs){
     var expected= bs.size();
     var got= c.targs().size(); assert got != expected;
-    var sig= err().methodSig(c.name());
+    var sig= methodSig(c.name());
     var expS= expected == 0 ? "no generic type parameters" : count(expected, "generic type parameter");
     var gotS= got == 0 ? "no generic type arguments" : count(got, "generic type argument");
     var e= err().pCallCantBeSatisfied(d, c)

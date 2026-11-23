@@ -157,7 +157,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       : "object literal "+(l.infName() ? "instance of " : "")+tNameADisp(bestName(l));
     case inference.E.Type t -> "object literal instance of "+tNameADisp(t.type().c().name());
     };}
-  String methodSig(MName m){ return methodSig("", m); }
+  static String methodSig(MName m){ return methodSig("", m); }
   String methodSig(String pre, TName t, MName m){ return methodSig(pre+tNameA(t), m); }
   String methodSig(String pre, Literal l, MName m){ return methodSig(pre+bestLitName(l), m); }
   String methodSig(String pre, inference.E.Literal l, MName m){ return methodSig(pre+tNameA(bestName(l)), m); }

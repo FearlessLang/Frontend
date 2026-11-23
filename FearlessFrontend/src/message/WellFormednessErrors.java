@@ -511,7 +511,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException methodGenericArityDisagreesWithSupers(Agreement at, List<B> userBs, List<M.Sig> ss){
     var n= ss.getFirst().bs().get().size();
     var sups= ss.stream().map(s -> err().tNameADisp(s.origin().get())).distinct().sorted().toList();
-    var e= invalidMethImpl(at).line("The method "+err().methodSig(at.mName())+" declares "+count(userBs.size(), "generic type parameter")+", but "
+    var e= invalidMethImpl(at).line("The method "+methodSig(at.mName())+" declares "+count(userBs.size(), "generic type parameter")+", but "
       +(sups.size() == 1 ? "supertype "+sups.getFirst()+" declares "+n+"." : "these supertypes declare "+n+":"));
     if (sups.size() > 1){ sups.forEach(e::bullet); }
     return wf(e, at);
@@ -524,7 +524,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     assert userBs.size() == superBs.size();
     var i= firstRcsDisagreementIndex(List.of(userBs, superBs));
     return wf(invalidMethImpl(at)
-      .line("The method "+err().methodSig(at.mName())+" declares different capability bounds for generic type parameter "+(i+1)+"\nthan the supertypes.")
+      .line("The method "+methodSig(at.mName())+" declares different capability bounds for generic type parameter "+(i+1)+"\nthan the supertypes.")
       .line("Local declaration: "+disp(userBs.get(i))+".")
       .line("Capability bounds in the supertypes: "+disp(Join.of(superBs.get(i).rcs().stream(), "", ",", ""))+".")
       .line("Generic type parameter names may differ from the supertypes; only the position matters."), at);
@@ -574,7 +574,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException methodNotInferred(E.Literal at, M.Sig s){ return wf(unnamedNotInferred(at, s, List.of()), s, at); }
   public FearlessException methodTypeNotInferred(E.Literal at, M.Sig s, MName m, String what){
-    return wf(err().line("Cannot infer the type of "+what+" of "+err().methodSig(m)+" in "+err().expRepr(at)+"."), s, at);
+    return wf(err().line("Cannot infer the type of "+what+" of "+methodSig(m)+" in "+err().expRepr(at)+"."), s, at);
   }
   public FearlessException literalImplementsTypeParameter(E.Literal at, IT t, TypeScope s, Function<TName,core.E.Literal> decs){
     var x= OneOr.of("Type parameters", t.ftv());
@@ -597,9 +597,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException ambiguousImplementationFor(List<TName> options, Agreement at){
     return wf(err()
-      .line("Ambiguous implementation for method "+err().methodSig(at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
+      .line("Ambiguous implementation for method "+methodSig(at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
       .list("Implemented by the supertypes", options.stream().map(err()::tNameADisp).toList())
-      .line(up(err().expRepr(at.lit()))+" must declare a method "+err().methodSig(at.mName())+" explicitly implementing the desired behaviour."), at);
+      .line(up(err().expRepr(at.lit()))+" must declare a method "+methodSig(at.mName())+" explicitly implementing the desired behaviour."), at);
   }
   public FearlessException multipleWidenTo(E.Literal owner, List<IT.C> widen){
     var w= err().tNameADisp(LiteralDeclarations.widen);
@@ -611,19 +611,19 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException duplicatedNamedLiteral(E.Literal owner, M m, E.Literal in){
     return wf(err()
-      .line(up(err().expRepr(owner))+" implements method "+err().methodSig(m.sig().m().get())+".")
+      .line(up(err().expRepr(owner))+" implements method "+methodSig(m.sig().m().get())+".")
       .line("The body of method "+err().methodSig("", owner, m.sig().m().get())+" needs to be duplicated\nto satisfy multiple reference capability overloads from the supertypes.")
       .line("However, the body declares type "+err().tNameADisp(in.name())+".")
       .line("Object literals with their own unique explicit type cannot be duplicated."), owner);
   }
   public FearlessException baseIdNotOnlyHash(E.Literal owner){
     return wf(implementing(owner, LiteralDeclarations.baseId)
-      .line("Only the method "+err().methodSig(new MName("#", 1))+" can be declared or inherited here."), owner);
+      .line("Only the method "+methodSig(new MName("#", 1))+" can be declared or inherited here."), owner);
   }
   public FearlessException baseIdInheritedHash(E.Literal owner, TName origin){
     return wf(implementing(owner, LiteralDeclarations.baseId)
-      .line("It inherits the implementation of "+err().methodSig(new MName("#", 1))+" from "+err().tNameADisp(origin)+", which does not implement "+err().tNameADisp(LiteralDeclarations.baseId)+".")
-      .line("Method "+err().methodSig(new MName("#", 1))+" must be implemented here, or inherited from a type implementing "+err().tNameADisp(LiteralDeclarations.baseId)+"."), owner);
+      .line("It inherits the implementation of "+methodSig(new MName("#", 1))+" from "+err().tNameADisp(origin)+", which does not implement "+err().tNameADisp(LiteralDeclarations.baseId)+".")
+      .line("Method "+methodSig(new MName("#", 1))+" must be implemented here, or inherited from a type implementing "+err().tNameADisp(LiteralDeclarations.baseId)+"."), owner);
   }
   public FearlessException fileLogNameNotAllowed(E.Literal owner){
     var fileLog= err().tNameADisp(LiteralDeclarations.fileLog);
@@ -652,7 +652,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException finalImplemented(E.Literal owner, M m, TName origin, IT.C claim){
     return wf(err()
-      .line(up(err().expRepr(owner))+" implements method "+err().methodSig(m.sig().m().get())+".")
+      .line(up(err().expRepr(owner))+" implements method "+methodSig(m.sig().m().get())+".")
       .line(err().tNameADisp(origin)+" implements "+headRepr(owner, claim)+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
       .line("thus "+err().expRepr(owner)+" cannot override any method named "+disp(m.sig().m().get().s())+"."), owner);
   }
