@@ -91,22 +91,19 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t), t.span()))); }
   static String count(int n, String noun){ return n+" "+noun+(n == 1 ? "" : "s"); }
   static String up(String s){ return s.substring(0, 1).toUpperCase(Locale.ROOT)+s.substring(1); }
-  private List<T.C> sources(Literal l, Sig s){
-    var cs= l.cs();
-    return cs.stream().filter(c -> cs.stream().noneMatch(o -> _decs.apply(o.name()).cs().stream().anyMatch(oc -> oc.name().equals(c.name())))
-      && _decs.apply(c.name()).ms().stream().anyMatch(dm -> dm.sig().m().equals(s.m()) && dm.sig().rc() == s.rc())).toList();
-  }
+  private Optional<Sig> own(TName n, Sig s){ return OneOr.opt("Malformed methods", _decs.apply(n).ms().stream().map(M::sig).filter(o -> o.m().equals(s.m()) && o.rc() == s.rc())); }
+  private List<T.C> direct(List<T.C> cs){ return cs.stream().filter(c -> cs.stream().noneMatch(o -> _decs.apply(o.name()).cs().stream().anyMatch(oc -> oc.name().equals(c.name())))).toList(); }
+  private static List<T> asTs(List<B> bs){ return bs.stream().<T>map(b -> new T.X(b.x(), TSpan.fromPos(Pos.unknown))).toList(); }
   boolean sigs(Literal l, M m, boolean always){
     var fm= TypeSystemErrors.srcM(l, m.sig());
-    var sources= sources(l, m.sig());
+    var sources= direct(l.cs()).stream().filter(c -> own(c.name(), m.sig()).isPresent()).toList();
     if (fm.isEmpty() || sources.isEmpty() || TypeSystemErrors.wholeSig(fm.get(), m.sig())){ return false; }
     return sigs(expRepr(l), sources, sources.stream().map(c -> inherited(c, m.sig())).toList(), always);
   }
   private Sig inherited(T.C c, Sig s){
-    var d= _decs.apply(c.name());
-    var o= OneOr.of("Malformed methods", d.ms().stream().map(M::sig).filter(ps -> ps.m().equals(s.m()) && ps.rc() == s.rc()));
-    var xs= Push.of(B.xs(d.bs()), B.xs(o.bs()));
-    var ts= Push.of(c.ts(), s.bs().stream().<T>map(b -> new T.X(b.x(), TSpan.fromPos(Pos.unknown))).toList());
+    var o= own(c.name(), s).get();
+    var xs= Push.of(B.xs(_decs.apply(c.name()).bs()), B.xs(o.bs()));
+    var ts= Push.of(c.ts(), asTs(s.bs()));
     return new Sig(o.rc(), o.m(), s.bs(), TypeRename.ofT(o.ts(), xs, ts), TypeRename.of(o.ret(), xs, ts), o.origin(), o.abs(), o.span());
   }
   boolean sigs(String who, List<T.C> heads, List<Sig> ss, boolean always){
@@ -120,16 +117,15 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   private List<Sig> originals(TName n, Sig s){
     var d= _decs.apply(n);
-    var own= OneOr.opt("Malformed methods", d.ms().stream().map(M::sig).filter(o -> o.m().equals(s.m()) && o.rc() == s.rc()));
-    if (own.isEmpty()){ return List.of(); }
-    var sig= own.get();
+    var o= own(n, s);
+    if (o.isEmpty()){ return List.of(); }
+    var sig= o.get();
     var written= d.src() == Src.synthetic ? sig.origin().equals(n) : sig.bs().isEmpty() || TypeSystemErrors.srcM(d, sig).flatMap(fearlessFullGrammar.M::sig).flatMap(fearlessFullGrammar.Sig::bs).isPresent();
     if (written){ return List.of(new Sig(sig.rc(), sig.m(), sig.bs(), sig.ts(), sig.ret(), n, sig.abs(), sig.span())); }
-    var cs= d.cs().stream().map(T.C::name).toList();
-    return cs.stream().filter(c -> cs.stream().noneMatch(o -> _decs.apply(o).cs().stream().anyMatch(oc -> oc.name().equals(c)))).flatMap(c -> originals(c, s).stream()).toList();
+    return direct(d.cs()).stream().flatMap(c -> originals(c.name(), s).stream()).toList();
   }
   private void bullets(String one, String many, List<String> lines){ bullets((lines.size() == 1 ? one : many)+":", lines); }
-  private static T.C head(Literal d){ return new T.C(d.name(), d.bs().stream().<T>map(b -> new T.X(b.x(), TSpan.fromPos(Pos.unknown))).toList()); }
+  private static T.C head(Literal d){ return new T.C(d.name(), asTs(d.bs())); }
   private List<String> sigLines(List<T.C> heads, List<Sig> ss){ return Streams.zip(heads, ss).map(this::sigLine).distinct().toList(); }
   private String sigLine(T.C h, Sig s){
     var sig= cp().sig(s);
