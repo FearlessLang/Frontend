@@ -455,14 +455,20 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     //in particular here we are in a methCall, so we can talk about OUR type args impacting the expected argument type
     var wrongUnderlyingType= res.stream().noneMatch(ri -> Reason.onlyRC(ts, bs, ri.best, declared));
     var inferred= inferredInParam(d, c, argi);
-    var r= res.stream().filter(ri -> ri.showImm).findFirst();
     var e= err().callCannotTypecheck(d, c).line("Argument "+(argi+1)+" has type "+err().typeRepr(wrongUnderlyingType, gotHdr)+".");
-    if (wrongUnderlyingType){ e.line("That is not a subtype of "+err().typeRepr(true, declared)+(inferred.isEmpty() ? " (the type required by the method signature)." : ".")); }
-    if (wrongUnderlyingType && lambdaFits(ts, bs, declared, gotHdr)){ e.line("Write the argument inside curly braces:\nthe curly braces make an object literal instance of "+err().typeRepr(true, declared.withRC(RC.imm))+",\nwhose single method returns the argument."); }
-    if (!wrongUnderlyingType){ printed.addAll(r.get().printed); e.line(up(r.get().info)).blank().bullets("Type required by each promotion:", reqs.stream().map(q -> err().typeRepr(false, q.t())+" ("+q.reqName()+")").toList()); }
-    addNoPrecedenceHintIfOperator(e, ts.scope(), c);
     var arg= c.es().get(argi);
-    return withCallSpans(e.ex(wrongUnderlyingType ? c : r.get().footerE.get(), arg, inferred), arg, c);
+    if (wrongUnderlyingType){
+      e.line("That is not a subtype of "+err().typeRepr(true, declared)+(inferred.isEmpty() ? " (the type required by the method signature)." : "."));
+      if (lambdaFits(ts, bs, declared, gotHdr)){ e.line("Write the argument inside curly braces:\nthe curly braces make an object literal instance of "+err().typeRepr(true, declared.withRC(RC.imm))+",\nwhose single method returns the argument."); }
+      addNoPrecedenceHintIfOperator(e, ts.scope(), c);
+      return withCallSpans(e.ex(c, arg, inferred), arg, c);
+    }
+    var r= res.stream().filter(ri -> ri.showImm).findFirst().get();
+    printed.addAll(r.printed);
+    var required= reqs.stream().map(q -> err().typeRepr(false, q.t())+" ("+q.reqName()+")").toList();
+    e.line(up(r.info)).blank().bullets("Type required by each promotion:", required);
+    addNoPrecedenceHintIfOperator(e, ts.scope(), c);
+    return withCallSpans(e.ex(r.footerE.get(), arg, inferred), arg, c);
   }
   private boolean lambdaFits(TypeSystem ts, List<B> bs, T declared, T got){
     if (!(declared instanceof T.RCC(_, var c, _)) || foreignSealed(c.name())){ return false; }
