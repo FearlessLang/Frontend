@@ -13,8 +13,7 @@ import utils.Streams;
 public sealed interface TypeScope{
   static TypeScope top(){ return Top.Instance; }
   TypeScope outer();
-  default boolean isTop(){ return this instanceof Top; }
-  default Stream<TypeScope> scopes(){ return Stream.iterate(this, s -> !s.isTop(), TypeScope::outer); }
+  default Stream<TypeScope> scopes(){ return Stream.iterate(this, s -> !(s instanceof Top), TypeScope::outer); }
   default Stream<Method> methods(){ return scopes().filter(Method.class::isInstance).map(Method.class::cast); }
   E contextE();
   List<T> mentionedTs();
