@@ -367,8 +367,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
         .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
         .typeErr(), c);
     }
-    var rcs= sameArity.stream().map(Sig::rc).sorted().toList();
-    var availRc= Join.of(rcs.stream().map(Err::disp), "", " and ", ".");
+    var availRc= Join.of(sameArity.stream().map(Sig::rc).sorted().map(Err::disp), "", " and ", ".");
     return withCallSpans(err()
       .callCannotTypecheck(c)
       .line("Method "+methodSig(c.name())+" exists on "+on+", but not with the requested capability.")
