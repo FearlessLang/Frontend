@@ -50,8 +50,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
     return tNameA(l.name());
   }
   private static TName bestName(inference.E.Literal l){
-    if (l.infName() && !l.cs().isEmpty()){ return l.cs().getFirst().name(); }
-    return l.infName() && l.t() instanceof inference.IT.RCC r ? r.c().name() : l.name();
+    if (!l.infName()){ return l.name(); }
+    if (!l.cs().isEmpty()){ return l.cs().getFirst().name(); }
+    return l.t() instanceof inference.IT.RCC r ? r.c().name() : l.name();
   }
   private boolean anonLit(Literal l){ return l.infName() && l.cs().isEmpty(); }
   private static final String anonRepr= "{...}";
