@@ -390,7 +390,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var best= s.m().filter(_ -> !names.isEmpty()).flatMap(n -> NameSuggester.bestName(n.s(), names));
     var e= s.m().isEmpty() ? unnamedNotInferred(origin, s, sup) : missingTypes(m, best.isEmpty());
     var asName= m.names().stream().filter(x -> s.m().isEmpty() && names.contains("."+x)).findFirst();
-    var suggested= best.or(() -> asName.map(x -> "."+x)).map(b -> sup.stream().filter(si -> si.m().s().equals(b)).map(WellFormednessErrors::supSig).distinct().toList()).orElse(List.of());
+    var suggestedName= best.or(() -> asName.map(x -> "."+x)).stream().toList();
+    var suggested= sup.stream().filter(si -> suggestedName.contains(si.m().s())).map(WellFormednessErrors::supSig).distinct().toList();
     best.ifPresent(_ -> e.didYouMean(suggested));
     asName.ifPresent(x -> e.line(disp(x)+" is read as a parameter name: a method name starts with \".\", as in "+disp("."+x)+"."));
     var rest= sup.stream().map(WellFormednessErrors::supSig).distinct().sorted().filter(x -> !suggested.contains(x)).toList();
