@@ -230,9 +230,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   private static List<T> inferredTargs(E e){
     if (!(e instanceof Call c)){ return List.of(); }
-    return Push.of(targsOmitted(c) ? c.targs() : List.of(), inferredTargs(c.e()));
+    return Push.of(targsInferred(c) ? c.targs() : List.of(), inferredTargs(c.e()));
   }
-  static boolean targsOmitted(Call c){
+  static boolean targsInferred(Call c){
     var written= c.src().inner instanceof fearlessFullGrammar.E.Call(_, _, var sq, _, _, _, _) && sq.filter(s -> !s.ts().isEmpty()).isPresent();
     return !c.targs().isEmpty() && !written;
   }
