@@ -468,7 +468,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var what= what(ss, i);
     var ret= i == ss.getFirst().ts().size();
     var rel= ret ? "subtype" : "supertype";
-    var names= and(res.stream().map(o -> option(false, o)).toList());
+    var names= and(res.stream().map(this::option).toList());
     var x= res.stream().filter(t -> !(t instanceof IT.RCC)).findFirst();
     var oneX= x.isPresent() && res.stream().allMatch(t -> t.withRC(RC.imm).equals(x.get().withRC(RC.imm)));
     if (x.isPresent() && !oneX){ return Optional.of("The "+what+" differs, and "+disp(OneOr.of("Type parameters", x.get().ftv()))+" is a generic type parameter:\nno type can be a "+rel+" of "+names+"."); }
@@ -487,7 +487,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var ret= i == ss.getFirst().ts().size();
     var first= (IT.RCC)res.getFirst();
     var cs= heads(res);
-    var names= and(res.stream().map(o -> option(false, o)).toList());
+    var names= and(res.stream().map(this::option).toList());
     e.line(err().methodSig("", at.lit(), at.mName())+(ret ? " return type must be a subtype of " : " parameter "+(i+1)+" type must be a supertype of ")+names+".");
     var opts= (ret ? meths.commonSubtypes(bs, cs, at.lit().name()) : meths.commonSupertypes(bs, cs, at.lit().name())).stream().map(c -> instance(first.rc(), c)).distinct().sorted().toList();
     if (opts.isEmpty()){ e.line("No such type is currently visible."); return; }
@@ -511,10 +511,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return new core.Sig(s.rc().get(), s.m().get(), s.bs().get(), s.ts().stream().map(TypeRename::itToT).toList(), TypeRename.itToT(s.ret()), s.origin().get(), s.abs(), s.span());
   }
   private FearlessException cannotImplement(Err e, Agreement at){ return wf(e.line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes."), at); }
-  private String option(boolean showImm, IT o){
-    if (!(o instanceof IT.RCC rcc)){ return disp(o); }
-    return err().typeRepr(!showImm, rcc);
-  }
+  private String option(IT o){ return o instanceof IT.RCC ? err().typeRepr(o) : disp(o); }
   public FearlessException methodGenericArityDisagreementBetweenSupers(Methods meths, Agreement at, List<M.Sig> ss){
     return cannotImplement(sigBlock(meths, at, ss).line("The number of generic type parameters differs."), at);
   }

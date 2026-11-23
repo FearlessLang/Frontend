@@ -58,19 +58,15 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String onTypeOrAnon(Literal l){ return anonLit(l) ? disp(anonRepr) : "object literal instance of "+disp(bestLitName(l)); }
   String theTypeOrObjectLiteral(Literal l){ return anonLit(l) ? "object literal "+disp(anonRepr) : "type "+disp(bestLitName(l)); }
   T.C preferredForFresh(T.C t){ return new T.C(preferredForFresh.apply(t.name()).withArity(t.ts().size()), t.ts()); }//Correct to not propagate here
-  String typeRepr(inference.IT t){ return typeRepr(true, t); }
-  String typeRepr(boolean skipImm, inference.IT t){ return t.isTV() ? typeRepr(skipImm, TypeRename.itToT(t)) : disp(typeReprRaw(t)); }
-  String typeReprRaw(inference.IT t){ return switch (t){
-    case inference.IT.RCC(var rc, var c, _) -> rc.map(RC::toStrSpace).orElse("")+cp().t.of(c.name())+Join.of(c.ts().stream().map(this::typeReprRaw), "[", ",", "]", "");
+  String typeRepr(inference.IT t){ return t.isTV() ? typeRepr(true, TypeRename.itToT(t)) : disp(typeReprRaw(t)); }
+  String typeReprRaw(inference.IT t){ return typeReprRaw(t, Integer.MAX_VALUE); }
+  String typeRepr(inference.IT t, int levels){ return disp(typeReprRaw(t, levels)); }
+  private String typeReprRaw(inference.IT t, int levels){ return switch (t){
+    case inference.IT.RCC(var rc, var c, _) -> rc.map(RC::toStrSpace).orElse("")+cp().t.of(c.name())
+      +(levels == 0 && !c.ts().isEmpty() ? "[...]" : Join.of(c.ts().stream().map(ti -> typeReprRaw(ti, levels-1)), "[", ",", "]", ""));
     case inference.IT.U _, inference.IT.Amb _ -> "?";
     default -> typeReprRaw(true, TypeRename.itToT(t));
   };}
-  String typeRepr(inference.IT t, int levels){ return disp(typeReprRaw(t, levels)); }
-  private String typeReprRaw(inference.IT t, int levels){
-    if (!(t instanceof inference.IT.RCC(var rc, var c, _)) || c.ts().isEmpty()){ return typeReprRaw(t); }
-    var ts= levels == 0 ? "[...]" : Join.of(c.ts().stream().map(ti -> typeReprRaw(ti, levels-1)), "[", ",", "]", "");
-    return rc.map(RC::toStrSpace).orElse("")+cp().t.of(c.name())+ts;
-  }
   String typeRepr(boolean skipImm, T t){
     if (t instanceof T.RCC r && _anon(r.c().name()) instanceof Literal l){ return "the anonymous type of the object literal at "+at(l.span().inner); }
     return disp(typeReprRaw(skipImm, t));
