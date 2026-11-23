@@ -584,12 +584,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
         +" for generic type parameter"+s+" "+Join.of(unknown.stream().map(i -> disp(xs.get(i))), "", " and ", "", "")
         +" of "+err().tNameADisp(c.name())+"."), at);
   }
-  public FearlessException methodNotInferred(E.Literal at, M.Sig s){
-    var n= s.ts().size();
-    return wf(err()
-      .line("Cannot infer signature and name for a method with "+count(n, "parameter")+".")
-      .line("No supertype of "+err().expRepr(at)+" has a method with "+count(n, "parameter")+"."), s, at);
-  }
+  public FearlessException methodNotInferred(E.Literal at, M.Sig s){ return wf(unnamedNotInferred(at, s, List.of()), s, at); }
   public FearlessException methodTypeNotInferred(E.Literal at, M.Sig s, MName m, String what){
     return wf(err().line("Cannot infer the type of "+what+" of "+err().methodSig(m)+" in "+err().expRepr(at)+"."), s, at);
   }
