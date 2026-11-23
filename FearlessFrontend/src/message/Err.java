@@ -20,8 +20,8 @@ import utils.Pos;
 import utils.Push;
 import utils.Streams;
 
-public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, Function<Boolean,CompactPrinter> cpQuiet, Supplier<List<String>> notes, StringBuilder sb){
-  CompactPrinter cp(){ return cpQuiet.apply(false); }
+public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, Function<Boolean,CompactPrinter> cpOf, Supplier<List<String>> notes, StringBuilder sb){
+  CompactPrinter cp(){ return cpOf.apply(false); }
   public static String disp(Object o){ return Message.displayString(o.toString()); }
   static String funnel(String X, String owner, List<String> Xs){
     var x= disp(X);
@@ -208,9 +208,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
   FearlessException ex(E footerE, E focus, List<T> inferred){
     var ts= Push.of(inferred, chainInferredTargs(focus)).stream().map(t -> typeRepr(true, t)).distinct().toList();
     if (ts.isEmpty()){ return typeErr(); }
-    var cp= cpQuiet.apply(true);
-    var footer= cp.limit(footerE, focus);
-    var header= "See inferred typing context below for how "+and(ts)+(ts.size() == 1 ? " was" : " were")+" introduced"+(cp.omitted ? " (\"...\" marks omitted code):\n" : ":\n");
+    var quietCp= cpOf.apply(true);
+    var footer= quietCp.limit(footerE, focus);
+    var header= "See inferred typing context below for how "+and(ts)+(ts.size() == 1 ? " was" : " were")+" introduced"+(quietCp.omitted ? " (\"...\" marks omitted code):\n" : ":\n");
     return withNotes(Code.TypeError, "\n\n"+header+footer);
   }
   private static List<T> chainInferredTargs(E e){
