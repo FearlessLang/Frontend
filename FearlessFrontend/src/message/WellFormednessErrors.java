@@ -549,24 +549,20 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("Parameter "+disp(x.name())+" has type "+err().typeRepr(t)+uses)
       .line(Err.funnel(missing, owner.name().simpleName(), xs)), x);
   }
-  public FearlessException typeArgAmbiguous(E.Call at, String x, List<IT> cands, List<IT.RCC> common, String example, Function<TName,core.E.Literal> decs){
-    return typeArgAmbiguous(at, x, disp(at.name().s()), cands, common, example, decs);
+  public FearlessException typeArgAmbiguous(E.Call at, String x, List<IT> targs, int k, List<IT> cands, List<IT.RCC> common, Function<TName,core.E.Literal> decs){
+    return typeArgAmbiguous(at, x, disp(at.name().s()), cands, common, src(at.e(), at.name(), holed(targs, k), at.es()), decs);
   }
   public FearlessException literalHeadAmbiguous(E.Literal at, IT.C c, int i, String x, List<IT> cands, List<IT.RCC> common, Function<TName,core.E.Literal> decs){
-    var ts= IntStream.range(0, c.ts().size()).mapToObj(j -> j == i ? "_" : err().typeReprRaw(c.ts().get(j))).toList();
-    var lit= err().cp().t.of(c.name())+Join.of(ts, "[", ",", "]")+"{...}";
-    return typeArgAmbiguous(at, x, err().tNameADisp(c.name()), cands, common, lit, decs);
+    var ts= holed(c.ts(), i);
+    return typeArgAmbiguous(at, x, err().tNameADisp(c.name()), cands, common, err().cp().t.of(c.name())+ts+"{...}", decs);
   }
+  private String holed(List<IT> ts, int k){ return Join.of(IntStream.range(0, ts.size()).mapToObj(j -> j == k ? "_" : err().typeReprRaw(ts.get(j))), "[", ",", "]"); }
   private FearlessException typeArgAmbiguous(E at, String x, String of, List<IT> cands, List<IT.RCC> common, String example, Function<TName,core.E.Literal> decs){
     var cs= cands.stream().map(err(h -> h, n -> n, decs, List.of())::typeRepr).distinct().toList();
     var xs= Err.disp(x);
     var e= err().line("The generic type argument "+xs+" of "+of+" can not be inferred:\nit is needed "+Join.of(cs, "as ", ", as ", "")+".");
     if (!common.isEmpty()){ e.line(up(xs)+" could be "+Join.of(common.stream().map(err()::typeRepr), "", " or ", "")+":\neach is a supertype of "+Join.of(cs, "", " and ", "")+".\nThe choice is ambiguous."); }
     return wf(e.line("Write the generic type argument explicitly, in place of \"_\" in "+disp(example)+"."), at);
-  }
-  public String callWithTargs(E.Call c, List<IT> targs, int k){
-    var ts= IntStream.range(0, targs.size()).mapToObj(j -> j == k ? "_" : err().typeReprRaw(targs.get(j))).toList();
-    return src(c.e(), c.name(), Join.of(ts, "[", ",", "]"), c.es());
   }
   private String src(E e){ return switch (e){
     case E.X x -> x.name();

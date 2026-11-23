@@ -87,8 +87,7 @@ public record ToCore(List<B> ctx, Methods meths, TypeScope scope){
     if (amb.isEmpty()){ return fillVoid(t, b); }
     var cs= amb.get().candidates().stream().map(c -> replace(t, amb.get(), c)).toList();
     var common= t instanceof IT.Amb ? withinBound(meths.commonSupertypes(cs), b) : List.<IT.RCC>of();
-    var err= meths.p().err();
-    throw err.typeArgAmbiguous(e, b.x(), cs, common, err.callWithTargs(e, targs, i), meths::_from);
+    throw meths.p().err().typeArgAmbiguous(e, b.x(), targs, i, cs, common, meths::_from);
   }
   private static Stream<IT.Amb> ambs(IT t){ return switch (t){
     case IT.Amb a -> Stream.of(a);
