@@ -518,8 +518,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     e.blank().line("Promotion failures:");
     var byArg= IntStream.range(0, args)
       .mapToObj(_ -> new LinkedHashMap<String,ArrayList<String>>()).toList();
-    var promosN= mat.resByArg().getFirst().size();
-    for (int pi : Range.of(0, promosN)){
+    for (int pi : Range.of(0, mat.resByArg().getFirst().size())){
       var argi= IntStream.range(0, args).filter(a -> !mat.okByArg().get(a).contains(pi)).findFirst().getAsInt();
       var r= mat.resByArg().get(argi).get(pi);
       assert !r.isEmpty();
