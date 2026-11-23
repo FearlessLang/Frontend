@@ -303,11 +303,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     return s instanceof TypeScope.CallSite(var c, _) && targsInferred(c) && TypeScope.mentionsAny(s, interest);
   }
   private String whyDrop(E.X x, Change.NoT why){
-    var subject= err().expRepr(x);
     var l= why.l();
     if (why instanceof Change.CapFree){ return up(atLine(l))+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+".\n"
       +"Thus "+atLine(x)+" cannot be captured in that object literal.";
     }
+    var subject= err().expRepr(x);
     var bounds= disp(Join.of(l.bs(), "", ", ", "", ""));
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"+switch (why){
       case Change.DropMutInImm _ when why.atDrop() instanceof T.X && !l.infName() -> "The generic type parameters of "+atLine(l)+" are "+bounds+".\n"
