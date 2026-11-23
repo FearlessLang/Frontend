@@ -7320,4 +7320,23 @@ K:{ .k: K; }
 Sup:{ .m[X:*]: K; }
 B[X:*]:Sup{ .m -> Fresh:K{ .k -> Foo{} } }
 """));}
+@Test void literalArgumentForAReadHParameter(){fail("""
+006|   .f:B->
+007|     Need#(C{});
+   |     ------^^^-
+
+While inspecting method "User.f" (line 6)
+This call to method "Need#(_)" cannot typecheck.
+Argument 1 has type "iso C".
+That is not a subtype of "readH A" (the type required by the method signature).
+""", List.of("""
+B:{}
+C:{}
+Need:{ #(a:readH A):B->B{} }
+A:{ mut .foo:A}
+User:{
+  .f:B->
+    Need#(C{});
+}
+"""));}
 }

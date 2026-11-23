@@ -40,14 +40,17 @@ public final class Reason{
     };
     var show= onlyRC(ts, bs, got, expected);
     var e= es.err().line("Object literal has type "+es.err().expReprDirect(!show, blame)+" instead of a subtype of "+es.err().typeRepr(!show, expected)+".");
+    if (explRC){ e.line(explicitRC(es, blame, rc, er.rc())); }
+    return new Reason(got, show, e.text(), es.printed(), () -> baseFooterE(ts.scope(), got, expected));
+  }
+  private static String explicitRC(TypeSystemErrors es, E blame, RC rc, RC required){
     E blameOk= switch (blame){
       case Literal l -> l.withRC(rc);
       case Type(var t, var src) -> new Type(t.withRC(rc), src);
       default -> throw Bug.unreachable();
     };
-    var why= rc == er.rc() ? "." : " (needed to satisfy the "+disp(er.rc())+" requirement).";
-    if (explRC){ e.line("Write "+es.err().expReprDirect(false, blameOk)+" if you need "+(rc == RC.iso ? "an " : "a ")+disp(rc)+" object literal"+why); }
-    return new Reason(got, show, e.text(), es.printed(), () -> baseFooterE(ts.scope(), got, expected));
+    var why= rc == required ? "." : " (needed to satisfy the "+disp(required)+" requirement).";
+    return "Write "+es.err().expReprDirect(false, blameOk)+" if you need "+(rc == RC.iso ? "an " : "a ")+disp(rc)+" object literal"+why;
   }
   private static E baseFooterE(TypeScope s, T actual, T req){ return TypeScope.bestInterestingScope(s, TypeScope.interestFromDeclVsReq(actual, req)).contextE(); }
   public static Reason callResultCannotHaveRequiredType(TypeSystem ts, List<B> bs, Literal d, Call call, TRequirement req, List<T> got, Sig sig){
