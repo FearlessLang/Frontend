@@ -62,12 +62,12 @@ public final class CompactPrinter{
   CompactPrinter append(String s){ sb.append(s); return this; }
   CompactPrinter omit(){ omitted= true; return append("..."); }
   String bounds(List<B> bs){ return Join.of(bs.stream().map(b -> b.rcs().equals(EnumSet.of(RC.imm)) ? b.x() : b.compactToString()), "[", ",", "]", ""); }
-  public static final class Compactable{
-    public static final Compactable no= new Compactable(false, false);
+  static final class Compactable{
+    static final Compactable no= new Compactable(false, false);
     boolean compacted; boolean pinned; private Compactable(boolean can, boolean pinned){ compacted= !can; this.pinned= pinned; }
-    public static Compactable of(boolean pinned){ return new Compactable(true, pinned); }
-    public boolean isCompactable(){ return !compacted; }
-    public void compact(){ assert !compacted && !pinned; compacted = true; }
+    static Compactable of(boolean pinned){ return new Compactable(true, pinned); }
+    boolean isCompactable(){ return !compacted; }
+    void compact(){ assert !compacted && !pinned; compacted = true; }
     void keep(){ assert compacted; compacted = false; pinned = true; }
   }
   interface Acc<XX>{ void acc(XX x, CompactPrinter sb); }
@@ -87,20 +87,20 @@ public final class CompactPrinter{
     wrap(sb, ",", "", targs, ",", PN::accString);
     sb.append("]");
   }
-  public sealed interface PN{
+  sealed interface PN{
     default Compactable k(){ return Compactable.no; }
     void accString(CompactPrinter sb);
   }
-  public sealed interface PE extends PN{}
-  public sealed interface PT extends PN{}
+  sealed interface PE extends PN{}
+  sealed interface PT extends PN{}
 
-  public record PX(String x) implements PE{
+  record PX(String x) implements PE{
     @Override public void accString(CompactPrinter sb){ sb.append(x); }
   }
-  public record PTypeE(PT t) implements PE{
+  record PTypeE(PT t) implements PE{
     @Override public void accString(CompactPrinter sb){ t.accString(sb); }
   }
-  public record PCall(PE recv, String m, RC rc, List<PT> targs, List<PE> args, Compactable k) implements PE{
+  record PCall(PE recv, String m, RC rc, List<PT> targs, List<PE> args, Compactable k) implements PE{
     boolean infix(){ return args.size() == 1 && !m.startsWith(".") && !m.equals("#"); }
     @Override public void accString(CompactPrinter sb){
       Acc<PE> acc= k.isCompactable() ? PN::accString : (_,b) -> b.omit();
@@ -115,7 +115,7 @@ public final class CompactPrinter{
       wrap(sb, group ? "(" : "", group ? ")" : "", List.of(e), "", acc);
     }
   }
-  public record PLit(RC rc, boolean priv, String name, List<PC> cs, String self, List<PM> ms, Compactable k) implements PE{
+  record PLit(RC rc, boolean priv, String name, List<PC> cs, String self, List<PM> ms, Compactable k) implements PE{
     @Override public void accString(CompactPrinter sb){
       sb.append(rc.toStrSpace());
       if (!priv){ sb.append(name); }
@@ -128,22 +128,22 @@ public final class CompactPrinter{
       wrap(sb, start, "}", ms, ";", PN::accString);
     }
   }
-  public record PTX(String x) implements PT{
+  record PTX(String x) implements PT{
     @Override public void accString(CompactPrinter sb){ sb.append(x); }
   }
-  public record PTRCC(RC rc, PC c) implements PT{
+  record PTRCC(RC rc, PC c) implements PT{
     @Override public void accString(CompactPrinter sb){
       sb.append(rc.toStrSpace());
       c.accString(sb);
     }
   }
-  public record PC(String name, List<PT> ts, Compactable k) implements PN{
+  record PC(String name, List<PT> ts, Compactable k) implements PN{
     @Override public void accString(CompactPrinter sb){
       sb.append(name);
       wrap(sb, "[", "]", ts, ",", k.isCompactable() ? PN::accString : (_,b) -> b.omit());
     }
   }
-  public record PM(RC rc, String m, String bs, List<String> xs, List<PT> ts, PT ret, Optional<PE> body, Compactable k) implements PN{
+  record PM(RC rc, String m, String bs, List<String> xs, List<PT> ts, PT ret, Optional<PE> body, Compactable k) implements PN{
     @Override public void accString(CompactPrinter sb){
       sb.append(rc.toStrSpace()).append(m).append(bs);
       wrap(sb, "(", ")", Streams.zip(xs, ts).<Consumer<CompactPrinter>>map((x,t) -> b -> param(b, x, t)).toList(), sb.spaced ? ", " : ",", Consumer::accept);
