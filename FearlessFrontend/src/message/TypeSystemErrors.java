@@ -261,14 +261,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var m= s.m();
     assert !got.isEmpty();
     var got0= err().typeRepr(!got.showImm, got.best);
-    var e= err();
     var meth= methodSig(m.sig().m());
-    var top= l.thisName().equals("this");
-    e.line(top
+    var e= err().line(l.thisName().equals("this")
       ? "The body of method "+meth+" of "+err().expRepr(l)+" is an expression returning "+got0+"."
       : "Method "+meth+" inside the "+atLine(l)
-        +"\nis implemented with an expression returning "+got0+".");
-    e.line(up(got.info(printed)));
+        +"\nis implemented with an expression returning "+got0+".")
+      .line(up(got.info(printed)));
     e.sigs(l, m, true);
     visible(s).stream().skip(1).forEach(it -> e.sigs(it.l(), it.m(), false));
     var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
