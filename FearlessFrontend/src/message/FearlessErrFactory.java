@@ -82,12 +82,9 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException notADirective(Span at, String name){
     var rank= Fs.fileNameWithExtension(at.fileName().toString()).startsWith("_rank_");
-    var msg= rank
-      ? "A rank file cannot start with "+disp(name)+".\n"
-        +"A rank file starts with the \"use\" and \"map\" directives, if any,\nand then the type declarations, like \"Point:{..}\".\n"
-      : "A file cannot start with "+disp(name)+".\n"
-        +"A file starts with the type declarations, like \"Point:{..}\".\n";
-    return Code.UnexpectedToken.of(msg).addSpan(at);
+    var file= rank ? "A rank file" : "A file";
+    return Code.UnexpectedToken.of(file+" cannot start with "+disp(name)+".\n"
+      +file+" starts with "+(rank ? "the \"use\" and \"map\" directives, if any,\nand then " : "")+"the type declarations, like \"Point:{..}\".\n").addSpan(at);
   }
   @Override public FearlessException extraContent(Span from, String what, Collection<TokenKind> expectedTerminatorTokens, Parser parser){
     assert nonNull(from, parser, expectedTerminatorTokens);
