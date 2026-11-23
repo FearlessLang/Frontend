@@ -439,12 +439,12 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   };}
   private Err unnamedNotInferred(E.Literal origin, M.Sig s, List<core.Sig> sup){
     var n= s.ts().size();
-    var taken= sup.stream().anyMatch(si -> si.m().arity() == n);
+    var taken= sup.stream().filter(si -> si.m().arity() == n).map(si -> disp(si.m().s())).distinct().sorted().toList();
     return err()
       .line("Cannot infer signature and name for a method with "+count(n, "parameter")+".")
-      .line(taken
-        ? "Each method with "+count(n, "parameter")+" of the supertypes\nis already overridden by another method of "+err().expRepr(origin)+"."
-        : "No supertype of "+err().expRepr(origin)+" has a method with "+count(n, "parameter")+".");
+      .line(taken.isEmpty()
+        ? "No supertype of "+err().expRepr(origin)+" has a method with "+count(n, "parameter")+"."
+        : "Each method with "+count(n, "parameter")+" of the supertypes\nhas a name already used by another method of "+err().expRepr(origin)+": "+Join.of(taken, "", ", ", "")+".");
   }
   public FearlessException noAgreement(Methods meths, Agreement at, List<M.Sig> ss){
     var bs= Push.of(at.lit().bs(), ss.getFirst().bs().get());

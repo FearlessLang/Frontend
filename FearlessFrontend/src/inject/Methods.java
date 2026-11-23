@@ -217,7 +217,8 @@ public record Methods(
     var changed= false;
     for (var m : ms){//for methods WITH name
       if (m.sig().m().isEmpty()){ continue; }
-      ss.removeAll(taken(m.sig(), ss, origin));
+      var name= m.sig().m().get();
+      ss.removeIf(s -> s.m().get().equals(name));
       res.add(m);
     }
     for (var m : ms){//for methods WITHOUT name

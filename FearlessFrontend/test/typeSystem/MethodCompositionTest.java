@@ -2008,14 +2008,24 @@ U:{ .u(f: F[A,A]): A -> A; .k: A -> this.u{ a, b -> a } }
 While inspecting type declaration "B"
 Cannot infer signature and name for a method with 1 parameter.
 Each method with 1 parameter of the supertypes
-is already overridden by another method of type declaration "B".
+has a name already used by another method of type declaration "B": ".m".
 Methods of the supertypes:
 - ".m(_)"
 """, List.of("""
 A:{ .m(a: A): A }
 B:A{ .m(a) -> this; a -> this }
 """));}
-@Test void unnamedMethodImplementsTheOtherReceiverCapability(){ok(List.of("""
+@Test void unnamedMethodNeverTakesTheNameOfTheOtherReceiverCapability(){failWf("""
+002| B:A{ imm .m(a: A): A -> this; a -> a }
+   | ------------------------------^^^^^^--
+
+While inspecting type declaration "B"
+Cannot infer signature and name for a method with 1 parameter.
+Each method with 1 parameter of the supertypes
+has a name already used by another method of type declaration "B": ".m".
+Methods of the supertypes:
+- "mut .m(_)"
+""", List.of("""
 A:{ mut .m(a: A): A }
 B:A{ imm .m(a: A): A -> this; a -> a }
 """));}
@@ -2026,7 +2036,7 @@ B:A{ imm .m(a: A): A -> this; a -> a }
 While inspecting type declaration "B"
 Cannot infer signature and name for a method with 1 parameter.
 Each method with 1 parameter of the supertypes
-is already overridden by another method of type declaration "B".
+has a name already used by another method of type declaration "B": ".m".
 Methods of the supertypes:
 - "mut .m(_)"
 """, List.of("""
@@ -2040,15 +2050,30 @@ B:A{ .m(a: A): A -> this; a -> this }
 While inspecting type declaration "B"
 Cannot infer signature and name for a method with 1 parameter.
 Each method with 1 parameter of the supertypes
-is already overridden by another method of type declaration "B".
+has a name already used by another method of type declaration "B": ".m".
 Methods of the supertypes:
 - ".m(_)"
 """, List.of("""
 A:{ .m(a: A): A }
 B:A{ .m(a: A): A; a -> this }
 """));}
-@Test void unnamedMethodImplementsTheMutOverloadOfAnImmLiteral(){ok(List.of("""
+@Test void unnamedMethodNeverTakesTheNameOfTheMutOverloadOfAnImmLiteral(){failWf("""
+002| C:{ .f: A -> A{ .m(a) -> a; b -> b } }
+   |              ---------------^^^^^^--
+
+While inspecting object literal instance of "A"
+Cannot infer signature and name for a method with 1 parameter.
+Each method with 1 parameter of the supertypes
+has a name already used by another method of object literal instance of "A": ".m".
+Methods of the supertypes:
+- ".m(_)"
+- "mut .m(_)"
+""", List.of("""
 A:{ mut .m(a: A): A; imm .m(a: A): A }
 C:{ .f: A -> A{ .m(a) -> a; b -> b } }
+"""));}
+@Test void unnamedMethodSkipsTheOtherReceiverCapabilityOfANamedMethod(){ok(List.of("""
+A:{ read .close: read A; mut .close: mut A; read .enums: A }
+B:A{ read .close -> this; B }
 """));}
 }
