@@ -69,18 +69,12 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   };}
   private List<Reason> checkX(List<B> bs, Gamma g, X x, List<TRequirement> rs){
     var b= g.bind(x.name());
-    var declared= b.declared();
-    var cur= b.current();
-    if (!(cur instanceof Change.WithT w)){ throw tsE().parameterNotAvailableHere(scope, x, (Change.NoT)cur); }
-    var got= w.currentT();
-    if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
-    return rs.stream().map(r -> xReason(bs, x, declared, w, r)).toList();
+    if (!(b.current() instanceof Change.WithT w)){ throw tsE().parameterNotAvailableHere(scope, x, (Change.NoT)b.current()); }
+    return reasons(bs, w.currentT(), rs, r -> Reason.parameterDoesNotHaveRequiredTypeHere(this, bs, x, r, b.declared(), w));
   }
-  private Reason xReason(List<B> bs, X x, T declared, Change.WithT w, TRequirement r){
-    var got= w.currentT();
-    if (isSub(bs, got, r.t())){ return Reason.pass(got); }
-    var declaredOk= isSub(bs, declared, r.t());
-    return Reason.parameterDoesNotHaveRequiredTypeHere(this, bs, x, r, declared, w, declaredOk);
+  private List<Reason> reasons(List<B> bs, T got, List<TRequirement> rs, Function<TRequirement,Reason> fail){
+    if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
+    return rs.stream().map(r -> isSub(bs, got, r.t()) ? Reason.pass(got) : fail.apply(r)).toList();
   }
   private List<Reason> checkType(List<B> bs, Type t, List<TRequirement> rs){
     k().check(t, bs, t.type());
@@ -99,12 +93,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private static boolean uses(E e, String x){ return e instanceof E.X(var n, _) ? n.equals(x) : e.children().anyMatch(ei -> uses(ei, x)); }
   private static boolean hasAbstractMut(Literal l){ return l.ms().stream().anyMatch(m -> m.sig().abs() && m.sig().rc() == mut); }
   private List<Reason> reqs(E blame, List<B> bs, T.RCC got, List<TRequirement> rs){
-    if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
     for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(scope, blame, r.t()); } }
-    return rs.stream().map(r -> isSub(bs, got, r.t())
-      ? Reason.pass(got)
-      : Reason.literalDoesNotHaveRequiredType(this, blame, bs, got, r.t())
-      ).toList();
+    return reasons(bs, got, rs, r -> Reason.literalDoesNotHaveRequiredType(this, blame, bs, got, r.t()));
   }
   private List<Reason> checkLiteral(List<B> bs1, Gamma g, Literal _l, List<TRequirement> rs){
     var span= _l.name().approxSpan();

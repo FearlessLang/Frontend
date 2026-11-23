@@ -48,7 +48,7 @@ public final class Reason{
       () -> baseFooterE(ts.scope(), sig.ret().withRC(RC.imm), req.t().withRC(RC.imm)));
   }
   public static Reason parameterDoesNotHaveRequiredTypeHere(
-    TypeSystem ts, List<B> bs, X x, TRequirement req, T declared, WithT cur, boolean declaredOkExpected
+    TypeSystem ts, List<B> bs, X x, TRequirement req, T declared, WithT cur
   ){
     var es= ts.reasonE();
     var got= cur.currentT();
@@ -56,7 +56,7 @@ public final class Reason{
     var e= es.err().line(es.err().gotMsg(!show, es.err().expRepr(x), List.of(got), req.t()));
     if (show && !declared.equals(got)){
       var self= TypeSystemErrors.isSelfName(ts.scope(), x.name());
-      if (!self){ e.line("Note: the declared type "+es.err().typeRepr(true, declared)+(declaredOkExpected ? " would instead be a valid subtype." : " also does not satisfy the requirement.")); }
+      if (!self){ e.line("Note: the declared type "+es.err().typeRepr(true, declared)+(ts.isSub(bs, declared, req.t()) ? " would instead be a valid subtype." : " also does not satisfy the requirement.")); }
       e.line(adaptation(es, self, x, cur));
     }
     return new Reason(got, show, e.text(), es.printed(), () -> baseFooterE(ts.scope(), got, req.t()));
