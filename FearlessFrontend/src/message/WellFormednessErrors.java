@@ -2,7 +2,6 @@ package message;
 
 import static message.Err.*;
 
-import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -28,6 +27,7 @@ import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.T;
 import fearlessFullGrammar.T.X;
+import fearlessParser.TokenKind;
 import inference.E;
 import inference.IT;
 import inference.M;
@@ -710,18 +710,13 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .wf().addFrame("object literal "+disp("{...}")+" (line "+l.span().inner.startLine()+")", l.span().inner);
   }
   public FearlessException selfNameDeadCode(E.Literal l){ return wf(err().selfNameDeadCode(l.thisName(), err().expRepr(l)), l); }
-  public FearlessException intLiteralOutOfRange(TName lit){
-    return intOrNatLiteralOutOfRange(lit, LiteralDeclarations.baseInt, "signed", LiteralDeclarations.intMin, LiteralDeclarations.intMax);
-  }
-  public FearlessException natLiteralOutOfRange(TName lit){
-    return intOrNatLiteralOutOfRange(lit, LiteralDeclarations.baseNat, "unsigned", LiteralDeclarations.natMin, LiteralDeclarations.natMax);
-  }
-  private FearlessException intOrNatLiteralOutOfRange(TName lit, TName type, String signed, BigInteger min, BigInteger max){
-    var t= err().tNameADisp(type);
+  public FearlessException integerLiteralOutOfRange(TName lit){
+    var nat= TokenKind.isKind(lit.s(), TokenKind.UnsignedInt);
+    var t= err().tNameADisp(nat ? LiteralDeclarations.baseNat : LiteralDeclarations.baseInt);
     return err()
       .line("Type "+disp(lit.simpleName())+" is out of range for "+t+".")
-      .line(t+" must be representable as a 64-bit "+signed+" integer.")
-      .line("Valid range: "+min+" .. "+max+".")
+      .line(t+" must be representable as a 64-bit "+(nat ? "unsigned" : "signed")+" integer.")
+      .line("Valid range: "+(nat ? LiteralDeclarations.natMin+" .. "+LiteralDeclarations.natMax : LiteralDeclarations.intMin+" .. "+LiteralDeclarations.intMax)+".")
       .line(numHint())
       .wf().addSpan(lit.approxSpan().inner);
   }

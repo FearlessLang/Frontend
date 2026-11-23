@@ -63,10 +63,8 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     if (pr){
       assert tName.pkgName().isEmpty();
       assert tName.arity() == 0;
-      var natOutOfRange= isKind(s, UnsignedInt) && !natLiteralInRange(s);
-      if (natOutOfRange){ throw meths.p().err().natLiteralOutOfRange(tName); }
-      var intOutOfRange= isKind(s, SignedInt) && !intLiteralInRange(s);
-      if (intOutOfRange){ throw meths.p().err().intLiteralOutOfRange(tName); }
+      var outOfRange= isKind(s, UnsignedInt) && !natLiteralInRange(s) || isKind(s, SignedInt) && !intLiteralInRange(s);
+      if (outOfRange){ throw meths.p().err().integerLiteralOutOfRange(tName); }
       var floatNotExact= isKind(s, SignedFloat, UnSignedFloat) && !floatLiteralOk(s);
       if (floatNotExact){ throw meths.p().err().floatLiteralNotExactlyRepresentable(tName); }
     }
