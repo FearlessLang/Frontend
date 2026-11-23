@@ -48,7 +48,7 @@ public final class MapDirectiveTest extends testUtils.FearlessTestBase{
     return rankMaps(b.build());
   }
   static Map<String,String> rankMaps(tools.SourceOracle o){
-    var ranks= new java.util.HashMap<String,tools.SourceOracle.Ref>();
+    var ranks= new java.util.LinkedHashMap<String,tools.SourceOracle.Ref>();
     for (var r : o.allFiles()){ ranks.put(r.fearPath().split("/")[1].substring(1), r); }
     var res= new FrontendLogicMain().parseRankFiles(ranks, java.util.Comparator.comparing(r -> r.fearPath().endsWith("_rank_app.fear")));
     return res.getOrDefault("b", Map.of());
@@ -112,17 +112,17 @@ Error 8 TypeError""", fe.render(o));
 Maps of the same rank give package name "a" different folders,
 for source code inside folders named "_b":
 - "map a as _p10 in _b;"; written in fear:/_p10/_rank_worker.fear
-- "map a as _p21 in _b;"; written in fear:/_p21/_rank_worker.fear
-- "map a as _p20 in _b;"; written in fear:/_p20/_rank_worker.fear
-- "map a as _p12 in _b;"; written in fear:/_p12/_rank_worker.fear
-- "map a as _p23 in _b;"; written in fear:/_p23/_rank_worker.fear
 - "map a as _p11 in _b;"; written in fear:/_p11/_rank_worker.fear
-- "map a as _p22 in _b;"; written in fear:/_p22/_rank_worker.fear
-- "map a as _p14 in _b;"; written in fear:/_p14/_rank_worker.fear
+- "map a as _p12 in _b;"; written in fear:/_p12/_rank_worker.fear
 - "map a as _p13 in _b;"; written in fear:/_p13/_rank_worker.fear
-- "map a as _p16 in _b;"; written in fear:/_p16/_rank_worker.fear
+- "map a as _p14 in _b;"; written in fear:/_p14/_rank_worker.fear
 - "map a as _p15 in _b;"; written in fear:/_p15/_rank_worker.fear
+- "map a as _p16 in _b;"; written in fear:/_p16/_rank_worker.fear
+- "map a as _p17 in _b;"; written in fear:/_p17/_rank_worker.fear
 - "map a as _p18 in _b;"; written in fear:/_p18/_rank_worker.fear
+- "map a as _p19 in _b;"; written in fear:/_p19/_rank_worker.fear
+- "map a as _p20 in _b;"; written in fear:/_p20/_rank_worker.fear
+- "map a as _p21 in _b;"; written in fear:/_p21/_rank_worker.fear
 - ... (2 more)
 
 How maps work:
