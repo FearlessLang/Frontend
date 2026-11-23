@@ -366,16 +366,14 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     if (peek(SemiColon)){ throw errFactory().topLevelSemicolon(span(peek().get()).get()); }
     if (peekIf(Token::isTypeName)){ return; }
     var t= peek().get();
-    if (!isProbablyTopLevelNonDecl(t)){ return; }
-    throw errFactory().topLevelNotATypeDeclaration(span(t).get(), t);
-  }
-  private static boolean isProbablyTopLevelNonDecl(Token t){
-    return t.is(
+    var probablyNonDecl= t.is(
       RCap, DotName, Op,                 // method sig starters
       _RoundGroup, _CurlyGroup, _SquareGroup, // inferred-name sig / patterns / grouped expr
       LowercaseId, Underscore,          // x->e, e, patterns
       ColonColon                       // :: / ::.foo
     );
+    if (!probablyNonDecl){ return; }
+    throw errFactory().topLevelNotATypeDeclaration(span(t).get(), t);
   }
   Declaration parseDeclaration(boolean top){
     if (top){ checkCommonTopLevelIssues(); }
