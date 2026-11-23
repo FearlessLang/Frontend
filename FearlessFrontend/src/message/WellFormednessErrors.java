@@ -528,19 +528,20 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("Parameter "+disp(x.name())+" has type "+err().typeRepr(t)+uses)
       .line(Err.funnel(missing, owner.name().simpleName(), xs)), x);
   }
-  public FearlessException typeArgAmbiguous(E.Call at, String x, List<IT> targs, int k, List<IT> cands, List<IT.RCC> common, Function<TName,core.E.Literal> decs){
-    return typeArgAmbiguous(at, x, disp(at.name().s()), cands, common, example(at.e(), at.name(), holed(targs, k), at.es()), decs);
+  public FearlessException typeArgAmbiguous(E.Call at, B b, List<IT> targs, int k, List<IT> cands, List<IT.RCC> common, Function<TName,core.E.Literal> decs){
+    return typeArgAmbiguous(at, b, disp(at.name().s()), cands, common, example(at.e(), at.name(), holed(targs, k), at.es()), decs);
   }
-  public FearlessException literalHeadAmbiguous(E.Literal at, String x, IT.C c, int i, List<IT> cands, List<IT.RCC> common, Function<TName,core.E.Literal> decs){
+  public FearlessException literalHeadAmbiguous(E.Literal at, B b, IT.C c, int i, List<IT> cands, List<IT.RCC> common, Function<TName,core.E.Literal> decs){
     var ts= holed(c.ts(), i);
-    return typeArgAmbiguous(at, x, err().tNameADisp(c.name()), cands, common, err().cp().t.of(c.name())+ts+"{...}", decs);
+    return typeArgAmbiguous(at, b, err().tNameADisp(c.name()), cands, common, err().cp().t.of(c.name())+ts+"{...}", decs);
   }
   private String holed(List<IT> ts, int k){ return Join.of(IntStream.range(0, ts.size()).mapToObj(j -> j == k ? "_" : err().typeReprRaw(ts.get(j))), "[", ",", "]"); }
-  private FearlessException typeArgAmbiguous(E at, String x, String of, List<IT> cands, List<IT.RCC> common, String example, Function<TName,core.E.Literal> decs){
+  private FearlessException typeArgAmbiguous(E at, B b, String of, List<IT> cands, List<IT.RCC> common, String example, Function<TName,core.E.Literal> decs){
     var cs= cands.stream().map(err(h -> h, decs, List.of())::typeRepr).distinct().toList();
-    var xs= Err.disp(x);
+    var xs= Err.disp(b.x());
+    var within= common.stream().filter(t -> t.rc().map(b.rcs()::contains).orElse(true)).toList();
     var e= err().line("The generic type argument "+xs+" of "+of+" can not be inferred:\nit is needed "+Join.of(cs, "as ", ", as ", "")+".");
-    if (!common.isEmpty()){ e.line(up(xs)+" could be "+Join.of(common.stream().map(err()::typeRepr), "", " or ", "")+":\neach is a supertype of "+Join.of(cs, "", " and ", "")+".\nThe choice is ambiguous."); }
+    if (!within.isEmpty()){ e.line(up(xs)+" could be "+Join.of(within.stream().map(err()::typeRepr), "", " or ", "")+":\neach is a supertype of "+Join.of(cs, "", " and ", "")+".\nThe choice is ambiguous."); }
     return wf(e.line("Write the generic type argument explicitly, in place of \"_\" in "+disp(example)+"."), at);
   }
   private String example(E e){ return switch (e){
@@ -550,12 +551,12 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     case E.Call c -> example(c.e(), c.name(), "", c.es());
   };}
   private String example(E recv, MName m, String targs, List<E> es){ return example(recv)+m.s()+targs+Join.of(es.stream().map(this::example), "(", ", ", ")", ""); }
-  public FearlessException literalHeadNotInferred(E.Literal at, IT.C c, List<Integer> unknown, List<String> xs){
+  public FearlessException literalHeadNotInferred(E.Literal at, IT.C c, List<Integer> unknown, List<B> bs){
     var s= unknown.size() == 1 ? "" : "s";
     return wf(err()
       .line("Type inference concluded that this object literal implements "+headRepr(c)+",")
       .line("but it could not infer generic type argument"+s+" "+Join.of(unknown.stream().map(i -> i+1), "", " and ", "", "")
-        +" for generic type parameter"+s+" "+Join.of(unknown.stream().map(i -> disp(xs.get(i))), "", " and ", "", "")
+        +" for generic type parameter"+s+" "+Join.of(unknown.stream().map(i -> disp(bs.get(i).x())), "", " and ", "", "")
         +" of "+err().tNameADisp(c.name())+"."), at);
   }
   public FearlessException methodNotInferred(E.Literal at, M.Sig s){ return wf(unnamedNotInferred(at, s, List.of()), s, at); }
