@@ -509,7 +509,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var simple= peek(LowercaseId, _RoundGroup, ColonColon, _CurlyGroup);
     if (fwdIf(simple)){ return; }
     fwdIf(peek(RCap));
-    fwdIf(peekOrder(Token::isTypeName));
+    fwdIf(peekIf(Token::isTypeName));
     fwdIf(peek(_SquareGroup));
     if (fwdIf(peek(Colon))){ while (fwdIf(peekIf(t -> t.isTypeName() || t.is(Comma, _SquareGroup)))){} }
     fwdIf(peek(_CurlyGroup));
