@@ -212,7 +212,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   FearlessException ex(E footerE, E focus){ return ex(footerE, focus, List.of()); }
   FearlessException ex(E footerE, E focus, List<T> inferred){
     var ts= Push.of(inferred, inferredTargs(focus)).stream().map(t -> typeRepr(true, t)).distinct().toList();
-    if (footerE instanceof X || footerE instanceof Type || ts.isEmpty()){ return typeErr(); }
+    if (ts.isEmpty()){ return typeErr(); }
     var cp= _cp.apply(true);
     var footer= cp.limit(footerE, focus);
     var header= "See inferred typing context below for how "+and(ts)+(ts.size() == 1 ? " was" : " were")+" introduced"+(cp.omitted ? " (\"...\" marks omitted code):\n" : ":\n");
