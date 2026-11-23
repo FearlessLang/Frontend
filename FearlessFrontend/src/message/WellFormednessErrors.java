@@ -500,10 +500,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException methodGenericArityDisagreesWithSupers(Agreement at, List<B> userBs, List<M.Sig> ss){
     var n= ss.getFirst().bs().get().size();
     var sups= ss.stream().map(s -> err().tNameADisp(s.origin().get())).distinct().sorted().toList();
-    var e= invalidMethImpl(at).line("The method "+methodSig(at.mName())+" declares "+count(userBs.size(), "generic type parameter")+", but "
-      +(sups.size() == 1 ? "supertype "+sups.getFirst()+" declares "+n+"." : "these supertypes declare "+n+":"));
-    if (sups.size() > 1){ sups.forEach(e::bullet); }
-    return wf(e, at);
+    var head= "The method "+methodSig(at.mName())+" declares "+count(userBs.size(), "generic type parameter")+", but ";
+    if (sups.size() == 1){ return wf(invalidMethImpl(at).line(head+"supertype "+sups.getFirst()+" declares "+n+"."), at); }
+    return wf(invalidMethImpl(at).bullets(head+"these supertypes declare "+n+":", sups), at);
   }
   public FearlessException methodBsDisagreementBetweenSupers(Methods meths, Agreement at, List<M.Sig> ss){
     var i= firstRcsDisagreementIndex(ss.stream().map(s -> s.bs().get()).distinct().toList());
@@ -621,11 +620,11 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var fileLog= err().tNameADisp(LiteralDeclarations.fileLog);
     return wf(implementing(owner, LiteralDeclarations.fileLog)
       .line("A type can only implement "+fileLog+" when its type name corresponds to a valid log file name.")
-      .line("This means that the type name:")
-      .line("- does not end with \"'\";")
-      .line("- has no \"_\" followed by a lowercase letter;")
-      .line("- is none of \"Con\", \"Prn\", \"Aux\", \"Nul\", \"Com1\"..\"Com9\", \"Lpt1\"..\"Lpt9\";")
-      .line("- does not start with \"_Rank\"."), owner);
+      .bullets("This means that the type name:", List.of(
+        "does not end with \"'\";",
+        "has no \"_\" followed by a lowercase letter;",
+        "is none of \"Con\", \"Prn\", \"Aux\", \"Nul\", \"Com1\"..\"Com9\", \"Lpt1\"..\"Lpt9\";",
+        "does not start with \"_Rank\".")), owner);
   }
   public FearlessException fileLogPathTooLong(E.Literal owner, String path){
     return wf(err()
