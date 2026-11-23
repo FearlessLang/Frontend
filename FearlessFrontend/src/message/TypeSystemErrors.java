@@ -444,11 +444,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     assert !reqs.isEmpty();
     assert reqs.size() == res.size();
     assert res.stream().noneMatch(Reason::isEmpty);
-    assert reqs.stream().allMatch(r -> canon(r.t()).equals(canon(declared)));
+    assert reqs.stream().allMatch(r -> r.t().withRC(RC.imm).equals(declared.withRC(RC.imm)));
     var gotHdr= headerBest(res);//TODO: Eventually this will need to be matched with the meth body subtype and both
     //should make an attempt to say what the generics in the result should have been instantiate to instead
     //in particular here we are in a methCall, so we can talk about OUR type args impacting the expected argument type
-    var wrongUnderlyingType= res.stream().noneMatch(ri -> ts.isSub(bs, canon(ri.best), canon(declared)));
+    var wrongUnderlyingType= res.stream().noneMatch(ri -> Reason.onlyRC(ts, bs, ri.best, declared));
     var inferred= inferredInParam(d, c, argi);
     var r= res.stream().filter(ri -> ri.showImm).findFirst().orElse(res.getFirst());
     var e= err().pCallCantBeSatisfied(d, c).line("Argument "+(argi+1)+" has type "+err().typeRepr(wrongUnderlyingType, gotHdr)+".");
@@ -475,8 +475,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
          +"parses as \"(a.get + b).get\", not \"a.get + (b.get)\".\n"
          +"If this argument needed a method applied to it first, wrap it in parentheses.");
   }
-  private static T canon(T t){ return t.withRC(RC.imm); }
-
   private static T headerBest(List<Reason> res){
     return res.stream().map(r -> r.best)
       .min(Comparator.comparingInt(TypeSystemErrors::headerKey))

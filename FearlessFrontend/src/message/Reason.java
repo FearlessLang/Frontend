@@ -26,7 +26,7 @@ public final class Reason{
   }
   public boolean isEmpty(){ return info.isEmpty(); }
   public static Reason pass(T got){ return new Reason(got, false, "", Set.of(), () -> { throw Bug.unreachable(); }); }
-  private static boolean onlyRC(TypeSystem ts, List<B> bs, T got, T req){ return ts.isSub(bs, got.withRC(RC.imm), req.withRC(RC.imm)); }
+  static boolean onlyRC(TypeSystem ts, List<B> bs, T got, T req){ return ts.isSub(bs, got.withRC(RC.imm), req.withRC(RC.imm)); }
   public static Reason literalDoesNotHaveRequiredType(
     TypeSystem ts, E blame, List<B> bs, T.RCC got, T expected
     ){
