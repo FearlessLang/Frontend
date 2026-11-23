@@ -305,9 +305,9 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       owner+" cannot declare multiple "+plural+" with the same name.\n"
       +singular+" "+disp(redeclaredElement(names))+" is repeated.").addSpan(at);
   }
-  private static String missingMsg(String what, String found, Collection<TokenKind> items){
+  private static String missingMsg(String what, String foundLine, Collection<TokenKind> items){
     var named= items.size() == 1 && what.contains(items.iterator().next().human);
-    return "Missing "+(what.isBlank() ? "element" : what)+".\n"+found+(named ? "" : expected("Expected", items));
+    return "Missing "+(what.isBlank() ? "element" : what)+".\n"+foundLine+(named ? "" : expected("Expected", items));
   }
   private static String expected(String lead, Collection<TokenKind> items){
     var labels= items.stream().map(tk -> tk.human).distinct().toList();
