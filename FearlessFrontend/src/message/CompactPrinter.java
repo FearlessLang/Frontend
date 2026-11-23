@@ -158,7 +158,7 @@ public final class CompactPrinter{
       e.accString(sb);
     }
     private static void param(CompactPrinter b, String x, PT t){
-      if (!x.equals("_") && !x.equals("::")){ b.append(x).append(b.spaced ? ": " : ":"); }
+      if (!x.equals("_") && !x.equals("::")){ b.append(x).append(":"); }
       t.accString(b);
     }
   }
@@ -224,18 +224,13 @@ public final class CompactPrinter{
     var implicit= xs.stream().anyMatch(implicits::contains);
     return new PM(s.rc(), s.m().s(), bounds(s.bs()), implicit ? List.of("::") : names, ofTs(s.ts()), ofT(s.ret()), e, k(body));
   }
-  public String sig(Sig s){
+  String sig(Sig s){
     var xs= Collections.nCopies(s.m().arity(), "_");
     var pm= ofM(s, xs, xs, Optional.empty());
     assert sb.isEmpty();
     spaced = true;
     sb.append(" ".repeat(6-s.rc().toStrSpace().length()));//line up
     pm.accString(this);
-    return sb.toString();
-  }
-  public String sig(M m){
-    spaced = true;
-    ofM(m.sig(), m.xs(), m.names(), Optional.empty()).accString(this);
     return sb.toString();
   }
 }
