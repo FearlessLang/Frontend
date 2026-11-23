@@ -94,7 +94,8 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var withH= mayBeH(recv, base) || Stream.concat(acc.resByArg().stream().flatMap(List::stream), resByReq.stream()).anyMatch(r -> mayBeH(r.best));
     var shown= withH ? reqs : argRequirements(MultiMeth.of(bs, base, false).stream().filter(m -> recv.isSubType(m.rc())).toList(), argi);
     var reqTs= reqs.stream().map(TRequirement::t).toList();
-    return cts.tsE().methodArgumentCannotMeetAnyPromotion(cts, bs, d, c, argi, base.ts().get(argi), shown, shown.stream().map(q -> resByReq.get(reqTs.indexOf(q.t()))).toList());
+    var res= shown.stream().map(q -> resByReq.get(reqTs.indexOf(q.t()))).toList();
+    return cts.tsE().methodArgumentCannotMeetAnyPromotion(cts, bs, d, c, argi, base.ts().get(argi), shown, res);
   }
   private Reason resForReq(Literal d, Sig sig, ArgMatrix mat, List<Integer> possible, TRequirement req){
     var okRet= possible.stream()

@@ -413,7 +413,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///No promotion accepts this receiver, so the call cannot succeed regardless of argument types.
   ///Raised when checking method calls.
   public FearlessException receiverRCBlocksCall(TypeScope s, Literal d, Call c, RC recvRc, List<MType> promos, Gamma g){
-    var byRc= promos.stream().collect(Collectors.groupingBy(MType::rc, TreeMap::new, Collectors.mapping(MType::promotion, Collectors.toList())));
+    var byRc= promos.stream().collect(Collectors.groupingBy(MType::rc, TreeMap::new, Collectors.mapping(MType::promotion, Collectors.toCollection(LinkedHashSet::new))));
     var e= err()
       .pCallCantBeSatisfied(d, c)
       .line("The receiver (the expression before the method name) has capability "+disp(recvRc)+".")
@@ -422,7 +422,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     if (c.e() instanceof X x && g.bind(x.name()).current() instanceof Change.Same(T.RCC t) && t.rc() == RC.imm && !isSelfName(s, x.name())){
       e.line(up(err().expRepr(x))+" has type "+err().typeRepr(false, t)+": a type written without a capability, as "+err().typeRepr(true, t)+", is \"imm\".");
     }
-    if (byRc.size() > 1){ e.blank().bullets("Receiver required by each promotion:", byRc.entrySet().stream().map(en -> disp(en.getKey())+" ("+Join.of(en.getValue().stream().distinct(), "", ", ", "")+")").toList()); }
+    if (byRc.size() > 1){
+      var lines= byRc.entrySet().stream().map(en -> disp(en.getKey())+" ("+Join.of(en.getValue().stream(), "", ", ", "")+")").toList();
+      e.blank().bullets("Receiver required by each promotion:", lines);
+    }
     return withCallSpans(e.ex(c), c.e(), c);
   }
   ///For argument index argi in call c, the argument's type does not satisfy any promotion's requirement.
