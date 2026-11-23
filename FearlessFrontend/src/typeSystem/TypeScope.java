@@ -50,7 +50,7 @@ public sealed interface TypeScope{
   }
   static TypeScope bestInterestingScope(TypeScope start, List<T> interest){
     var ss= start.scopes().toList();
-    return IntStream.range(0, ss.size()).filter(i -> i < 4 || mentionsAny(ss.get(i), interest)).mapToObj(ss::get).reduce(start, (_,s) -> s);
+    return ss.get(IntStream.range(0, ss.size()).filter(i -> i < 4 || mentionsAny(ss.get(i), interest)).max().getAsInt());
   }
   static boolean mentionsAny(TypeScope s, List<T> interest){
     return s.mentionedTs().stream().anyMatch(mt ->
