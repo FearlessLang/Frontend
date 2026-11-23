@@ -14,7 +14,6 @@ import core.*;
 import core.E.*;
 import utils.Bug;
 import utils.Join;
-import utils.Push;
 import utils.Range;
 import utils.Streams;
 
@@ -43,11 +42,7 @@ public final class CompactPrinter{
   }
   final Set<E> path= Collections.newSetFromMap(new IdentityHashMap<>());
   private boolean onPath(E e, E focus){
-    var res= e == focus || switch (e){
-      case X _, Type _ -> false;
-      case Call c -> Push.of(c.e(), c.es()).stream().anyMatch(ei -> onPath(ei, focus));
-      case Literal l -> l.ms().stream().anyMatch(m -> m.e().filter(ei -> onPath(ei, focus)).isPresent());
-    };
+    var res= e == focus || e.children().anyMatch(ei -> onPath(ei, focus));
     if (res){ path.add(e); }
     return res;
   }
@@ -156,7 +151,7 @@ public final class CompactPrinter{
   }
   private PE ofCall(Call c){
     var targs= ofTs(c.targs());
-    var args= ofEs(c.es());
+    var args= c.es().stream().map(this::ofE).toList();
     return new PCall(ofE(c.e()), c.name().s(), c.rc(), targs, args, new Compactable(path.contains(c)));
   }
   private PE ofLit(Literal l){
@@ -164,13 +159,10 @@ public final class CompactPrinter{
     var priv= l.infName();
     var name= priv ? ""
       : t.of(l.name())+bounds(l.bs())+":"; // name[bs]:
-    var onlyFirstC= priv && !l.cs().isEmpty();
-    var cs= ofCs(l.src(), onlyFirstC ? List.of(l.cs().getFirst()) : l.cs());
-    var top= l.thisName().equals("this");
-    var rc= top ? RC.imm : l.rc();
+    var cs= ofCs(l.src(), priv ? l.cs().stream().limit(1).toList() : l.cs());
+    var rc= l.thisName().equals("this") ? RC.imm : l.rc();
     return new PLit(rc, priv, name, cs, l.thisName(), ms, new Compactable(path.contains(l)));
   }
-  private List<PE> ofEs(List<E> es){ return es.stream().map(this::ofE).toList(); }
   private List<PT> ofTs(List<T> ts){ return ts.stream().map(this::ofT).toList(); }
   private PT ofT(T t){ return switch (t){
     case T.X(var name, _) -> new PText(name);
