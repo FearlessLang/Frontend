@@ -718,8 +718,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException implementsAnonymousType(E.Literal l, E.Literal owner){
     return err()
       .line("Type inference concluded that the object literal at "+at(l.span().inner)+"\nshould implement the object literal at "+at(owner.span().inner)+".")
-      .line("An object literal can only implement a standalone type.")
-      .line("A type is standalone if it is declared at top level, or if it implements "+err().tNameADisp(LiteralDeclarations.captureFree)+".")
+      .standalone("An object literal can only implement a standalone type.")
       .wf().addFrame("object literal "+disp("{...}")+" (line "+l.span().inner.startLine()+")", l.span().inner);
   }
   public FearlessException selfNameDeadCode(E.Literal l){ return wf(err().selfNameDeadCode(l.thisName(), err().expRepr(l)), l); }
