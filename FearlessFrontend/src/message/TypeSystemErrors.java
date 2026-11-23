@@ -309,11 +309,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///Raised when checking parameters.
   public FearlessException parameterNotAvailableHere(TypeScope s, E.X x, Change.NoT why){
     var e= err().line(whyDrop(x, why));
-    var site= why instanceof Change.DropMutInImm
-      ? Stream.iterate(s, si -> !si.isTop(), TypeScope::outer).filter(si -> inferredRcOf(si, why.l())).findFirst()
-      : Optional.<TypeScope>empty();
-    var ex= site.map(si -> e.ex(si.contextE())).orElseGet(() -> e.ex(x));
-    return addExpFrame(x, ex.addSpan(x.span().inner));
+    var footer= Stream.iterate(s, si -> !si.isTop(), TypeScope::outer)
+      .filter(si -> why instanceof Change.DropMutInImm && inferredRcOf(si, why.l()))
+      .<E>map(TypeScope::contextE).findFirst().orElse(x);
+    return addExpFrame(x, e.ex(footer).addSpan(x.span().inner));
   }
   private static boolean inferredRcOf(TypeScope s, Literal l){
     var interest= l.cs().stream().<T>map(c -> new T.RCC(l.rc(), c, l.span())).toList();
