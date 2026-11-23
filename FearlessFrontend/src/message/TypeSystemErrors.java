@@ -73,7 +73,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     return OneOr.opt("Malformed methods", ms.stream().filter(mi -> mi.span().inner.equals(s.span().inner)));
   }
   static boolean wholeSig(fearlessFullGrammar.M fm, Sig s){
-    return !fm.hasImplicit() && fm.sig().filter(gs -> (gs.rc().isPresent() || s.rc() == RC.imm) && gs.t().isPresent() && gs.parameters().stream().allMatch(p -> p.t().isPresent()) && (s.bs().isEmpty() || gs.bs().isPresent())).isPresent();
+    if (fm.hasImplicit() || fm.sig().isEmpty()){ return false; }
+    var gs= fm.sig().get();
+    var allTyped= gs.t().isPresent() && gs.parameters().stream().allMatch(p -> p.t().isPresent());
+    return allTyped && (gs.rc().isPresent() || s.rc() == RC.imm) && (s.bs().isEmpty() || gs.bs().isPresent());
   }
   public FearlessException mCallFrame(Literal l, M m, FearlessException fe){
     return fe.addFrame("method "+err().methodSig("", l, m.sig().m())+" (line "+m.sig().span().inner.startLine()+")", m.sig().span().inner);

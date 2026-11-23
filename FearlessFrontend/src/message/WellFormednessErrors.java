@@ -166,7 +166,10 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException usedUndeclaredName(TName written, TName resolved, List<TName> scope, List<TName> all, Map<String,Ref> ranks, List<String> steps){
     var pkg= resolved.pkgName();
     var notLower= ranks.containsKey(pkg) && !pkg.equals(pkgName) && all.stream().noneMatch(t -> t.pkgName().equals(pkg));
-    if (notLower){ return typeName(ranks(err().line("The type name "+disp(written.s())+" refers to "+notLower(pkg, rankName(ranks.get(pkg)).equals(rankName(ranks.get(pkgName))))+"."), pkg, ranks.get(pkgName), ranks.get(pkg)), written); }
+    if (notLower){
+      var sameRank= rankName(ranks.get(pkg)).equals(rankName(ranks.get(pkgName)));
+      return typeName(ranks(err().line("The type name "+disp(written.s())+" refers to "+notLower(pkg, sameRank)+"."), pkg, ranks.get(pkgName), ranks.get(pkg)), written);
+    }
     Function<TName,String> shown= t -> err().cp().t.of(t.withoutPkgName().withPkgName(map.getOrDefault(t.pkgName(), t.pkgName())));
     return new UndeclaredNameContext(
       () -> err(steps),

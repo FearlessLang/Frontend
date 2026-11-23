@@ -49,7 +49,10 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
     if (anonLit(l)){ return anonRepr; }
     return tNameA(l.name());
   }
-  private static TName bestName(inference.E.Literal l){ return !l.infName() ? l.name() : !l.cs().isEmpty() ? l.cs().getFirst().name() : l.t() instanceof inference.IT.RCC r ? r.c().name() : l.name(); }
+  private static TName bestName(inference.E.Literal l){
+    if (l.infName() && !l.cs().isEmpty()){ return l.cs().getFirst().name(); }
+    return l.infName() && l.t() instanceof inference.IT.RCC r ? r.c().name() : l.name();
+  }
   private boolean anonLit(Literal l){ return l.infName() && l.cs().isEmpty(); }
   private static final String anonRepr= "{...}";
   String anonOrInstanceOf(Literal l){ return anonLit(l) ? disp(anonRepr) : "object literal instance of "+disp(bestLitName(l)); }
@@ -86,7 +89,10 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
   static String count(int n, String noun){ return n+" "+noun+(n == 1 ? "" : "s"); }
   static String up(String s){ return s.substring(0, 1).toUpperCase(Locale.ROOT)+s.substring(1); }
   private Optional<Sig> own(TName n, Sig s){ return Sources.findCanonical(_decs.apply(n), s.m(), s.rc()); }
-  private List<T.C> direct(List<T.C> cs){ return cs.stream().filter(c -> cs.stream().noneMatch(o -> _decs.apply(o.name()).cs().stream().anyMatch(oc -> oc.name().equals(c.name())))).toList(); }
+  private List<T.C> direct(List<T.C> cs){
+    var indirect= cs.stream().flatMap(o -> _decs.apply(o.name()).cs().stream()).map(T.C::name).toList();
+    return cs.stream().filter(c -> !indirect.contains(c.name())).toList();
+  }
   private static List<T> asTs(List<B> bs){ return bs.stream().<T>map(b -> new T.X(b.x(), TSpan.fromPos(Pos.unknown))).toList(); }
   boolean sigs(Literal l, M m, boolean always){
     var fm= TypeSystemErrors.srcM(l, m.sig());
