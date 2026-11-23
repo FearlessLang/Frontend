@@ -103,6 +103,42 @@ to refer to the code inside folders named "_c",
 because of "map a as _c in _b instead of _e, _d", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", fe.render(o));
   }
+  @Test void mapConflictListsTwelveMapsAndCountsTheOthers(){
+    var b= tools.SourceOracle.debugBuilder().putURI(java.net.URI.create("fear:/_b/_rank_app.fear"), "");
+    for (var i= 10; i <= 23; i++){ b = b.putURI(java.net.URI.create("fear:/_p"+i+"/_rank_worker.fear"), "map a as _p"+i+" in _b;"); }
+    var ranks= b.build();
+    var fe= assertThrows(FearlessException.class, () -> rankMaps(ranks));
+    strCmp("""
+Maps of the same rank give package name "a" different folders,
+for source code inside folders named "_b":
+- "map a as _p10 in _b;"; written in fear:/_p10/_rank_worker.fear
+- "map a as _p21 in _b;"; written in fear:/_p21/_rank_worker.fear
+- "map a as _p20 in _b;"; written in fear:/_p20/_rank_worker.fear
+- "map a as _p12 in _b;"; written in fear:/_p12/_rank_worker.fear
+- "map a as _p23 in _b;"; written in fear:/_p23/_rank_worker.fear
+- "map a as _p11 in _b;"; written in fear:/_p11/_rank_worker.fear
+- "map a as _p22 in _b;"; written in fear:/_p22/_rank_worker.fear
+- "map a as _p14 in _b;"; written in fear:/_p14/_rank_worker.fear
+- "map a as _p13 in _b;"; written in fear:/_p13/_rank_worker.fear
+- "map a as _p16 in _b;"; written in fear:/_p16/_rank_worker.fear
+- "map a as _p15 in _b;"; written in fear:/_p15/_rank_worker.fear
+- "map a as _p18 in _b;"; written in fear:/_p18/_rank_worker.fear
+- ... (2 more)
+
+How maps work:
+- A rank file can have lines like "map name as _folder in _target;".
+- With no map, package name "x" refers to the code inside folders named "_x".
+- A map in a rank file of higher rank overrides the maps of lower rank,
+  and lists their folders with "instead of".
+
+How to fix it:
+- Decide which folder package name "a" refers to,
+  for source code inside folders named "_b".
+- Add one map in a rank file of higher rank
+  (typically the rank file of your application),
+  with "instead of" listing every folder chosen by the maps of lower rank.
+Error 7 WellFormedness""", fe.render(ranks));
+  }
   @Test void typeErrorWritesTheMappedName(){ fail("""
 In file: [###].fear
 

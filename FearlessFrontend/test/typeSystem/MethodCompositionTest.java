@@ -129,6 +129,36 @@ AA:B,C{}
 B:{ .m: B }
 C:{ .m: C }
 """));}
+@Test void twoSupersDisagreeOnRtListSixTypesAndCountTheOthers(){failWf("""
+007| AA:B,C{}
+   | ^^^^^^^^
+
+While inspecting type declaration "AA"
+Supertypes disagree on the signature of method "imm .m".
+Signatures as inherited by type declaration "AA":
+-       B.m: B
+-       C.m: C
+"AA" must declare method ".m".
+"AA.m" return type must be a subtype of "B" and "C".
+Such types currently visible:
+- "A1"
+- "A2"
+- "A3"
+- "A4"
+- "A5"
+- "A6"
+- ... (1 more)
+""", List.of("""
+A1:AA{ .m: A1 }
+A2:AA{ .m: A2 }
+A3:AA{ .m: A3 }
+A4:AA{ .m: A4 }
+A5:AA{ .m: A5 }
+A6:AA{ .m: A6 }
+AA:B,C{}
+B:{ .m: B }
+C:{ .m: C }
+"""));}
 @Test void threeSupersPickedByOwnMeth(){ok(List.of("""
 A:B,C,D{ .m: A }
 B:{ .m: B }

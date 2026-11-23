@@ -1100,6 +1100,30 @@ A:{}
 use base.Nat as N;
 B:{}
 """));}
+@Test void directivesOutsideTheRankFileListEightUsesAndCountTheOthers(){failWf("""
+001| use base.Void as QVoid;
+   |     ^^^^^^^^^
+
+While inspecting the file
+Package directives outside of rank file.
+Only the rank file can contain directives like maps and uses.
+
+Found non-empty:
+- uses: use base.Void as QVoid, use base.Num as QNum, use base.Nat as QNat, use base.Int as QInt, use base.Str as QStr, use base.Float as QFloat, use base.Bool as QBool, use base.True as QTrue, ... (1 more)
+""", List.of("""
+A:{}
+""", """
+use base.Void as QVoid;
+use base.Num as QNum;
+use base.Nat as QNat;
+use base.Int as QInt;
+use base.Str as QStr;
+use base.Float as QFloat;
+use base.Bool as QBool;
+use base.True as QTrue;
+use base.False as QFalse;
+B:{}
+"""));}
 @Test void directivesOutsideTheRankFileAfterAComment(){failWf("""
 002| use base.Nat as N;
    |     ^^^^^^^^
