@@ -190,13 +190,13 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     }
     private Optional<FearlessException> pkgDoesNotExist(){
       if (typedPkg.isEmpty() || !typesInPkg(typedPkg).isEmpty()){ return Optional.empty(); }
-      return Optional.of(typeName(missingPkg(err.get(), contextPkg, typedPkg, userMap(TName::pkgName, all.stream().filter(t -> !t.pkgName().isEmpty())), Optional.empty()), tn));
+      return Optional.of(typeName(missingPkg(err.get(), contextPkg, typedPkg, sortedDistinct(TName::pkgName, all.stream().filter(t -> !t.pkgName().isEmpty())), Optional.empty()), tn));
     }
-    private <A,R> List<R> userMap(Function<A,R> f, Stream<A> s){ return s.map(f).distinct().sorted().toList(); }
+    private <A,R> List<R> sortedDistinct(Function<A,R> f, Stream<A> s){ return s.map(f).distinct().sorted().toList(); }
     private List<String> shownInOrder(Stream<TName> s){ return s.sorted(Comparator.comparing(TName::s)).map(display).distinct().toList(); }
     private Optional<FearlessException> otherArity(){
       var candidates= typedPkg.isEmpty() ? scope : typesInPkg(typedPkg);
-      var arities= userMap(TName::arity, candidates.stream().filter(t -> t.simpleName().equals(typedSimple)));
+      var arities= sortedDistinct(TName::arity, candidates.stream().filter(t -> t.simpleName().equals(typedSimple)));
       assert !arities.contains(tn.arity());
       if (arities.isEmpty()){ return Optional.empty(); }
       var targetPkg= typedPkg.isEmpty() ? contextPkg : typedPkg;
@@ -213,12 +213,12 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       var e= err.get().line("Type "+disp(typedSimple)+" is not declared in package "
         +(typedPkg.isEmpty() ? disp(contextPkg)+" and is not made visible via \"use\"" : disp(typedPkg))+".");
       if (!typedPkg.isEmpty()){
-        NameSuggester.suggest(typedPkg+"."+typedSimple, userMap(TName::s, typesInPkg(typedPkg).stream()),
+        NameSuggester.suggest(typedPkg+"."+typedSimple, sortedDistinct(TName::s, typesInPkg(typedPkg).stream()),
           (_,cs,best) -> inScope(e, cs, best, c -> display.apply(new TName(c, 0, Pos.unknown))));
         addOptionsList(shownInOrder(all.stream().filter(t -> !t.pkgName().equals(typedPkg) && t.simpleName().equals(typedSimple))), e);
         return typeName(e, tn);
       }
-      var simpleInPkg= userMap(TName::simpleName, scope.stream());
+      var simpleInPkg= sortedDistinct(TName::simpleName, scope.stream());
       NameSuggester.suggest(typedSimple, simpleInPkg, (_,cs,best) -> inScope(e, cs, best, simpleShown));
       var noBestLocal= NameSuggester.bestName(typedSimple, simpleInPkg).isEmpty();
       if (noBestLocal){ addOtherPkgNotePkgImplicit(e); }
@@ -228,7 +228,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     private void addOtherPkgNotePkgImplicit(Err e){
       var other= all.stream().filter(t -> !t.pkgName().equals(contextPkg)).toList();
       if (other.isEmpty()){ return; }
-      var simpleCandidates= userMap(TName::simpleName, other.stream());
+      var simpleCandidates= sortedDistinct(TName::simpleName, other.stream());
       NameSuggester.bestName(typedSimple, simpleCandidates).ifPresent(bestSimple ->
         addOptionsList(shownInOrder(all.stream().filter(t -> t.simpleName().equals(bestSimple))), e));
     }
