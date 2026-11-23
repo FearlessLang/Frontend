@@ -292,6 +292,14 @@ final class ReconcileTest{
     reconcile(identity, command(), List.of(ext));
     assertEquals(noPreference(window), preferenceLeft(ext));
   }
+  @Test void aPreferenceOfTheUserForTheIdentityIsReplacedByTheSetupWithNoRefusal(){
+    reconcile(identity, command(), List.of(ext));
+    preferred(identity, ext);
+    assertEquals(preference(identity), preferenceLeft(ext));
+    reconcile(identity, command(), List.of(ext));
+    assertEquals(noPreference(identity), preferenceLeft(ext));
+    assertEquals(List.of(identity), FileAssociations.identities(family));
+  }
   @Test void anExtensionAnotherProgramTakesBackIsHeldByTheIdentityOnceTaken(){
     reconcile(identity, command(), List.of(ext));
     if (Fs.isWindows()){ registered("other", ext); }

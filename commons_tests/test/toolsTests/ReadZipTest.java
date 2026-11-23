@@ -55,6 +55,11 @@ final class ReadZipTest{
     assertEquals(List.of("a/.b/c/e/", "a/.b/d"), List.copyOf(read(zip("a/.b/c/", "a/.b/c/e/", "a/.b/d")).keySet()));
     assertEquals(0, read(zip(".a/c/")).get(".a/c/").length);
   }
+  @Test void aNameHoldingABackslashIsRefused(){
+    assertEquals("badName a\\b.txt", refused("a\\b.txt"));
+    assertEquals("badName .h\\x", refused(".h\\x"));
+    assertEquals("badName a\\", refused("a\\"));
+  }
   @Test void aFolderEntryAndAFileOfTheSameNameAreRefused(){
     assertEquals("dupName a", assertThrows(IllegalStateException.class, () -> read(zip("a/", "a/b", "a"))).getMessage());
   }
