@@ -83,7 +83,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
     var p= publicHead.apply(c);
     return new T.RCC(rc, p.withTs(p.ts().stream().map(this::showPublic).toList()), span);
   }
-  String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, t, t.span()))); }
   static String count(int n, String noun){ return n+" "+noun+(n == 1 ? "" : "s"); }
   static String up(String s){ return s.substring(0, 1).toUpperCase(Locale.ROOT)+s.substring(1); }
   private Optional<Sig> own(TName n, Sig s){ return Sources.findCanonical(_decs.apply(n), s.m(), s.rc()); }

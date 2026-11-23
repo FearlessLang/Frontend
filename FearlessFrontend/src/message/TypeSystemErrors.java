@@ -33,11 +33,11 @@ import core.E.*;
 
 public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, LinkedHashSet<String> printed){
   Err err(){ return new WellFormednessErrors(pkg.name(), pkg.map(), pkg.mapSources(), printed).err(this::publicHead, decs, List.of()); }
-  private T.C preferredForFresh(T.C t){
+  private String preferredForFresh(T.C t){
     var res= decs.apply(t.name());
     var showSuper= res.infName() && !res.cs().isEmpty();
-    if (!showSuper){ return t; }
-    return new T.C(res.cs().getFirst().name().withArity(t.ts().size()), t.ts());//Correct to not propagate here
+    var c= showSuper ? new T.C(res.cs().getFirst().name().withArity(t.ts().size()), t.ts()) : t;//Correct to not propagate here
+    return disp(err().cp().msgT(new T.RCC(RC.imm, c, t.span())));
   }
   private T.C publicHead(T.C c){
     var d= decs.apply(c.name());
@@ -104,7 +104,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   public FearlessException typeNotWellKinded(E toErr, KindingTarget target, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     assert index >= 0;
     var err= switch (target){
-      case T.C c -> typeArgBounds(err().line("The type "+err().typeRepr(preferredForFresh(c))+" is invalid."), err().tNameADisp(c.name()), decs.apply(c.name()).bs().get(index), c.ts().get(index), index, bounds, got);
+      case T.C c -> typeArgBounds(err().line("The type "+preferredForFresh(c)+" is invalid."), err().tNameADisp(c.name()), decs.apply(c.name()).bs().get(index), c.ts().get(index), index, bounds, got);
       case KindingTarget.CallKinding(var t, var c) -> typeNotWellKindedSig(t, c, index, bounds, got);
     };
     var span= toErr.span().inner.contained(target.span().inner) ? target.span().inner : toErr.span().inner;
