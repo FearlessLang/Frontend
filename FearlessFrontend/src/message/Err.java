@@ -52,7 +52,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
   private static TName bestName(inference.E.Literal l){ return !l.infName() ? l.name() : !l.cs().isEmpty() ? l.cs().getFirst().name() : l.t() instanceof inference.IT.RCC r ? r.c().name() : l.name(); }
   private boolean anonLit(Literal l){ return l.infName() && l.cs().isEmpty(); }
   private static final String anonRepr= "{...}";
-  String onTypeOrAnon(Literal l){ return anonLit(l) ? disp(anonRepr) : "object literal instance of "+disp(bestLitName(l)); }
+  String anonOrInstanceOf(Literal l){ return anonLit(l) ? disp(anonRepr) : "object literal instance of "+disp(bestLitName(l)); }
   String theTypeOrObjectLiteral(Literal l){ return anonLit(l) ? "object literal "+disp(anonRepr) : "type "+disp(bestLitName(l)); }
   String typeRepr(inference.IT t){ return t.isTV() ? typeRepr(true, TypeRename.itToT(t)) : disp(typeReprRaw(t)); }
   String typeReprRaw(inference.IT t){ return typeReprRaw(t, Integer.MAX_VALUE); }
