@@ -316,7 +316,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var site= why instanceof Change.DropMutInImm
       ? Stream.iterate(s, si -> !si.isTop(), TypeScope::outer).filter(si -> inferredRcOf(si, why.l())).findFirst()
       : Optional.<TypeScope>empty();
-    var ex= site.map(si -> e.ex(si.contextE(), si.contextE())).orElseGet(() -> e.ex(x));
+    var ex= site.map(si -> e.ex(si.contextE())).orElseGet(() -> e.ex(x));
     return addExpFrame(x, ex.addSpan(x.span().inner));
   }
   private static boolean inferredRcOf(TypeScope s, Literal l){
