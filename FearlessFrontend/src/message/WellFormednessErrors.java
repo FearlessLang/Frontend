@@ -559,7 +559,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException literalHeadNotInferred(E.Literal at, IT.C c, List<Integer> unknown, List<String> xs){
     var s= unknown.size() == 1 ? "" : "s";
     return wf(err()
-      .line("Type inference concluded that this object literal implements "+headRepr(at, c)+",")
+      .line("Type inference concluded that this object literal implements "+headRepr(c)+",")
       .line("but it could not infer generic type argument"+s+" "+Join.of(unknown.stream().map(i -> i+1), "", " and ", "", "")
         +" for generic type parameter"+s+" "+Join.of(unknown.stream().map(i -> disp(xs.get(i))), "", " and ", "", "")
         +" of "+err().tNameADisp(c.name())+"."), at);
@@ -599,7 +599,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line(up(err().expRepr(owner))+" implements "+w+" more than once.")
       .line("At most one "+w+" supertype is allowed, because it defines the preferred widened type.")
       .blank()
-      .bullets("Found the following "+w+" supertypes:", widen.stream().map(c -> headRepr(owner, c)).toList()), owner);
+      .bullets("Found the following "+w+" supertypes:", widen.stream().map(this::headRepr).toList()), owner);
   }
   public FearlessException duplicatedNamedLiteral(E.Literal owner, M m, E.Literal in){
     return wf(err()
@@ -645,7 +645,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException finalImplemented(E.Literal owner, M m, TName origin, IT.C claim){
     return wf(err()
       .line(up(err().expRepr(owner))+" implements method "+methodSig(m.sig().m().get())+".")
-      .line(err().tNameADisp(origin)+" implements "+headRepr(owner, claim)+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
+      .line(err().tNameADisp(origin)+" implements "+headRepr(claim)+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
       .line("thus "+err().expRepr(owner)+" cannot override any method named "+disp(m.sig().m().get().s())+"."), owner);
   }
   public FearlessException claimNotMain(E.Literal owner, TName claim){
@@ -681,13 +681,13 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException claimExtTwice(E.Literal owner, IT.C first, IT.C second, String ext){
     return wf(err()
       .line(up(err().expRepr(owner))+" claims the extension "+disp(ext)+" more than once:")
-      .line("both "+headRepr(owner, first)+" and "+headRepr(owner, second)+" claim it.")
+      .line("both "+headRepr(first)+" and "+headRepr(second)+" claim it.")
       .line("A main can claim each extension at most once,\nacross all its "+err().tNameADisp(LiteralDeclarations.claims.get(1))+" and "+err().tNameADisp(LiteralDeclarations.claims.get(3))+",\nsince one extension has one icon."), owner);
   }
   private String chooseOne(IT.C c){ return "or implement "+err().tNameADisp(LiteralDeclarations.claims.get(LiteralDeclarations.claims.indexOf(c.name())-1))+" to let the Fearless manager choose one"; }
   private Err implementing(E.Literal owner, TName t){ return err().line(up(err().expRepr(owner))+" implements "+err().tNameADisp(t)+"."); }
-  private Err implementing(E.Literal owner, IT.C c){ return err().line(up(err().expRepr(owner))+" implements "+headRepr(owner, c)+"."); }
-  private String headRepr(E.Literal owner, IT.C c){ return disp(err().typeReprRaw(new IT.RCC(Optional.empty(), c, owner.span()))); }
+  private Err implementing(E.Literal owner, IT.C c){ return err().line(up(err().expRepr(owner))+" implements "+headRepr(c)+"."); }
+  private String headRepr(IT.C c){ return disp(err().typeReprRaw(new IT.RCC(Optional.empty(), c, TSpan.fromPos(Pos.unknown)))); }
   public FearlessException extendedForeign(E owner, TName target, String kind){
     var targetPkg= target.pkgName();
     assert !pkgName.equals(targetPkg);
