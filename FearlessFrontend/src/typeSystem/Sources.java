@@ -16,7 +16,7 @@ import inject.TypeRename;
 import utils.OneOr;
 import utils.Push;
 
-final class Sources{
+public final class Sources{
 //l.cs() is already the fully flattened, fully substituted transitive ancestor set (Methods.expandDeclaration
 //builds it that way before type checking runs), so every ancestor's own-declared signatures are reachable
 //in one hop from l; recursing into each ancestor's own (already flattened) cs() would just revisit the same
@@ -27,7 +27,7 @@ final class Sources{
       var parentDef= ts.decs().apply(parent.name());
       for (var m : parentDef.ms()){
         if (!m.sig().origin().equals(parentDef.name())){ continue; }
-        var canonical= findCanonical(l, m.sig().m(), m.sig().rc());
+        var canonical= findCanonical(l, m.sig().m(), m.sig().rc()).get();
         sources.add(instantiate(m.sig(), parentDef.bs(), parent.ts(), canonical.bs()));
       }
     }
@@ -44,8 +44,8 @@ final class Sources{
       li.ms().stream().map(M::sig).filter(s -> s.origin().equals(li.name()))
     ).count();
   }
-  static Sig findCanonical(Literal l, MName name, RC rc){
-    return OneOr.of("Methods with duplicates or absent", l.ms().stream().map(M::sig).filter(s ->
+  public static Optional<Sig> findCanonical(Literal l, MName name, RC rc){
+    return OneOr.opt("Methods with duplicates", l.ms().stream().map(M::sig).filter(s ->
       s.m().equals(name) && s.rc() == rc));
   }
   private static Sig instantiate(Sig s, List<B> bs, List<T> ts, List<B> canonical){

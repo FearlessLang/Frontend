@@ -29,7 +29,7 @@ public final class MapDirectiveTest extends testUtils.FearlessTestBase{
   static void ok(Map<String,String> pkgs, Map<String,String> map, String bSrc){
     var o= oraclePkg(List.of(bSrc));
     var other= others(pkgs);
-    var res= okOrPrint(o, () -> new FrontendLogicMain().of("b", writtenIn(map), o.allFiles(), other));
+    var res= printError(() -> new FrontendLogicMain().of("b", writtenIn(map), o.allFiles(), other), o);
     if (!checkCompact){ return; }
     coreCmp(lines(res), compact.Print.lines(compactB(pkgs, map, o)));
   }
@@ -48,7 +48,7 @@ public final class MapDirectiveTest extends testUtils.FearlessTestBase{
     return rankMaps(b.build());
   }
   static Map<String,String> rankMaps(tools.SourceOracle o){
-    var ranks= new java.util.HashMap<String,tools.SourceOracle.Ref>();
+    var ranks= new java.util.LinkedHashMap<String,tools.SourceOracle.Ref>();
     for (var r : o.allFiles()){ ranks.put(r.fearPath().split("/")[1].substring(1), r); }
     var res= new FrontendLogicMain().parseRankFiles(ranks, java.util.Comparator.comparing(r -> r.fearPath().endsWith("_rank_app.fear")));
     return res.getOrDefault("b", Map.of());
@@ -59,7 +59,7 @@ public final class MapDirectiveTest extends testUtils.FearlessTestBase{
     for (var e : pkgs.entrySet()){ compactAll(e.getKey(), oraclePkg(List.of(e.getValue())), base).stream().flatMap(MapDirectiveTest::compactAllLs).forEach(other::add); }
     return compactAll("b", map, o, other);
   }
-  @Test void typingContextShowsSupertypeWrittenThroughAMap(){ fail("""
+  @Test void inheritedSignatureShowsSupertypeWrittenThroughAMap(){ fail("""
 In file: [###].fear
 
 001| B:a.A{ .fromC -> base.Void }
@@ -102,6 +102,42 @@ Source code inside folders named "_b" uses package name "a"
 to refer to the code inside folders named "_c",
 because of "map a as _c in _b instead of _e, _d", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", fe.render(o));
+  }
+  @Test void mapConflictListsTwelveMapsAndCountsTheOthers(){
+    var b= tools.SourceOracle.debugBuilder().putURI(java.net.URI.create("fear:/_b/_rank_app.fear"), "");
+    for (var i= 10; i <= 23; i++){ b = b.putURI(java.net.URI.create("fear:/_p"+i+"/_rank_worker.fear"), "map a as _p"+i+" in _b;"); }
+    var ranks= b.build();
+    var fe= assertThrows(FearlessException.class, () -> rankMaps(ranks));
+    strCmp("""
+Maps of the same rank give package name "a" different folders,
+for source code inside folders named "_b":
+- "map a as _p10 in _b;"; written in fear:/_p10/_rank_worker.fear
+- "map a as _p11 in _b;"; written in fear:/_p11/_rank_worker.fear
+- "map a as _p12 in _b;"; written in fear:/_p12/_rank_worker.fear
+- "map a as _p13 in _b;"; written in fear:/_p13/_rank_worker.fear
+- "map a as _p14 in _b;"; written in fear:/_p14/_rank_worker.fear
+- "map a as _p15 in _b;"; written in fear:/_p15/_rank_worker.fear
+- "map a as _p16 in _b;"; written in fear:/_p16/_rank_worker.fear
+- "map a as _p17 in _b;"; written in fear:/_p17/_rank_worker.fear
+- "map a as _p18 in _b;"; written in fear:/_p18/_rank_worker.fear
+- "map a as _p19 in _b;"; written in fear:/_p19/_rank_worker.fear
+- "map a as _p20 in _b;"; written in fear:/_p20/_rank_worker.fear
+- "map a as _p21 in _b;"; written in fear:/_p21/_rank_worker.fear
+- ... (2 more)
+
+How maps work:
+- A rank file can have lines like "map name as _folder in _target;".
+- With no map, package name "x" refers to the code inside folders named "_x".
+- A map in a rank file of higher rank overrides the maps of lower rank,
+  and lists their folders with "instead of".
+
+How to fix it:
+- Decide which folder package name "a" refers to,
+  for source code inside folders named "_b".
+- Add one map in a rank file of higher rank
+  (typically the rank file of your application),
+  with "instead of" listing every folder chosen by the maps of lower rank.
+Error 7 WellFormedness""", fe.render(ranks));
   }
   @Test void typeErrorWritesTheMappedName(){ fail("""
 In file: [###].fear
@@ -487,10 +523,9 @@ use base.Destruct as D;
 B:{ .m({.x, .y}:P):P -> x }
 """); }
   @Test void destructuringInsideBase(){
-    var b= tools.SourceOracle.debugBuilder();
-    DbgBlock.dbgMiniBase().allFiles().forEach(r -> b.putURI(r.fearURI(), r.loadString()));
-    var o= b.put("baseExtra.fear", "Pq:{ .x:Pq->this; .y:Pq->this; }\nUsesDestruct:{ .m({.x, .y}:Pq):Pq -> y }\n").build();
-    var res= okOrPrint(o, () -> new FrontendLogicMain().of("base", Map.of(), o.allFiles(), OtherPackages.empty()));
+    var extra= tools.SourceOracle.debugBuilder().put("baseExtra.fear", "Pq:{ .x:Pq->this; .y:Pq->this; }\nUsesDestruct:{ .m({.x, .y}:Pq):Pq -> y }\n").build();
+    var o= DbgBlock.dbgMiniBase().withFallback(extra);
+    var res= printError(() -> new FrontendLogicMain().of("base", Map.of(), o.allFiles(), OtherPackages.empty()), extra);
     if (!checkCompact){ return; }
     coreCmp(lines(res), compact.Print.lines(compactAll("base", o, List.of())));
   }
@@ -2655,7 +2690,7 @@ Error 7 WellFormedness
 """, Map.of("c", "P:{} Cu:{} Forge:{ #(x:Cu):P -> P }"), mapABb, """
 MyId:bb.BaseId[a.Cu,a.P], a.Forge{}
 """); }
-  @Test void sweepFileLogWithoutFileNameThroughAMap(){ fail("""
+  @Test void sweepFileLogWithAnUnderscoreBeforeALowercaseLetterThroughAMap(){ fail("""
 In file: [###].fear
 
 001| Foo_bar:bb.FileLog{ .name -> bb.Nope! }
@@ -2677,7 +2712,7 @@ Error 7 WellFormedness
 """, Map.of(), mapBb, """
 Foo_bar:bb.FileLog{ .name -> bb.Nope! }
 """); }
-  @Test void sweepFileLogFileNameNotAllowedThroughAMap(){ fail("""
+  @Test void sweepFileLogWithAReservedDeviceNameThroughAMap(){ fail("""
 In file: [###].fear
 
 001| Con:bb.FileLog{ .name -> bb.Nope! }

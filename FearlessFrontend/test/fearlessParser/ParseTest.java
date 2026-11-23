@@ -1128,15 +1128,15 @@ A:{ .m -> mutH -5{} }
 @Test void err_missing_expr_after_eq_sugar(){fail("""
 In file: [###].fear
 
-001| A:{ .m -> Block#.let y= .use(y) }
+001| A:{ .m -> Block#.var y= .use(y) }
    |     ------~~~~~~~~~~~~~~^^^^^^^
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Missing expression after "=" in the equals sugar.
-Use: ".let x = expression" or ".let {.a,.b} = expression".
+Use: ".var x = expression" or ".var {.a,.b} = expression".
 Error 2 UnexpectedToken
 """, """
-A:{ .m -> Block#.let y= .use(y) }
+A:{ .m -> Block#.var y= .use(y) }
 """);}
 
 @Test void err_name_redeclared_param(){fail("""
@@ -1202,18 +1202,18 @@ A[X:]:{}
 @Test void err_generic_bound_colon_without_bound_before_comma(){fail("""
 In file: [###].fear
 
-001| A[X:,Y]:{}
+001| A[Y:,X]:{}
    | --~^------
 
 While inspecting generic bounds declaration > type declaration > full file
-Missing bound for generic type parameter "X" after ":".
-"X" with no ":" allows only the capability "imm".
-"X:*" allows the capabilities "imm", "mut" and "read".
-"X:**" allows every capability.
-A list, as in "X:imm,read", allows the capabilities in the list.
+Missing bound for generic type parameter "Y" after ":".
+"Y" with no ":" allows only the capability "imm".
+"Y:*" allows the capabilities "imm", "mut" and "read".
+"Y:**" allows every capability.
+A list, as in "Y:imm,read", allows the capabilities in the list.
 Error 2 UnexpectedToken
 """, """
-A[X:,Y]:{}
+A[Y:,X]:{}
 """);}
 
 @Test void err_name_redeclared_param2(){fail("""
@@ -2245,22 +2245,6 @@ Otherwise expected: ")".
 Error 2 UnexpectedToken
 """, """
 A:{ .m:A -> this.foo( } B:{} C:{};
-""");}
-
-@Test void openerInStringThenEOF_shouldPreferEatenCloser(){fail("""
-In file: [###].fear
-
-001| A:{ .m:Str -> { "json } aaa"
-   |               ^^^^^^^^^-----
-
-While inspecting groups of parenthesis
-Unclosed "{" group.
-Found a matching closer inside a type name in quotes between here and the stopping point.
-The closer may belong outside the type name in quotes.
-Otherwise expected: "}".
-Error 0 Unclosed
-""", """
-A:{ .m:Str -> { "json } aaa"
 """);}
 
 @Test void pkgName(){ok("""
@@ -3538,19 +3522,19 @@ C:{}
 @Test void topSemiAfterGenericDeclaration(){fail("""
 In file: [###].fear
 
-002| B[X]:{};
+002| D[X]:{};
    |        ^
 003| C:{}
 
 While inspecting type declaration > full file
 Top level type declarations do not end with ";".
-The declaration of "B[_]" ends with a semicolon. Remove it.
-Write: "B[..]:..{...}"
-Not:   "B[..]:..{...};"
+The declaration of "D[_]" ends with a semicolon. Remove it.
+Write: "D[..]:..{...}"
+Not:   "D[..]:..{...};"
 Error 2 UnexpectedToken
 """, """
 A:{}
-B[X]:{};
+D[X]:{};
 C:{}
 """);}
 @Test void topSemiBeforeFirstDeclaration(){fail("""

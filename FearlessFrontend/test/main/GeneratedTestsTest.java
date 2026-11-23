@@ -34,7 +34,7 @@ S:base.Sealed{ .s: S -> this }
   static String names(List<Literal> core){ return Join.of(AllLs.of(core).keySet().stream().map(TName::s).sorted(), "", "\n", "\n", ""); }
   static void ok(String expected, String tests){
     var o= oraclePkg(List.of(pkg)).withFallback(tests(tests));
-    strCmp(expected, names(okOrPrint(o, () -> compile(tests))));
+    strCmp(expected, names(printError(() -> compile(tests), o)));
   }
   static void fail(String expected, String tests){
     var o= oraclePkg(List.of(pkg)).withFallback(tests(tests));

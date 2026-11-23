@@ -7,8 +7,6 @@ import core.OtherPackages;
 import tools.SourceOracle;
 
 public final class DbgBlock{
-  static OtherPackages err(){ return FearlessTestBase.otherErr(); }
-
   public static List<E.Literal> all(){ return all; }
 
   public static SourceOracle dbgMiniBase(){
@@ -352,5 +350,5 @@ OptMatch[E:*,R:**]: {
   mut .empty: R;
   }
 """;
-  static final List<E.Literal> all= FearlessTestBase.compileAll("base", dbgMiniBase(), err());
+  static final List<E.Literal> all= FearlessTestBase.compileAll("base", dbgMiniBase(), OtherPackages.empty());
 }

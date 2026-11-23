@@ -13,9 +13,10 @@ public sealed interface Change{
   private static Change tailOr(WithT tail, T newT, Function<T,Change> make){ return newT.equals(tail.currentT()) ? tail : make.apply(newT); }
   static Change keepStrengthenToImm(Literal l, M m, WithT tail){ return tailOr(tail, tail.currentT().withRC(imm), t -> new KeepStrengthenToImm(l, m, t, tail)); }
   static Change keepSetToReadImm(Literal l, M m, WithT tail){ return tailOr(tail, tail.currentT().readImm(), t -> new KeepSetToReadImm(l, m, t, tail)); }
+  sealed interface Keep extends WithT{ M m(); WithT tail(); }
   record Same(T currentT) implements WithT{}
-  record KeepStrengthenToImm(Literal l, M m, T currentT, WithT tail) implements WithT{}
-  record KeepSetToReadImm(Literal l, M m, T currentT, WithT tail) implements WithT{}
+  record KeepStrengthenToImm(Literal l, M m, T currentT, WithT tail) implements Keep{}
+  record KeepSetToReadImm(Literal l, M m, T currentT, WithT tail) implements Keep{}
   sealed interface NoT extends Change{ Literal l(); T atDrop(); }
   record DropMutInImm(Literal l, T atDrop) implements NoT{}
   record DropReadHMutH(Literal l, T atDrop) implements NoT{}

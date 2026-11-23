@@ -70,7 +70,7 @@ public class FrontendLogicMain{
     var pkgs= Push.of(List.copyOf(ranks.keySet()), "base");
     var parsed= parseFiles(List.copyOf(ranks.values()));
     record Cand(Ref uri, FileFull.Map m){
-      @Override public String toString(){ return "- \""+m+";\"; written in "+writtenIn(uri); }
+      @Override public String toString(){ return "\""+m+";\"; written in "+writtenIn(uri); }
     }
     var byKey= parsed.entrySet().stream()
       .flatMap(e -> e.getValue().maps().stream().map(m -> new Cand(e.getKey(), m)))
@@ -109,7 +109,7 @@ public class FrontendLogicMain{
       var p= u.in().pkgName();
       var other= ranks.get(p);
       var allowed= p.equals(pkg) || other == null || c.compare(other, ranks.get(pkg)) < 0;
-      if (!allowed){ throw new WellFormednessErrors(pkg).useOfNotLowerRank(u.in(), p, ranks.get(pkg), other, c.compare(other, ranks.get(pkg)) == 0); }
+      if (!allowed){ throw new WellFormednessErrors(pkg).useOfNotLowerRank(u.in(), ranks.get(pkg), other, c.compare(other, ranks.get(pkg)) == 0); }
     }
   }
   Map<Ref,FileFull> parseFiles(List<Ref> files){
@@ -154,8 +154,11 @@ public class FrontendLogicMain{
   private void accUses(WellFormednessErrors err, HashMap<String,String> map, List<FileFull.Use> uses, OtherPackages other){
     var otherDom= other.dom();
     for (var u : uses){
-      if (u.in().pkgName().isEmpty()){ throw err.useNotFullyQualified(u, otherDom.stream().filter(e -> e.simpleName().equals(u.in().s())).map(e -> Package.writtenPkg(map, e.pkgName())).distinct().sorted().toList()); }
-      if (map.containsValue(u.in().pkgName())){ throw err.useOfAMapTarget(u.in(), WellFormednessErrors.written(map).get(u.in().pkgName()), Package.visible(map, otherDom)); }
+      if (u.in().pkgName().isEmpty()){
+        var sameName= otherDom.stream().filter(e -> e.simpleName().equals(u.in().s())).toList();
+        throw err.useNotFullyQualified(u, Package.visible(map, sameName));
+      }
+      if (map.containsValue(u.in().pkgName())){ throw err.useOfAMapTarget(u.in(), WellFormednessErrors.inverse(map).get(u.in().pkgName()), Package.visible(map, otherDom)); }
       var p= map.getOrDefault(u.in().pkgName(), u.in().pkgName());
       if (p.equals(err.pkgName())){ throw err.useOfTheCurrentPackage(u.in()); }
       var in= p+"."+u.in().simpleName();

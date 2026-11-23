@@ -18,7 +18,6 @@ import compact.Frontend;
 import compact.Print;
 import compact.Frontend.Fail;
 import core.OtherPackages;
-import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.ToString;
 import fearlessParser.Parse;
 import inject.Methods;
@@ -84,20 +83,11 @@ public abstract class FearlessTestBase{
       () -> Parse.from(SourceOracle.defaultDbgFearPath(0), input));
     strCmp(expectedErr, fe.render(o));
   }
-  protected static Methods parsePackage(String pkgName, SourceOracle o, OtherPackages other, boolean infer){
-    return new InferenceMain().ofMethods(pkgName, o.allFiles(), o, other, infer);
-  }
   protected static Methods parsePackage(String pkgName, SourceOracle o, boolean infer){
-    return parsePackage(pkgName, o, otherFrom(DbgBlock.all()), infer);
+    return new InferenceMain().ofMethods(pkgName, o.allFiles(), o, otherFrom(DbgBlock.all()), infer);
   }
   protected static void toStringOk(String expected, String input){
-    FileFull res;
-    try{ res= Parse.from(SourceOracle.defaultDbgFearPath(0), input); }
-    catch (FearlessException fe){
-      var o= SourceOracle.debugBuilder().put(0, input).build();
-      System.out.println(fe.render(o));
-      throw fe;
-    }
+    var res= printError(() -> Parse.from(SourceOracle.defaultDbgFearPath(0), input), oraclePkg(List.of(input)));
     var got= Join.of(
       res.decs().stream().map(ToString::declaration),
       "",
@@ -159,20 +149,15 @@ public abstract class FearlessTestBase{
   protected static void typeFail(String expected, List<String> input){
     typeFailRaw("In file: [###].fear\n\n"+expected+"Error 8 TypeError", input);
   }
-  protected static OtherPackages otherErr(){ return OtherPackages.empty(); }
+  protected static void failWf(String expected, List<String> input){
+    typeFailRaw("In file: [###].fear\n\n"+expected+"Error 7 WellFormedness", input);
+  }
+  protected static void failParse(String expected, List<String> input){
+    typeFailRaw("In file: [###].fear\n\n"+expected+"Error 2 UnexpectedToken", input);
+  }
 
   protected static OtherPackages otherFrom(List<core.E.Literal> ds){ return OtherPackages.start(Map.of(), ds, -1); }
   protected static List<core.E.Literal> compileAll(String pkgName, SourceOracle o, OtherPackages other){
     return new FrontendLogicMain().of(pkgName, Map.of(), o.allFiles(), other);
-  }
-  protected static <T> T okOrPrint(SourceOracle o, Supplier<T> run){
-    try{ return run.get(); }
-    catch (FearlessException fe){
-      System.out.println(fe.render(o));
-      throw fe;
-    }
-  }
-  protected static void okOrPrint(SourceOracle o, Runnable run){
-    okOrPrint(o, () -> { run.run(); return null; });
   }
 }

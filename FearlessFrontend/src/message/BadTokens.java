@@ -24,8 +24,8 @@ public final class BadTokens{
       .put(Ws,           (_,_,_) -> Stream.of())
       .put(LineComment,  (_,_,_) -> Stream.of())
       .put(BlockComment, (_,_,_) -> Stream.of())
-      .put(BadUStrUnclosed, (idx, t, tz) -> frontOrBack(idx, t, tz, '\"'))
-      .put(BadSStrUnclosed, (idx, t, tz) -> frontOrBack(idx, t, tz, '`'))
+      .put(BadUStrUnclosed, (idx, t, tz) -> unclosedQuote(idx, t, tz, '\"'))
+      .put(BadSStrUnclosed, (idx, t, tz) -> unclosedQuote(idx, t, tz, '`'))
       .put(BadUnclosedBlockComment, (_, t, tz) -> badBlockComment(tz, t))
       .put(BadUnopenedBlockCommentClose, BadTokens::strayBlockCommentCloser)
       .put(OSquareArg, BadTokens::squareAfterLiteral)
@@ -81,35 +81,28 @@ This character can only appear inside comments and inside type names in quotes, 
     var h= hit.get();
     var s= h.span(file);
     assert s.isSingleLine();
-    var line= s.startLine();
-    var index= h.content().indexOf("/*");
-    var primary= new Span(file, line, s.startCol()+index, base.endLine(), base.endCol());
-    var where= "inside a"+describeFree(h);
-    throw Code.UnexpectedToken.of(
-      "Unopened block comment close \"*/\".\n"
-    +"Found a \"/*\" "+where+" before this point.\n"
-    +"The opener may belong outside the"+describeFree(h)+".")
+    var primary= new Span(file, s.startLine(), s.startCol()+h.content().indexOf("/*"), base.endLine(), base.endCol());
+    throw Code.UnexpectedToken.of("Unopened block comment close \"*/\".\n"+foundInside(h, "a \"/*\"", "before this point", "opener"))
       .addFrame("comments", primary);
   }
   private static Stream<Token> squareAfterLiteral(int idx, Token t, Tokenizer tz){
     var lit= tz.allTokens().get(idx - 1);
     var afterLiteral= lit.is(SStr, UStr, SignedInt, UnsignedInt, SignedFloat, UnSignedFloat);
     if (!afterLiteral){ return Stream.of(t); }
-    var file= tz.fileName();
-    var s= lit.span(file);
     var name= disp(lit.content());
     throw Code.UnexpectedToken.of(
       "Type "+name+" takes no generic type arguments.\n"
     +"Remove the \"[...]\" after "+name+".")
-      .addFrame("a type name", new Span(file, s.startLine(), s.startCol(), t.line(), t.span(file).endCol()));
+      .addFrame("a type name", metaParser.Token.makeSpan(tz.fileName(), lit, t));
   }
-  public static String describeFree(Token t){
-    return switch (t.kind()){
+  static String foundInside(Token hiddenContainer, String found, String position, String which){
+    var container= switch (hiddenContainer.kind()){
       case LineComment -> " line comment \"//\"";
       case BlockComment -> " block comment \"/* ... */\"";
       case UStr, SStr   -> " type name in quotes";
-      default -> throw Bug.of(t.toString());
+      default -> throw Bug.of(hiddenContainer.toString());
     };
+    return "Found "+found+" inside a"+container+" "+position+".\nThe "+which+" may belong outside the"+container+".";
   }
 
   private static Optional<Token> findPseudoOpenerBefore(int idx, Tokenizer tz){
@@ -134,34 +127,26 @@ This character can only appear inside comments and inside type names in quotes, 
       .of("Unterminated block comment. Add \"*/\" to close it.")
       .addFrame("a block comment", s);
   }
-  private static Stream<Token> frontOrBack(int idx, Token t, Tokenizer tz, int quoteChar){
+  private static Stream<Token> unclosedQuote(int idx, Token t, Tokenizer tz, int quoteChar){
     var file= tz.fileName();
-    var text= t.content();
     var b= t.span(file);
     assert b.isSingleLine();
     //If '//' or '/*' is inside the bad string, trim span to stop before it.
-    var openSL= text.indexOf("//");
-    var openML= text.indexOf("/*");
-    var idxComment= openSL == -1 ? openML : openML == -1 ? openSL : Math.min(openSL, openML);
-    if (idxComment != -1){
-      var after= new Span(file, b.startLine(), b.startCol(), b.endLine(), b.startCol() + idxComment);
+    var comment= Pattern.compile("//|/\\*").matcher(t.content());
+    if (comment.find()){
+      var after= new Span(file, b.startLine(), b.startCol(), b.endLine(), b.startCol() + comment.start());
       throw strErr(after, quoteChar, "A comment opening sign is present later on this line;\nthe quote may be meant to close before it.");
     }
     var all= tz.allTokens();
     var j= idx - 1;
     while (j > 0 && !all.get(j).is(BlockComment)){ j -= 1; }
     var prev= all.get(j);
-    if (!prev.is(BlockComment)){ throw strErr(b, quoteChar, ""); }
-    var s= prev.span(file);
-    if (s.endLine() != t.line()){ throw strErr(b, quoteChar, ""); }
     var quote= prev.content().lastIndexOf(quoteChar);
-    var nl= prev.content().lastIndexOf('\n');
-    var swallowedByComment= quote != -1 && quote > nl;
+    var swallowedByComment= prev.is(BlockComment) && prev.span(file).endLine() == t.line() && quote > prev.content().lastIndexOf('\n');
     if (!swallowedByComment){ throw strErr(b, quoteChar, ""); }
-    var line= b.endLine();
     var endCol= b.startCol()+1;//invert the caret
-    var startCol= s.endCol()-(prev.content().length()-quote);
-    var before= new Span(file, line, startCol, line, endCol);
+    var startCol= prev.span(file).endCol()-(prev.content().length()-quote);
+    var before= new Span(file, t.line(), startCol, t.line(), endCol);
     throw strErr(before, quoteChar, "A preceding block comment \"/* ... */\" on this line contains that quote.\nThat block comment may hold the intended opening quote.");
   }
 }

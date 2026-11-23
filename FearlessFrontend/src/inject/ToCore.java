@@ -15,6 +15,7 @@ import core.TSpan;
 import inference.Gamma;
 import inference.IT;
 import offensiveUtils.EqTransparent;
+import typeSystem.Sources;
 import typeSystem.TypeScope;
 import utils.Bug;
 import utils.OneOr;
@@ -45,7 +46,7 @@ public record ToCore(List<B> ctx, Methods meths, TypeScope scope){
     var bs= !e.infName() ? e.bs() : Streams.of(B.xs(e.bs()).stream(), free.ftvCs(e.cs()), free.ftvMs(e.ms()), free.ftvMs(o.ms())).distinct().map(x -> B.get(ctx, x)).toList();
     assert !e.infName() || B.xs(ctx).containsAll(B.xs(bs));
     var name= e.name().withArity(bs.size());
-    var inner= new ToCore(e.infName() ? Push.of(ctx, bs).stream().distinct().toList() : bs, meths, e.infName() ? scope : TypeScope.top());
+    var inner= new ToCore(e.infName() ? Push.of(ctx, bs).stream().distinct().toList() : bs, meths, scope);
     if (!(e.t() instanceof IT.RCC) && !e.t().undecided()){ throw meths.p().err().literalImplementsTypeParameter(e, e.t(), scope, meths::_from); }
     var csIT= distinctTypes(inner.ctx(), Push.of(o.cs(), e.cs()));
     for (var c : csIT){ checkHead(e, c); }
@@ -82,13 +83,12 @@ public record ToCore(List<B> ctx, Methods meths, TypeScope scope){
   private IT targ(inference.E.Call e, List<IT> targs, int i){
     var t= targs.get(i);
     if (t.isTV()){ return t; }
-    var b= methodSig(e).bs().get(i);
+    var b= Sources.findCanonical(meths.from(((IT.RCC)e.e().t()).c().name()), e.name(), e.rc().get()).get().bs().get(i);
     var amb= ambs(t).findFirst();
     if (amb.isEmpty()){ return fillVoid(t, b); }
     var cs= amb.get().candidates().stream().map(c -> replace(t, amb.get(), c)).toList();
-    var common= t instanceof IT.Amb ? withinBound(meths.commonSupertypes(cs), b) : List.<IT.RCC>of();
-    var err= meths.p().err();
-    throw err.typeArgAmbiguous(e, b.x(), cs, common, err.callWithTargs(e, targs, i), meths::_from);
+    var common= t instanceof IT.Amb ? meths.commonSupertypes(cs) : List.<IT.RCC>of();
+    throw meths.p().err().typeArgAmbiguous(e, b, targs, i, cs, common, meths::_from);
   }
   private static Stream<IT.Amb> ambs(IT t){ return switch (t){
     case IT.Amb a -> Stream.of(a);
@@ -107,21 +107,15 @@ public record ToCore(List<B> ctx, Methods meths, TypeScope scope){
     case IT.Amb _ -> throw Bug.unreachable();
     default -> t;
   };}
-  private core.Sig methodSig(inference.E.Call e){
-    var d= meths.from(((IT.RCC)e.e().t()).c().name());
-    return OneOr.of("Method of a call with inferred type arguments", d.ms().stream().map(core.M::sig).filter(s -> s.m().equals(e.name()) && s.rc() == e.rc().get()));
-  }
   private void checkHead(inference.E.Literal e, IT.C c){
     var unknown= IntStream.range(0, c.ts().size()).filter(i -> !c.ts().get(i).isTV()).boxed().toList();
     if (unknown.isEmpty()){ return; }
     calls(e).forEach(this::targs);
     var bs= meths.from(c.name()).bs();
-    var xs= B.xs(bs);
     var head= e.t() instanceof IT.RCC t && t.c().name().equals(c.name()) ? t.c() : c;
-    for (int i : unknown){ if (head.ts().get(i) instanceof IT.Amb(var cs)){ throw meths.p().err().literalHeadAmbiguous(e, head, i, xs.get(i), cs, withinBound(meths.commonSupertypes(cs), bs.get(i)), meths::_from); } }
-    throw meths.p().err().literalHeadNotInferred(e, c, unknown, xs);
+    for (int i : unknown){ if (head.ts().get(i) instanceof IT.Amb(var cs)){ throw meths.p().err().literalHeadAmbiguous(e, bs.get(i), head, i, cs, meths.commonSupertypes(cs), meths::_from); } }
+    throw meths.p().err().literalHeadNotInferred(e, c, unknown, bs);
   }
-  private static List<IT.RCC> withinBound(List<IT.RCC> ts, B b){ return ts.stream().filter(t -> t.rc().map(b.rcs()::contains).orElse(true)).toList(); }
   private void targs(inference.E.Call c){ IntStream.range(0, c.targs().size()).forEach(i -> targ(c, c.targs(), i)); }
   private static Stream<inference.E.Call> calls(inference.E e){ return switch (e){
     case inference.E.Call c -> Streams.of(calls(c.e()), Stream.of(c), c.es().stream().flatMap(ToCore::calls));

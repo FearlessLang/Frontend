@@ -141,8 +141,8 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     checkNewXs(xs);
     if (xpat.isPresent() && xpat.get() instanceof XPat.Destruct d && xs.size() > 31){ throw errFactory().eqSugarPatternTooManyNames(span(), d); }
     names = names.add(xs, List.of());//zero if xpat is empty
-    if (xpat.isPresent() && end()){ throw errFactory().missingCallAfterEq(m, xpat.get(), xs, atom.span().inner); }
-    if (xpat.isPresent()){ atom = parsePost(atom); while (!end()){ atom = parsePost(atom); } }
+    if (xpat.isPresent() && end()){ throw errFactory().missingCallAfterEq(m, xpat.get(), atom.span().inner); }
+    while (xpat.isPresent() && !end()){ atom = parsePost(atom); }
     return new E.Call(receiver, m.withArity(xpat.isPresent() ? 2 : 1), sq, empty(), xpat, List.of(atom), pos);//note: arity 2 is special case for = sugar
   }
   boolean eqSugar(){
@@ -252,7 +252,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   }
   M parseMethod(boolean top){
     var res= parseMethodAux(top);
-    expectEnd("semicolon or closing curly brace", SemiColon, CCurly);
+    expectEnd(SemiColon, CCurly);
     return res;
   }
   M parseMethodWithSig(Sig sig){
@@ -328,7 +328,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   Parameter parseParameter(){
     var x= parseIf(peek(LowercaseId, Underscore, _CurlyGroup), this::parseXPat);
     var p= new Parameter(x, x.isPresent() ? parseOptT() : of(parseT()));
-    expectEnd("comma, colon or arrow", Comma, Colon, Arrow);
+    expectEnd(Comma, Colon, Arrow);
     return p;
   }
   List<B> parseBs(boolean mustNew, String owner){
@@ -366,18 +366,13 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     if (peek(SemiColon)){ throw errFactory().topLevelSemicolon(span(peek().get()).get()); }
     if (peekIf(Token::isTypeName)){ return; }
     var t= peek().get();
-    if (!isProbablyTopLevelNonDecl(t)){ return; }
-    throw errFactory().topLevelNotATypeDeclaration(span(t).get(), t);
-  }
-  private static boolean isProbablyTopLevelNonDecl(Token t){
-    return t.is(
+    var probablyNonDecl= t.is(
       RCap, DotName, Op,                 // method sig starters
       _RoundGroup, _CurlyGroup, _SquareGroup, // inferred-name sig / patterns / grouped expr
       LowercaseId, Underscore,          // x->e, e, patterns
-      ColonColon,                      // :: / ::.foo
-      SStr, UStr,
-      SignedInt, SignedFloat, UnSignedFloat, UnsignedInt
+      ColonColon                       // :: / ::.foo
     );
+    if (probablyNonDecl){ throw errFactory().topLevelNotATypeDeclaration(span(t).get(), t); }
   }
   Declaration parseDeclaration(boolean top){
     if (top){ checkCommonTopLevelIssues(); }
@@ -445,7 +440,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   record HeadAcc(ArrayList<FileFull.Map> map, ArrayList<FileFull.Use> use){
     HeadAcc(){ this(new ArrayList<>(), new ArrayList<>()); }
   }
-  Void endHE(){ expectEnd("semicolon", SemiColon); return null; }
+  Void endHE(){ expectEnd(SemiColon); return null; }
   Void parseHeaderElement(HeadAcc acc){
     if (fwdIf(peekValidate(_map))){ parseMap(acc); return endHE(); }
     if (fwdIf(peekValidate(_use))){ parseUse(acc); return endHE(); }
@@ -514,9 +509,9 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var simple= peek(LowercaseId, _RoundGroup, ColonColon, _CurlyGroup);
     if (fwdIf(simple)){ return; }
     fwdIf(peek(RCap));
-    fwdIf(peekOrder(Token::isTypeName));
+    fwdIf(peekIf(Token::isTypeName));
     fwdIf(peek(_SquareGroup));
-    if (fwdIf(peek(Colon))){ while (fwdIf(peek(UppercaseId, SignedFloat, UnSignedFloat, SignedInt, UnsignedInt, SStr, UStr, Comma, _SquareGroup))){} }
+    if (fwdIf(peek(Colon))){ while (fwdIf(peekIf(t -> t.isTypeName() || t.is(Comma, _SquareGroup)))){} }
     fwdIf(peek(_CurlyGroup));
   }
   interface Cut extends NextCut<Parser>{}

@@ -21,7 +21,7 @@ public sealed interface E{
     case Call c -> Stream.concat(Stream.of(c.e()), c.es().stream());
   };}
   record X(String name, Src src) implements E{
-    public X{ assert nonNull(src); assert name.equals("-") || validate(name, "parameter name", LowercaseId); }
+    public X{ assert nonNull(src); assert validate(name, "parameter name", LowercaseId); }
     @Override public String toString(){ return name; }
   }
   record Type(T.RCC type, Src src) implements E{

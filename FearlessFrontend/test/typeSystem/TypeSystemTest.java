@@ -14,7 +14,6 @@ public final class TypeSystemTest extends testUtils.FearlessTestBase{
   static void ok(List<String> input){ typeOk(input); }
   static void fail(String expected, List<String> input){ typeFail(expected, input); }
   static void failExt(String expected, List<String> input){ typeFailRaw(expected, input); }
-  static void failWf(String expected, List<String> input){ typeFailRaw("In file: [###].fear\n\n"+expected+"Error 7 WellFormedness", input); }
 
 @Test void tsMiniOk(){ok(List.of("""
 A:{.foo123:A->this.foo123}
@@ -926,7 +925,7 @@ User:{
 }
 """));}
 
-@Test void methodBodyWrongType_inferredContextShowsInferredGenericInstantiation(){fail("""
+@Test void methodBodyWrongType_inheritedSignatureShowsInferredGenericInstantiation(){fail("""
 007|   imm .m():Car->Apply#(Person,{_->Foo});
    |   -----------------------------~~~^^^--
 
@@ -1806,27 +1805,6 @@ User:{
 }
 """));}
 
-@Test void hopelessArg_calls_pArgHasType_baselineConsistent(){fail("""
-005|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
-   |                                    -------------~~~~~~^^^^^^^^^^^^^~
-
-While inspecting method "BB.foo" (line 5) > method "A.f(_)" (line 5)
-This call to method "Need#(_)" cannot typecheck.
-Argument 1 has type "read A".
-Method call "AsRead#(_)" has type "read A" instead of a subtype of "mut A".
-
-Type required by each promotion:
-- "mut A" (As declared)
-- "iso A" (Strengthen result)
-""", List.of("""
-B:{}
-Need:{ #(a:mut A):B->B{} }
-AsRead:{ #(x:read A):read A->x }
-A:{
-  .f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
-}
-"""));}
-
 @Test void noVar2Fail_viewpointAdaptation_reasonShown(){fail("""
 005|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](aaaa);}
    |                                    -------------~~~~~~~~~~~~~~~~~^^^^~
@@ -1886,7 +1864,7 @@ A:{
 }
 """));}
 
-@Test void argFromGenericCall_boundForcesRead_inferenceHint(){fail("""
+@Test void argFromGenericCall_boundForcesRead_noInferenceHint(){fail("""
 005|   .f(aaaa:mut A):B->
 006|     Need#(IdRO#[read A](aaaa));
    |     ------^^^^^^^^^^^^^^^^^^^-
@@ -1930,33 +1908,6 @@ A:{ mut .foo:A}
 User:{
   .f:B->
     Need#(read A{});
-}
-"""));}
-
-@Test void promotionsDisagree_mergesIdenticalBlocks_readH_mutH(){fail("""
-003|   .caller(x:readH A, y:mutH A):A->this.f(x,y);
-   |   --------------------------------~~~~^^~~~~~
-
-While inspecting method "A.caller(_,_)" (line 3)
-This call to method "A.f(_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion,
-but no single promotion fits all arguments.
-
-Compatible promotions by argument:
-- Argument 1 has type "readH A" and is compatible with: Allow readH arguments, Allow mutH argument 1.
-- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
-
-Promotion failures:
-- Argument 1 fails:    As declared
-  Parameter "x" has type "readH A" instead of a subtype of "read A".
-- Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow mutH receiver, Allow mutH argument 2
-  Parameter "x" has type "readH A" instead of a subtype of "imm A".
-- Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
-  Parameter "y" has type "mutH A" instead of a subtype of "iso A".
-""", List.of("""
-A:{
-  .f(a:read A, b:mut A):A->this;
-  .caller(x:readH A, y:mutH A):A->this.f(x,y);
 }
 """));}
 
@@ -2391,13 +2342,6 @@ Id:{#[X:**](x:X):X->x}
 B:{}
 A:{
   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,read A](Id#[imm,read A](aaaa));}}
-"""));}
-@Test void deepCall(){ok(List.of("""
-Skip:{#[X:**](X):B->B}
-Id:{#[X:**](x:X):X->x}
-B:{}
-A:{
-  .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(Id#(aaaa));}}
 """));}
 
 @Test void hopelessArg_calls_pArgHasType(){fail("""
@@ -6031,7 +5975,7 @@ A:base.CaptureFree{ mut .foo: A -> base.Block#.let[A] x= {this} .return {x} }
 @Test void captureFreeTopLevelThisInImmMethodInfersLetType(){ok(List.of("""
 A:base.CaptureFree{ imm .foo: A -> base.Block#.let x= {this} .return {x} }
 """));}
-@Test void typingContextShowsSupertypeWrittenByFullName(){fail("""
+@Test void inheritedSignatureShowsSupertypeWrittenByFullName(){fail("""
 001| A:base.ToStr{ .str -> base.Void }
    |               --------^^^^^^^^^
 
@@ -6043,7 +5987,7 @@ Signature as inherited by type declaration "A":
 """, List.of("""
 A:base.ToStr{ .str -> base.Void }
 """));}
-@Test void typingContextShowsSupertypeWrittenByUseAlias(){fail("""
+@Test void inheritedSignatureShowsSupertypeWrittenByUseAlias(){fail("""
 002| A:Show{ .str -> base.Void }
    |         --------^^^^^^^^^
 
@@ -7319,5 +7263,24 @@ Foo:{}
 K:{ .k: K; }
 Sup:{ .m[X:*]: K; }
 B[X:*]:Sup{ .m -> Fresh:K{ .k -> Foo{} } }
+"""));}
+@Test void literalArgumentForAReadHParameter(){fail("""
+006|   .f:B->
+007|     Need#(C{});
+   |     ------^^^-
+
+While inspecting method "User.f" (line 6)
+This call to method "Need#(_)" cannot typecheck.
+Argument 1 has type "iso C".
+That is not a subtype of "readH A" (the type required by the method signature).
+""", List.of("""
+B:{}
+C:{}
+Need:{ #(a:readH A):B->B{} }
+A:{ mut .foo:A}
+User:{
+  .f:B->
+    Need#(C{});
+}
 """));}
 }

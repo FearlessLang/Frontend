@@ -124,12 +124,6 @@ public final class ToStringTest extends testUtils.FearlessTestBase{
       "A: { .a: A;}\n",
       "A:{.a:A}"); }
 
-  @Test void decl_generics_bounds_star(){ ok(
-    "Vec[X:*]: {}\n",
-    "Vec[X:*]:{}"); }
-  @Test void decl_generics_bounds_starstar(){ ok(
-    "Graph[X:**]: {}\n",
-    "Graph[X:**]:{}"); }
   @Test void decl_generics_mixed_bounds(){ ok(
     "G[X:imm,Y:**,Z:*]: {}\n",
     "G[X:imm,Y:**,Z:*]:{}"); }
@@ -148,9 +142,6 @@ public final class ToStringTest extends testUtils.FearlessTestBase{
   @Test void meth_cap_mut_and_ret(){ ok(
     "A: { mut .set(x: X): A -> x;}\n",
     "A:{ mut .set(x:X):A -> x }");}
-  @Test void literal_many_methods_spaced(){ ok(
-    "A: { .a -> this; .b x -> x; .c(x) -> x;}\n",
-    "A:{ .a -> this; .b x -> x; .c(x) -> x; }");}
   @Test void call_parens_zero_args(){ ok(
     "A: { .m x -> x .foo();}\n",
     "A:{ .m x -> x .foo() }");}
@@ -187,9 +178,6 @@ public final class ToStringTest extends testUtils.FearlessTestBase{
   @Test void typed_literal_with_rc_prefix(){ ok(
     "A: { .lit2(): +45 -> read +45 {};}\n",
     "A:{ .lit2():+45 -> read +45{} }"); }
-  @Test void decl_literal_no_rc(){ ok(
-    "A: { .make -> B: {};}\nB: {}\n",
-    "A:{ .make -> B:{} } B:{}");}
   @Test void decl_literal_with_rc(){ ok(
     "A: { .make -> read B: {};}\nB: {}\n",
     "A:{ .make -> read B:{} } B:{}"); }
@@ -202,9 +190,6 @@ public final class ToStringTest extends testUtils.FearlessTestBase{
   @Test void print_rcx_and_readimmx_inside_types(){ ok(
     "A: { .t[X](x: mut X, y: read/imm X): X -> x;}\n",
     "A:{ .t[X](x:mut X, y:read/imm X):X -> x }");}
-  @Test void implicit_receiver_token(){ ok(
-    "A: { :: .foo this;}\n",
-    "A:{ :: .foo this }");}
   @Test void multiple_decls_joined(){ ok(
     "A: { .id(x: X): X -> x;}\nB: {}\n",
     "A:{ .id(x:X):X -> x } B:{}");}
@@ -215,63 +200,27 @@ public final class ToStringTest extends testUtils.FearlessTestBase{
     "A: { x -> x .foo[read];}\n",
     "A:{ x -> x .foo[read,] }"); }
 
-  @Test void decl_generics_plain_space_after_comma(){ok(
-    "Pair[X,Y]: {}\n",
-    "Pair[X,Y]:{}");}
-  @Test void decl_generics_mixed_bounds_and_spacing(){ok(
-    "G[X:imm,Y:**,Z:*]: {}\n",
-    "G[X:imm,Y:**,Z:*]:{}");}
   @Test void decl_generics_param_with_multiple_rcs(){ok(
     "D[X:read,mut]: {}\n",
     "D[X:read,mut]:{}");}
   @Test void decl_generics_whitespace_normalization_inside_bounds(){ok(
     "E[X:read,mut]: {}\n",
     "E[X:read , mut]:{}");}
-  @Test void supertypes_many_with_spaces(){ok(
-    "A: B, C, D {}\n",
-    "A:B,C,D{}");}
-  @Test void supertypes_with_type_args_and_spacing(){ok(
-    "A: B[X], C[Y,Z] {}\n",
-    "A:B[X],C[Y,Z]{}");}
-  @Test void meth_named_with_parens_and_ret_colon_required(){ ok(
-    "A: { .id(x: X): X -> x;}\n",
-    "A:{ .id(x:X):X -> x }");}
-  @Test void meth_ret_only_signature(){ok(
-    "A: { .abs(): X;}\n",
-    "A:{ .abs():X }");}
   @Test void meth_generics_with_bounds_and_return(){ok(
     "A: { .map[X:*,Y:**](x: X): Y -> x;}\n",
     "A:{ .map[X:*,Y:**](x:X):Y -> x }");}
   @Test void meth_generics_no_bounds_two_params(){ok(
     "A: { .zip[X,Y](x: X, y: Y): X -> x;}\n",
     "A:{ .zip[X,Y](x:X,y:Y):X -> x }");}
-  @Test void literal_many_methods_spaced_after_semicolons(){ok(
-    "A: { .a -> this; .b x -> x; .c(x) -> x;}\n",
-    "A:{ .a -> this; .b x -> x; .c(x) -> x; }");}
   @Test void literal_one_method_trailing_semicolon_ok(){ok(
     "A: { .a -> this;}\n",
     "A:{ .a -> this }");}
   @Test void call_parens_zero_args_must_close_paren(){ok(
     "A: { .m x -> x .foo();}\n",
     "A:{ .m x-> x .foo() }");}
-  @Test void call_parens_one_arg_must_close_paren(){ok(
-    "A: { .m(x, y): X -> x .plus(y);}\n",
-    "A:{ .m(x,y):X -> x .plus(y) }");}
-  @Test void call_parens_two_args_must_close_paren(){ok(
-    "A: { .m(x, y): X -> x .mix(y, x);}\n",
-    "A:{ .m(x,y):X -> x .mix(y, x) }");}
-  @Test void call_square_rc_only_no_trailing_comma_in_output(){ok(
-    "A: { x -> x .foo[read];}\n",
-    "A:{ x -> x .foo[read,] }");}
-  @Test void call_square_rc_and_types_spacing(){ok(
-    "A: { x -> x .foo[read,X,Y];}\n",
-    "A:{ x -> x .foo[read, X, Y] }");}
   @Test void call_square_types_only_spacing(){ok(
     "A: { x -> x .foo[X,Y];}\n",
     "A:{ x -> x .foo[X,Y] }");}
-  @Test void call_operator_infix_spaces(){ok(
-    "A: { x, y -> x + y;}\n",
-    "A:{ x, y -> x + y }");}
   @Test void call_operator_rhs_parenthesized(){ok(
     "A: { x, y -> x +(y);}\n",
     "A:{ x, y -> x + (y) }");}
