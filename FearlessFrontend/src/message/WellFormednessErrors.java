@@ -180,7 +180,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   private record UndeclaredNameContext(
     Supplier<Err> err,
-    TName tn, String contextPkg, List<TName> scope, List<TName> all, Function<TName,String> display, Function<String,String> simpleShown,
+    TName tn, String contextPkg, List<TName> scope, List<TName> all, Function<TName,String> shown, Function<String,String> simpleShown,
     String typedPkg, String typedSimple
   ){
     FearlessException build(){
@@ -193,7 +193,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       return Optional.of(typeName(missingPkg(err.get(), contextPkg, typedPkg, sortedDistinct(TName::pkgName, all.stream().filter(t -> !t.pkgName().isEmpty())), Optional.empty()), tn));
     }
     private <A,R> List<R> sortedDistinct(Function<A,R> f, Stream<A> s){ return s.map(f).distinct().sorted().toList(); }
-    private List<String> shownInOrder(Stream<TName> s){ return s.sorted(Comparator.comparing(TName::s)).map(display).distinct().toList(); }
+    private List<String> shownInOrder(Stream<TName> s){ return s.sorted(Comparator.comparing(TName::s)).map(shown).distinct().toList(); }
     private Optional<FearlessException> otherArity(){
       var candidates= typedPkg.isEmpty() ? scope : typesInPkg(typedPkg);
       var arities= sortedDistinct(TName::arity, candidates.stream().filter(t -> t.simpleName().equals(typedSimple)));
@@ -214,7 +214,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
         +(typedPkg.isEmpty() ? disp(contextPkg)+" and is not made visible via \"use\"" : disp(typedPkg))+".");
       if (!typedPkg.isEmpty()){
         NameSuggester.suggest(typedPkg+"."+typedSimple, sortedDistinct(TName::s, typesInPkg(typedPkg).stream()),
-          (_,cs,best) -> inScope(e, cs, best, c -> display.apply(new TName(c, 0, Pos.unknown))));
+          (_,cs,best) -> inScope(e, cs, best, c -> shown.apply(new TName(c, 0, Pos.unknown))));
         addOptionsList(shownInOrder(all.stream().filter(t -> !t.pkgName().equals(typedPkg) && t.simpleName().equals(typedSimple))), e);
         return typeName(e, tn);
       }
