@@ -85,8 +85,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     if (!at.span().inner.isSingleLine()){ return withCallSpans(ex, c); }
     return ex.addSpan(at.span().inner).addSpan(c.span().inner);
   }
-  private FearlessException addExpFrame(E toErr, FearlessException err){
-    return err.addFrame(err().expRepr(toErr), toErr.span().inner);
+  private FearlessException addExpFrame(E toErr, FearlessException fe){
+    return fe.addFrame(err().expRepr(toErr), toErr.span().inner);
   }
   private FearlessException overrideErr(Literal l, Sig current, Sig parent, String got, String want, String why){
     assert current.m().equals(parent.m());
@@ -103,12 +103,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///Raised when checking types anywhere they appear.
   public FearlessException typeNotWellKinded(E toErr, KindingTarget target, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     assert index >= 0;
-    var err= switch (target){
+    var e= switch (target){
       case T.C c -> typeArgBounds(err().line("The type "+kindedTypeRepr(c)+" is invalid."), err().tNameADisp(c.name()), decs.apply(c.name()).bs().get(index), c.ts().get(index), index, bounds, got);
       case KindingTarget.CallKinding(var t, var c) -> typeNotWellKindedSig(t, c, index, bounds, got);
     };
     var span= toErr.span().inner.contained(target.span().inner) ? target.span().inner : toErr.span().inner;
-    return addExpFrame(toErr, err.ex(toErr).addSpan(span));
+    return addExpFrame(toErr, e.ex(toErr).addSpan(span));
   }
   private static String caps(EnumSet<RC> rcs){ return (rcs.size() == 1 ? "capability " : "capabilities ")+Join.of(rcs.stream().map(Err::disp).sorted(), "", " or ", ""); }
   private Err typeNotWellKindedSig(T.C t, E.Call c, int index, EnumSet<RC> bounds, EnumSet<RC> got){

@@ -145,8 +145,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     NameSuggester.suggest(folder, pkgs, (_,_,best) -> best).ifPresent(b -> e.line("Did you mean "+disp("_"+b)+" ?"));
     return e.list("Existing folders", pkgs.stream().map(p -> disp("_"+p)).toList()).wf();
   }
-  private Err badRank(Err err){
-    return err
+  private Err badRank(Err e){
+    return e
       .line("Every package must declare its rank:\nbase, core, driver, worker, framework, accumulator, tool, or app.")
       .line("The rank file is the file whose name matches the rank name.")
       .blank()
