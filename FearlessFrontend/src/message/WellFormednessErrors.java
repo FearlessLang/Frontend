@@ -2,6 +2,7 @@ package message;
 
 import static message.Err.*;
 
+import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -696,12 +697,16 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException selfNameDeadCode(E.Literal l){ return wf(err().selfNameDeadCode(l.thisName(), err().expRepr(l)), l); }
   public FearlessException integerLiteralOutOfRange(TName lit){
-    var nat= TokenKind.isKind(lit.s(), TokenKind.UnsignedInt);
-    var t= err().tNameADisp(nat ? LiteralDeclarations.baseNat : LiteralDeclarations.baseInt);
+    return TokenKind.isKind(lit.s(), TokenKind.UnsignedInt)
+      ? outOfRange(lit, LiteralDeclarations.baseNat, "unsigned", LiteralDeclarations.natMin, LiteralDeclarations.natMax)
+      : outOfRange(lit, LiteralDeclarations.baseInt, "signed", LiteralDeclarations.intMin, LiteralDeclarations.intMax);
+  }
+  private FearlessException outOfRange(TName lit, TName type, String signed, BigInteger min, BigInteger max){
+    var t= err().tNameADisp(type);
     return err()
       .line("Type "+disp(lit.simpleName())+" is out of range for "+t+".")
-      .line(t+" must be representable as a 64-bit "+(nat ? "unsigned" : "signed")+" integer.")
-      .line("Valid range: "+(nat ? LiteralDeclarations.natMin+" .. "+LiteralDeclarations.natMax : LiteralDeclarations.intMin+" .. "+LiteralDeclarations.intMax)+".")
+      .line(t+" must be representable as a 64-bit "+signed+" integer.")
+      .line("Valid range: "+min+" .. "+max+".")
       .line(numHint())
       .wf().addSpan(lit.approxSpan().inner);
   }
