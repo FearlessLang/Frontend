@@ -41,7 +41,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
       .findFirst().get();
   }
 
-  private String tNameA(TName n){ return cp().t.of(n)+genArity(n.arity()); }     // "A[_]"
+  String tNameA(TName n){ return cp().t.of(n)+genArity(n.arity()); }     // "A[_]"
   String tNameADisp(TName n){ return disp(tNameA(n)); }                      // displayString("A[_]")
   private boolean showInstanceOf(Literal l){ return l.infName() && !l.cs().isEmpty(); }
   private String bestLitName(Literal l){
@@ -56,8 +56,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
   String theTypeOrObjectLiteral(Literal l){ return anonLit(l) ? "object literal "+disp(anonRepr) : "type "+disp(bestLitName(l)); }
   String typeRepr(inference.IT t){ return t.isTV() ? typeRepr(true, TypeRename.itToT(t)) : disp(typeReprRaw(t)); }
   String typeReprRaw(inference.IT t){ return typeReprRaw(t, Integer.MAX_VALUE); }
-  String typeRepr(inference.IT t, int levels){ return disp(typeReprRaw(t, levels)); }
-  private String typeReprRaw(inference.IT t, int levels){ return switch (t){
+  String typeReprRaw(inference.IT t, int levels){ return switch (t){
     case inference.IT.RCC(var rc, var c, _) -> rc.map(RC::toStrSpace).orElse("")+cp().t.of(c.name())
       +(levels == 0 && !c.ts().isEmpty() ? "[...]" : Join.of(c.ts().stream().map(ti -> typeReprRaw(ti, levels-1)), "[", ",", "]", ""));
     case inference.IT.U _, inference.IT.Amb _ -> "?";
@@ -154,7 +153,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
     case inference.E.Type t -> "object literal instance of "+tNameADisp(t.type().c().name());
     };}
   static String methodSig(MName m){ return methodSig("", m); }
-  String methodSig(String pre, TName t, MName m){ return methodSig(pre+tNameA(t), m); }
   String methodSig(String pre, Literal l, MName m){ return methodSig(pre+bestLitName(l), m); }
   String methodSig(String pre, inference.E.Literal l, MName m){ return methodSig(pre+tNameA(bestName(l)), m); }
   static String methodSig(String pre, MName m){ return disp(Join.of(Collections.nCopies(m.arity(), "_"), pre+m.s()+"(", ",", ")", pre+m.s())); }

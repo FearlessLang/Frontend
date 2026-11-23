@@ -93,7 +93,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var e= err()
       .line("Invalid method signature for "+err().methodSig(current.rc().toStrSpace(), l, current.m())+".")
       .line("The method "+methodSig(current.m())+" "+got+".")
-      .line("But "+err().methodSig(current.rc().toStrSpace(), parent.origin(), current.m())+" "+want+".")
+      .line("But "+methodSig(current.rc().toStrSpace()+err().tNameA(parent.origin()), current.m())+" "+want+".")
       .line(why);
     return addExpFrame(l, e.ex(l).addSpan(current.span().inner));
   }

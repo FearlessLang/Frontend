@@ -571,7 +571,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException typeGrowsForever(E at){
     return wf(err()
       .line("Type inference finds no type for "+err().expRepr(at)+".")
-      .line("Each round of inference nests its type one level deeper, as "+err().typeRepr(at.t(), 2)+";\nit would grow without bound."), at);
+      .line("Each round of inference nests its type one level deeper, as "+disp(err().typeReprRaw(at.t(), 2))+";\nit would grow without bound."), at);
   }
   public FearlessException ambiguousImpl(E.Literal origin, boolean abs, M m, List<M.Sig> options){
     return wf(err()
