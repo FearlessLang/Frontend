@@ -20,6 +20,7 @@ import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix;
 import typeSystem.Change;
 import typeSystem.Gamma;
+import typeSystem.Sources;
 import typeSystem.TypeScope;
 import typeSystem.TypeSystem;
 import utils.Bug;
@@ -111,9 +112,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   private static String caps(EnumSet<RC> rcs){ return (rcs.size() == 1 ? "capability " : "capabilities ")+Join.of(rcs.stream().map(Err::disp).sorted(), "", " or ", ""); }
   private Err typeNotWellKindedSig(T.C t, E.Call c, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     var d= decs.apply(t.name());
-    var m= OneOr.of("Malformed methods", d.ms().stream().filter(mi -> mi.sig().m().equals(c.name()) && mi.sig().rc() == c.rc()));
+    var s= Sources.findCanonical(d, c.name(), c.rc());
     var decName= err().methodSig(c.rc().toStrSpace(), d, c.name()); // p.A.m(...)
-    return typeArgBounds(err().pCallCantBeSatisfied(d, c), decName, m.sig().bs().get(index), c.targs().get(index), index, bounds, got);
+    return typeArgBounds(err().pCallCantBeSatisfied(d, c), decName, s.bs().get(index), c.targs().get(index), index, bounds, got);
   }
   private Err typeArgBounds(Err e, String kindingTarget, B param, T bad, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     var badStr= err().typeRepr(false, bad);
@@ -127,7 +128,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   private List<T> inferredInParam(Literal d, Call c, int argi){
     if (!Err.inferredTargs(c)){ return List.of(); }
-    var s= OneOr.of("Malformed methods", d.ms().stream().map(M::sig).filter(si -> si.m().equals(c.name()) && si.rc() == c.rc()));
+    var s= Sources.findCanonical(d, c.name(), c.rc());
     var param= s.ts().get(argi);
     return IntStream.range(0, s.bs().size())
       .filter(i -> mentions(param, s.bs().get(i).x()))
