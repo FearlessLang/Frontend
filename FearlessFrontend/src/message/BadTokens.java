@@ -55,7 +55,7 @@ This character can only appear inside comments and inside type names in quotes, 
     var fix= Pattern.compile("[A-Z]").matcher(c).replaceFirst(m -> m.group().toLowerCase(Locale.ROOT));
     var pkg= r.toLowerCase(Locale.ROOT);
     throw Code.UnexpectedToken.of(disp(r+c)+" is neither a type name nor a method call.\n"
-      +"A package name and a method name start with a lowercase letter, as in "
+      +"A package name and a method name start with a lowercase letter,\nas in "
       +disp(pkg+c)+" (type "+disp(c.substring(1))+" of package "+disp(pkg)+") and "
       +disp(r+fix)+" (method "+disp(fix)+" called on "+disp(r)+").").addFrame("a name", at);
   }
@@ -145,7 +145,7 @@ This character can only appear inside comments and inside type names in quotes, 
     var idxComment= openSL == -1 ? openML : openML == -1 ? openSL : Math.min(openSL, openML);
     if (idxComment != -1){
       var after= new Span(file, b.startLine(), b.startCol(), b.endLine(), b.startCol() + idxComment);
-      throw strErr(after, quoteChar, "A comment opening sign is present later on this line; the quote may be meant to close before it.");
+      throw strErr(after, quoteChar, "A comment opening sign is present later on this line;\nthe quote may be meant to close before it.");
     }
     var all= tz.allTokens();
     var j= idx - 1;

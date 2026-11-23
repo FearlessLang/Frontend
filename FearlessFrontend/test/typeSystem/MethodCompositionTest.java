@@ -359,7 +359,8 @@ B:{ .m[X:*]: Foo }
 
 While inspecting type declaration "A"
 Invalid method signature for "A.m".
-The method ".m" declares different capability bounds than the supertypes for generic type parameter 1.
+The method ".m" declares different capability bounds for generic type parameter 1
+than the supertypes.
 Local declaration: "X:imm".
 Capability bounds in the supertypes: "imm,mut,read".
 Generic type parameter names may differ from the supertypes; only the position matters.
@@ -794,7 +795,8 @@ While inspecting type declaration "Sub"
 Invalid method signature for "mut Sub.h".
 The method ".h" returns type "iso P".
 But "mut Sup.h" returns type "mut P".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result,
+but not their reference capabilities.
 """, List.of("""
 P:{}
 Sup:{ mut .h: mut P }
@@ -808,7 +810,8 @@ While inspecting type declaration "Sub"
 Invalid method signature for "Sub.g(_)".
 The method ".g(_)" accepts parameter 1 of type "read P".
 But "Sup.g(_)" requires "mut P".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result,
+but not their reference capabilities.
 """, List.of("""
 P:{}
 Sup:{ .g(x: mut P): P }
@@ -822,7 +825,8 @@ While inspecting type declaration "Sub"
 Invalid method signature for "Sub.g(_)".
 The method ".g(_)" accepts parameter 1 of type "readH P".
 But "Sup.g(_)" requires "mutH P".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result,
+but not their reference capabilities.
 """, List.of("""
 P:{}
 Sup:{ .g(x: mutH P): P }
@@ -836,7 +840,8 @@ While inspecting type declaration "Sub[_]"
 Invalid method signature for "Sub[_].h(_)".
 The method ".h(_)" returns type "X".
 But "Sup[_].h(_)" returns type "read/imm X".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result,
+but not their reference capabilities.
 """, List.of("""
 Sup[X:*]:{ .h(x: X): read/imm X }
 Sub[X:*]:Sup[X]{ .h(x: X): X }
@@ -849,7 +854,8 @@ While inspecting object literal instance of "Sup" > method "User#" (line 3)
 Invalid method signature for "mut Sup.h".
 The method ".h" returns type "iso P".
 But "mut Sup.h" returns type "mut P".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result,
+but not their reference capabilities.
 """, List.of("""
 P:{}
 Sup:{ mut .h: mut P }
@@ -876,7 +882,8 @@ While inspecting type declaration "A"
 Invalid method signature for "A.get".
 The method ".get" returns type "imm Both".
 But "Foo[_].get" returns type "mut Beer".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result,
+but not their reference capabilities.
 """, List.of("""
 Bar:{}
 Beer:{}
@@ -893,7 +900,8 @@ Supertypes disagree on the signature of method "imm .get".
 Signatures as inherited by type declaration "A":
 -       Foo[Bar].get: Bar
 -       Foo[mut Beer].get: mut Beer
-The return type differs in reference capability; overriding must keep the reference capability.
+The return type differs in reference capability;
+overriding must keep the reference capability.
 Type declaration "A" cannot implement all of those supertypes.
 """, List.of("""
 Bar:{}
@@ -909,7 +917,8 @@ While inspecting type declaration "Sub[_]"
 Invalid method signature for "Sub[_].h(_)".
 The method ".h(_)" returns type "X".
 But "Sup[_].h(_)" returns type "imm X".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result,
+but not their reference capabilities.
 """, List.of("""
 Sup[X:*]:{ .h(x: X): imm X }
 Sub[X:*]:Sup[X]{ .h(x: X): X }
@@ -923,7 +932,8 @@ Supertypes disagree on the signature of method "imm .get".
 Signatures as inherited by type declaration "A[_]":
 -       Foo[Y].get: Y
 -       Foo[imm Y].get: imm Y
-The return type differs in reference capability; overriding must keep the reference capability.
+The return type differs in reference capability;
+overriding must keep the reference capability.
 Type declaration "A[_]" cannot implement all of those supertypes.
 """, List.of("""
 Foo[T:*]:{ .get: T }
@@ -957,7 +967,8 @@ Supertypes disagree on the signature of method "imm .get".
 Signatures as inherited by type declaration "A[_]":
 -       Foo[Y].get: Y
 -       Foo[Bar].get: Bar
-The return type differs, and "Y" is a generic type parameter: no type can be a subtype of "Y" and "Bar".
+The return type differs, and "Y" is a generic type parameter:
+no type can be a subtype of "Y" and "Bar".
 Type declaration "A[_]" cannot implement all of those supertypes.
 """, List.of("""
 Bar:{}
@@ -973,7 +984,8 @@ Supertypes disagree on the signature of method "imm .get".
 Signatures as inherited by type declaration "A[_]":
 -       Foo[Y].get: Y
 -       Foo[Bar].get: Bar
-The return type differs, and "Y" is a generic type parameter: no type can be a subtype of "Y" and "Bar".
+The return type differs, and "Y" is a generic type parameter:
+no type can be a subtype of "Y" and "Bar".
 Type declaration "A[_]" cannot implement all of those supertypes.
 """, List.of("""
 Bar:{}
@@ -1011,7 +1023,8 @@ Supertypes disagree on the signature of method "imm .get".
 Signatures as inherited by type declaration "A[_]":
 -       Foo[Y].get: Y
 -       Bar[Y].get: read/imm Y
-The return type differs in reference capability; overriding must keep the reference capability.
+The return type differs in reference capability;
+overriding must keep the reference capability.
 Type declaration "A[_]" cannot implement all of those supertypes.
 """, List.of("""
 Foo[X:imm,mut]:{ .get: X }
@@ -1033,7 +1046,8 @@ Supertypes disagree on the signature of method "imm .get".
 Signatures as inherited by type declaration "A":
 -       Foo.get[T:mut]: T
 -       Bar.get[T:mut]: read/imm T
-The return type differs in reference capability; overriding must keep the reference capability.
+The return type differs in reference capability;
+overriding must keep the reference capability.
 Type declaration "A" cannot implement all of those supertypes.
 """, List.of("""
 Foo:{ .get[T:mut]: T }
@@ -1063,7 +1077,8 @@ A:Foo,Bar{}
 
 While inspecting type declaration "C"
 Invalid method signature for "C.m(_,_)".
-The method ".m(_,_)" declares different capability bounds than the supertypes for generic type parameter 2.
+The method ".m(_,_)" declares different capability bounds for generic type parameter 2
+than the supertypes.
 Local declaration: "X:imm".
 Capability bounds in the supertypes: "mut".
 Generic type parameter names may differ from the supertypes; only the position matters.
@@ -1083,7 +1098,8 @@ Original signatures:
 Signatures as inherited by object literal "Both":
 -       Sup1.id[_AX](_AX): _AX
 -       Sup2.id[_BX:read](_BX): _BX
-The capability bounds of generic type parameter 1 differ; overriding must keep the capability bounds.
+The capability bounds of generic type parameter 1 differ;
+overriding must keep the capability bounds.
 Object literal "Both" cannot implement all of those supertypes.
 """, List.of("""
 Sup1:{ .id[X:imm](x:X):X }
@@ -1102,7 +1118,8 @@ Original signatures:
 Signatures as inherited by object literal "Both":
 -       Sup1.get[_AX]: Sup2
 -       Sup2.get[_AX]: _AX
-The return type differs, and "_AX" is a generic type parameter: no type can be a subtype of "Sup2" and "_AX".
+The return type differs, and "_AX" is a generic type parameter:
+no type can be a subtype of "Sup2" and "_AX".
 Object literal "Both" cannot implement all of those supertypes.
 """, List.of("""
 Sup1:{ .get[X]:Sup2 }
@@ -1121,7 +1138,8 @@ Original signatures:
 Signatures as inherited by object literal "Both":
 -       Sup1.get[X]: Sup1
 -       Sup2.get[X]: X
-The return type differs, and "X" is a generic type parameter: no type can be a subtype of "Sup1" and "X".
+The return type differs, and "X" is a generic type parameter:
+no type can be a subtype of "Sup1" and "X".
 Object literal "Both" cannot implement all of those supertypes.
 """, List.of("""
 Sup1:{ .get[X]:Sup1 }
@@ -1140,7 +1158,8 @@ Original signatures:
 Signatures as inherited by object literal "Both":
 -       Sup1.get[_AX]: _AX
 -       Sup2.get[_AX]: Sup1
-The return type differs, and "_AX" is a generic type parameter: no type can be a subtype of "_AX" and "Sup1".
+The return type differs, and "_AX" is a generic type parameter:
+no type can be a subtype of "_AX" and "Sup1".
 Object literal "Both" cannot implement all of those supertypes.
 """, List.of("""
 Sup1:{ .get[X]:X }
@@ -1324,7 +1343,8 @@ Supertypes disagree on the signature of method "imm .id(_)".
 Signatures as inherited by type declaration "B":
 -       Sup1.id[X,Y](X): X
 -       Sup2.id[X,Y:read](X): X
-The capability bounds of generic type parameter 2 differ; overriding must keep the capability bounds.
+The capability bounds of generic type parameter 2 differ;
+overriding must keep the capability bounds.
 Type declaration "B" cannot implement all of those supertypes.
 """, List.of("""
 Sup1:{ .id[X,Y](x:X):X }
@@ -1340,7 +1360,8 @@ Supertypes disagree on the signature of method "imm .foo(_)".
 Signatures as inherited by type declaration "B":
 -       S1.foo(mut Q): S1
 -       S2.foo(read Q): S1
-The type of parameter 1 differs in reference capability; overriding must keep the reference capability.
+The type of parameter 1 differs in reference capability;
+overriding must keep the reference capability.
 Type declaration "B" cannot implement all of those supertypes.
 """, List.of("""
 Q:{}
@@ -1357,7 +1378,8 @@ Supertypes disagree on the signature of method "imm .set(_)".
 Signatures as inherited by type declaration "A[_]":
 -       Foo[Y].set(Y): Bar
 -       Foo[Bar].set(Bar): Bar
-The type of parameter 1 differs, and "Y" is a generic type parameter: no type can be a supertype of "Y" and "Bar".
+The type of parameter 1 differs, and "Y" is a generic type parameter:
+no type can be a supertype of "Y" and "Bar".
 Type declaration "A[_]" cannot implement all of those supertypes.
 """, List.of("""
 Bar:{}
@@ -1433,7 +1455,8 @@ Original signatures:
 Signatures as inherited by type declaration "D[_]":
 -       Mid[Y].id[_AX](_AX): _AX
 -       Other.id[_AY:read](_AY): _AY
-The capability bounds of generic type parameter 1 differ; overriding must keep the capability bounds.
+The capability bounds of generic type parameter 1 differ;
+overriding must keep the capability bounds.
 Type declaration "D[_]" cannot implement all of those supertypes.
 """, List.of("""
 Sup:{ .id[X](x:X):X }
@@ -1654,7 +1677,8 @@ Supertypes disagree on the signature of method "imm .get".
 Signatures as inherited by type declaration "A[_]":
 -       Foo[Y].get: Y
 -       Bar[Y].get: read/imm Y
-The return type differs in reference capability; overriding must keep the reference capability.
+The return type differs in reference capability;
+overriding must keep the reference capability.
 Type declaration "A[_]" cannot implement all of those supertypes.
 """, List.of("""
 Foo[X:imm,read]:{ .get: X }
@@ -1674,7 +1698,8 @@ Original signatures:
 Signatures as inherited by object literal "Both":
 -       Mid.id[_AX](_AX): _AX
 -       Other.id[Z:read](Z): Z
-The capability bounds of generic type parameter 1 differ; overriding must keep the capability bounds.
+The capability bounds of generic type parameter 1 differ;
+overriding must keep the capability bounds.
 Object literal "Both" cannot implement all of those supertypes.
 """, List.of("""
 T1:{ .id[X](x:X):X }
@@ -1695,7 +1720,8 @@ Original signatures:
 Signatures as inherited by type declaration "B[_]":
 -       Mid[X].id[_AX](_AX): _AX
 -       Other.id[Z:read](Z): Z
-The capability bounds of generic type parameter 1 differ; overriding must keep the capability bounds.
+The capability bounds of generic type parameter 1 differ;
+overriding must keep the capability bounds.
 Type declaration "B[_]" cannot implement all of those supertypes.
 """, List.of("""
 T1:{ .id[X](x:X):X }
@@ -1715,7 +1741,8 @@ Original signatures:
 Signatures as inherited by type declaration "B[_]":
 -       Mid[Y].id[_AX](Sup1): Sup1
 -       Sup2.id[_AY:read](Sup1): Sup1
-The capability bounds of generic type parameter 1 differ; overriding must keep the capability bounds.
+The capability bounds of generic type parameter 1 differ;
+overriding must keep the capability bounds.
 Type declaration "B[_]" cannot implement all of those supertypes.
 """, List.of("""
 Sup1:{ .id[X](x:Sup1):Sup1 }
@@ -1980,7 +2007,8 @@ U:{ .u(f: F[A,A]): A -> A; .k: A -> this.u{ a, b -> a } }
 
 While inspecting type declaration "B"
 Cannot infer signature and name for a method with 1 parameter.
-Each method with 1 parameter of the supertypes is already overridden by another method of type declaration "B".
+Each method with 1 parameter of the supertypes
+is already overridden by another method of type declaration "B".
 Methods of the supertypes:
 - ".m(_)"
 """, List.of("""
@@ -1997,7 +2025,8 @@ B:A{ imm .m(a: A): A -> this; a -> a }
 
 While inspecting type declaration "B"
 Cannot infer signature and name for a method with 1 parameter.
-Each method with 1 parameter of the supertypes is already overridden by another method of type declaration "B".
+Each method with 1 parameter of the supertypes
+is already overridden by another method of type declaration "B".
 Methods of the supertypes:
 - "mut .m(_)"
 """, List.of("""
@@ -2010,7 +2039,8 @@ B:A{ .m(a: A): A -> this; a -> this }
 
 While inspecting type declaration "B"
 Cannot infer signature and name for a method with 1 parameter.
-Each method with 1 parameter of the supertypes is already overridden by another method of type declaration "B".
+Each method with 1 parameter of the supertypes
+is already overridden by another method of type declaration "B".
 Methods of the supertypes:
 - ".m(_)"
 """, List.of("""

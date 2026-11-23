@@ -324,7 +324,8 @@ Bad:Person{}
 
 While inspecting method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "N" is not in scope inside the type declaration "Person".
-A type declaration only sees the generic type parameters it declares itself; here "Person" declares none.
+A type declaration only sees the generic type parameters it declares itself;
+here "Person" declares none.
 Funnel "N" into "Person" by writing "Person[N:..]", restating the bounds of "N".
 """, List.of("""
 Str:{}
@@ -375,7 +376,8 @@ BreakOuter:{ #: BreakInner -> BreakInner: A[imm Break]{} }
 
 While inspecting generic type arguments > super types declaration > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
-A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
+A type declaration only sees the generic type parameters it declares itself;
+here "BreakInner" declares none.
 Funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A[X:mut]:{}
@@ -392,7 +394,8 @@ BreakOuter[Z:mut]:{ #: BreakInner[Z] -> BreakInner[Z:mut]: A[Z]{} }
 
 While inspecting generic type arguments > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
-A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
+A type declaration only sees the generic type parameters it declares itself;
+here "BreakInner" declares none.
 Funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A[X:*]:{}
@@ -409,7 +412,8 @@ BreakOuter[Z:*]:{ #: BreakInner[Z] -> BreakInner[Z:*]:{ .z: A[Z] -> A[Z] } }
 
 While inspecting generic type arguments > super types declaration > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
-A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
+A type declaration only sees the generic type parameters it declares itself;
+here "BreakInner" declares none.
 Funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A[X:mut]:{}
@@ -422,7 +426,8 @@ BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[mut Z]{} }
 
 While inspecting generic type arguments > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
-A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares "Y".
+A type declaration only sees the generic type parameters it declares itself;
+here "BreakInner" declares "Y".
 Funnel "Z" into "BreakInner" by writing "BreakInner[Y:..,Z:..]", restating the bounds of "Z".
 """, List.of("""
 A[X:*]:{}
@@ -434,8 +439,10 @@ BreakOuter[Y:*,Z:*]:{ #: BreakInner[Y] -> BreakInner[Y:*]:{ .z: A[Z] -> A[Z] } }
    |                                                 ---^~~----------
 
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
-Name "Z" is already used by a generic type parameter declared outside the type declaration "BreakInner".
-Generic type parameters declared inside "BreakInner" can not reuse the name "Z", even though "Z" is not in scope there.
+Name "Z" is already used by a generic type parameter
+declared outside the type declaration "BreakInner".
+Generic type parameters declared inside "BreakInner" can not reuse the name "Z",
+even though "Z" is not in scope there.
 """, List.of("""
 A[X:*]:{}
 BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z[Z:*](z: Z): Z -> z } }
@@ -446,8 +453,10 @@ BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z[Z:*](z: Z): Z -> z } }
    |                                           ---^~~----
 
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
-Name "K" is already used by a generic type parameter declared outside the type declaration "Low".
-Generic type parameters declared inside "Low" can not reuse the name "K", even though "K" is not in scope there.
+Name "K" is already used by a generic type parameter
+declared outside the type declaration "Low".
+Generic type parameters declared inside "Low" can not reuse the name "K",
+even though "K" is not in scope there.
 """, List.of("""
 A:{}
 Top:{ .m[K:*]: A -> Mid:{ .n: A -> Low:A{ .o[K:*]: A -> A } } }
@@ -470,7 +479,8 @@ Top[W:*]:{ #: A -> Mid[W:*]:A{ .o[W:*]: A -> A } }
 
 While inspecting generic bounds declaration > method body > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
-A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
+A type declaration only sees the generic type parameters it declares itself;
+here "BreakInner" declares none.
 Funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A:{}
@@ -483,7 +493,8 @@ BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z: A -> Inner2[Z:*]: A{} } }
 
 While inspecting method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
-A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
+A type declaration only sees the generic type parameters it declares itself;
+here "BreakInner" declares none.
 Funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A:{}
@@ -768,7 +779,8 @@ C: B{}
 
 While inspecting type declaration "A"
 Type declaration "A" implements `base.Final["foo"]`.
-The generic type argument of "base.Final[_]" is a type name in quotes holding a method name, like `".name"` or `"+"`.
+The generic type argument of "base.Final[_]" is a type name in quotes holding a method name,
+like `".name"` or `"+"`.
 """, List.of("""
 A: base.Final["foo"]{}
 """));}
@@ -778,7 +790,8 @@ A: base.Final["foo"]{}
 
 While inspecting type declaration "A"
 Type declaration "A" implements "base.Final[A]".
-The generic type argument of "base.Final[_]" is a type name in quotes holding a method name, like `".name"` or `"+"`.
+The generic type argument of "base.Final[_]" is a type name in quotes holding a method name,
+like `".name"` or `"+"`.
 """, List.of("""
 A: base.Final[A]{}
 """));}
@@ -823,7 +836,9 @@ Box: { .mk[X]: base.InMemoryLog[Steps] -> { .name -> base.Nope! } }
 
 While inspecting type declaration "Assoc"
 Type declaration "Assoc" implements "base.OpenWith[_,_]".
-Only a main can implement "base.OpenWith[_,_]": type declaration "Assoc" must also implement "base.Main", directly or through one of its supertypes.
+Only a main can implement "base.OpenWith[_,_]":
+type declaration "Assoc" must also implement "base.Main",
+directly or through one of its supertypes.
 """, List.of("""
 Assoc: base.OpenWith[Icon,"foo"]{}
 Icon: {}
@@ -835,7 +850,9 @@ Icon: {}
 While inspecting type declaration "Two"
 Type declaration "Two" claims the extension "foo" more than once:
 both `base.OpenWith[Icon,"foo"]` and `base.OpenWith[Icon2,"foo"]` claim it.
-A main can claim each extension at most once, across all its "base.OpenWith[_,_]" and "base.Shortcut[_,_]", since one extension has one icon.
+A main can claim each extension at most once,
+across all its "base.OpenWith[_,_]" and "base.Shortcut[_,_]",
+since one extension has one icon.
 """, List.of("""
 Two: base.Main, base.OpenWith[Icon,"foo"], base.Shortcut[Icon,"fapp001"], base.OpenWith[Icon2,"foo"]{ .main -> base.Void }
 Icon: {}
@@ -861,7 +878,8 @@ Icon: {}
 While inspecting type declaration "One"
 Type declaration "One" implements "base.OpenWith[Icon,Icon]".
 The extension "Icon" is not a type name in quotes.
-An extension is written as a type name in quotes, like `"ffile347"`, `"xml"` or `"txt"`; or implement "base.OpenWith[_]" to let the Fearless manager choose one.
+An extension is written as a type name in quotes, like `"ffile347"`, `"xml"` or `"txt"`;
+or implement "base.OpenWith[_]" to let the Fearless manager choose one.
 """, List.of("""
 One: base.Main, base.OpenWith[Icon,Icon]{ .main -> base.Void }
 Icon: {}
@@ -873,7 +891,9 @@ Icon: {}
 While inspecting type declaration "One"
 Type declaration "One" implements `base.OpenWith[Icon,"Foo"]`.
 "Foo" is not a valid extension.
-An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; or implement "base.OpenWith[_]" to let the Fearless manager choose one.
+An extension is 1 to 16 characters,
+each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot;
+or implement "base.OpenWith[_]" to let the Fearless manager choose one.
 """, List.of("""
 One: base.Main, base.OpenWith[Icon,"Foo"]{ .main -> base.Void }
 Icon: {}
@@ -884,8 +904,11 @@ Icon: {}
 
 While inspecting type declaration "One"
 Type declaration "One" implements `base.Shortcut[Icon,"foo"]`.
-"foo" is not a shortcut extension: a shortcut file only starts its main, so it must not look like a document of another program or a file of the project.
-A shortcut extension is "fapp" followed by three digits, like "fapp042"; or implement "base.Shortcut[_]" to let the Fearless manager choose one.
+"foo" is not a shortcut extension:
+a shortcut file only starts its main,
+so it must not look like a document of another program or a file of the project.
+A shortcut extension is "fapp" followed by three digits, like "fapp042";
+or implement "base.Shortcut[_]" to let the Fearless manager choose one.
 """, List.of("""
 One: base.Main, base.Shortcut[Icon,"foo"]{ .main -> base.Void }
 Icon: {}
@@ -896,8 +919,11 @@ Icon: {}
 
 While inspecting type declaration "One"
 Type declaration "One" implements `base.OpenWith[Icon,"fapp001"]`.
-"fapp001" is a shortcut extension: "fapp" followed by three digits names the shortcut files of the Fearless manager.
-Use an extension of the form "ffile" followed by three digits, like "ffile042", or a system extension, like "htm"; or implement "base.OpenWith[_]" to let the Fearless manager choose one.
+"fapp001" is a shortcut extension:
+"fapp" followed by three digits names the shortcut files of the Fearless manager.
+Use an extension of the form "ffile" followed by three digits, like "ffile042",
+or a system extension, like "htm";
+or implement "base.OpenWith[_]" to let the Fearless manager choose one.
 """, List.of("""
 One: base.Main, base.OpenWith[Icon,"fapp001"]{ .main -> base.Void }
 Icon: {}
@@ -1046,7 +1072,8 @@ B:A,p.A{}
 
 While inspecting a type name
 The full type name "base.CaptureFree" is invalid in source code inside folders named "_p".
-Source code inside folders named "_p" uses the simple name "CF" to refer to "base.CaptureFree", because of "use base.CaptureFree as CF".
+Source code inside folders named "_p" uses the simple name "CF" to refer to "base.CaptureFree",
+because of "use base.CaptureFree as CF".
 """, List.of("""
 use base.CaptureFree as CF;
 B:CF,base.CaptureFree{}
@@ -1170,7 +1197,8 @@ A[X]:{}
 
 While inspecting type declaration "A[_]"
 Type declaration "A[_]" implements "base.Final[X]".
-The generic type argument of "base.Final[_]" is a type name in quotes holding a method name, like `".name"` or `"+"`.
+The generic type argument of "base.Final[_]" is a type name in quotes holding a method name,
+like `".name"` or `"+"`.
 """, List.of("""
 A[X]: base.Final[X]{}
 """));}
@@ -1207,7 +1235,8 @@ M[X]: base.Main, base.OpenWith[X,"foo"]{ .main -> base.Void }
 While inspecting type declaration "M"
 Type declaration "M" implements `base.OpenWith[Icon,"fearless"]`.
 "fearless" is not a valid extension.
-The extension "fearless" is reserved; or implement "base.OpenWith[_]" to let the Fearless manager choose one.
+The extension "fearless" is reserved;
+or implement "base.OpenWith[_]" to let the Fearless manager choose one.
 """, List.of("""
 Icon:{}
 M: base.Main, base.OpenWith[Icon,"fearless"]{ .main -> base.Void }
@@ -1231,25 +1260,29 @@ Found 2 files that look like rank head candidates:
 - fear:/___DBG___/_rank_other000.fear
 There must be exactly one source file whose name represents this package rank.
 Rename or remove the extra files so that only one file name is of form "_rank_*.fear".
-Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.
+Every package must declare its rank:
+base, core, driver, worker, framework, accumulator, tool, or app.
 The rank file is the file whose name matches the rank name.
 
 For example, for an application you would typically have a file named
   "_rank_app.fear"
 Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear"; with explicit rank number.
-As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.
+As a rule of thumb: final applications use appNNN;
+shared libraries often use workerNNN or frameworkNNN.
 Error 7 WellFormedness""", SourceOracle.debugBuilder().put(0, "A:{}").putURI(URI.create("fear:/___DBG___/_rank_other000.fear"), "B:{}").build());}
 @Test void noRankFile(){typeFailRaw("""
 No rank file found for package "p".
 Each package must have exactly one source file whose name is its rank,
 in some folder inside the project folder.
-Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.
+Every package must declare its rank:
+base, core, driver, worker, framework, accumulator, tool, or app.
 The rank file is the file whose name matches the rank name.
 
 For example, for an application you would typically have a file named
   "_rank_app.fear"
 Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear"; with explicit rank number.
-As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.
+As a rule of thumb: final applications use appNNN;
+shared libraries often use workerNNN or frameworkNNN.
 Error 7 WellFormedness""", SourceOracle.debugBuilder().put(1, "A:{}").build());}
 @Test void claimsWithoutExtension(){ok(List.of("""
 Icon:{}

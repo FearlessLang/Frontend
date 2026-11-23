@@ -58,7 +58,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     }
     return e
       .line("The body of "+err().methodSig(m.sig().m())+" calls "+err().methodSig(new MName(".as", 1))+" on parameter "+disp(x)+".")
-      .line("Calling "+err().methodSig(new MName(".as", 1))+" counts as the identity function only when the receiver has a type implementing "+err().tNameADisp(LiteralDeclarations.baseContainer)+".")
+      .line("Calling "+err().methodSig(new MName(".as", 1))+" counts as the identity function only when\nthe receiver has a type implementing "+err().tNameADisp(LiteralDeclarations.baseContainer)+".")
       .line("Parameter "+disp(x)+" has type "+err().typeRepr(true, m.sig().ts().getFirst())+".")
       .typeErr().addSpan(span);
   }
@@ -164,7 +164,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       "returns type "+err().typeRepr(false, parent.ret()),
       capabilityLocked);
   }
-  private static final String capabilityLocked= "An overriding method can refine the types of its parameters and result, but not their reference capabilities.";
+  private static final String capabilityLocked= "An overriding method can refine the types of its parameters and result,\nbut not their reference capabilities.";
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
   public FearlessException methodOverrideSignatureMismatchCovariance(TypeSystem ts, List<B> ctx, Literal l, Sig current, Sig parent){
@@ -209,8 +209,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var untyped= at instanceof Literal l && l.src().inner instanceof fearlessFullGrammar.E.Literal;
     E typed= switch (at){ case Literal l -> l.withRC(RC.imm); case Type t -> new Type(t.type().withRC(RC.imm), t.src()); default -> throw Bug.unreachable(); };
     var e= untyped
-      ? err().line(up(err().expRepr(at))+" cannot implement "+x+".").line(x+" is a generic type parameter; object literals can only implement nominal types.")
-      : err().line(up(err().expRepr(typed))+" is required to be of type "+x+".").line(x+" is a generic type parameter; an object literal is always of a nominal type.");
+      ? err().line(up(err().expRepr(at))+" cannot implement "+x+".").line(x+" is a generic type parameter;\nobject literals can only implement nominal types.")
+      : err().line(up(err().expRepr(typed))+" is required to be of type "+x+".").line(x+" is a generic type parameter;\nan object literal is always of a nominal type.");
     declaring(scope, OneOr.of("Type parameters", TypeRename.tToIT(req).ftv())).ifPresent(m -> e.sigs(m.l(), m.m(), true));
     return addExpFrame(at, e.typeErr());
   }
@@ -341,15 +341,15 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       +"Thus "+subject+" cannot be captured in that "+disp(why.l().rc())+" object literal.";
     }
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
-    +up(subject)+" can observe mutation; thus it cannot be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l())
+    +up(subject)+" can observe mutation;\nthus it cannot be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n"
     +"Capture an immutable copy instead, or move this use outside the object literal.";
   }
   private String whyDropNotKinded(String subject, Change.NoT why){
     var bounds= disp(Join.of(why.l().bs(), "", ", ", "", ""));
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
-    +"That type is not well kinded under the generic type parameters of "+err().expRepr(why.l())
-    +" (line "+why.l().span().inner.startLine()+"): "+bounds+".\n"
+    +"That type is not well kinded under the generic type parameters "+bounds+"\n"
+    +"of "+err().expRepr(why.l())+" (line "+why.l().span().inner.startLine()+").\n"
     +"The bounds declared by the object literal are all it knows about its generic type parameters,\n"
     +"and thus "+subject+" cannot be captured.\n";
   }
@@ -524,7 +524,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .pCallCantBeSatisfied(d, c)
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
       .line("That is not a subtype of "+err().typeRepr(true, declared)+(inferred.isEmpty() ? " (the type required by the method signature)." : "."));
-    if (lambdaFits(ts, bs, declared, gotHdr)){ e.line("Write the argument inside curly braces: the curly braces make an object literal instance of "+err().typeRepr(true, declared.withRC(RC.imm))+", whose single method returns the argument."); }
+    if (lambdaFits(ts, bs, declared, gotHdr)){ e.line("Write the argument inside curly braces:\nthe curly braces make an object literal instance of "+err().typeRepr(true, declared.withRC(RC.imm))+",\nwhose single method returns the argument."); }
     addNoPrecedenceHintIfOperator(e, ts.scope(), c);
     return withCallSpans(e.ex(c, c.es().get(argi), inferred), c.es().get(argi), c);
   }
@@ -540,8 +540,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var notOperator= name.startsWith(".") || name.equals("#");
     var receiver= s.outer() instanceof TypeScope.CallSite(var p, _) && p.e() == c;
     if (notOperator || !receiver){ return; }
-    e.line("All method names have the same precedence, so an expression like \"a.get + b.get\" "
-         +"parses as \"(a.get + b).get\", not \"a.get + (b.get)\". "
+    e.line("All method names have the same precedence,\nso an expression like \"a.get + b.get\" "
+         +"parses as \"(a.get + b).get\", not \"a.get + (b.get)\".\n"
          +"If this argument needed a method applied to it first, wrap it in parentheses.");
   }
   private static boolean isWrongUnderlyingType(TypeSystem ts, List<B> bs, T reqCanon, List<Reason> res){
@@ -571,7 +571,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     assert mat.resByArg().size() == args;
     var e= err()
       .pCallCantBeSatisfied(d, c)
-      .line("Each argument is compatible with at least one promotion, but no single promotion fits all arguments.")
+      .line("Each argument is compatible with at least one promotion,\nbut no single promotion fits all arguments.")
       .blank()
       .line("Compatible promotions by argument:");
     for (int argi : Range.of(0, args)){

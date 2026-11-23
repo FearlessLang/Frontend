@@ -80,7 +80,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return List.of(refersTo(target, in, out, mapSources));
   }
   private static String refersTo(String target, String in, String out, Map<String,String> mapSources){
-    return inFolders(target)+" uses package name "+disp(in)+" to refer to the code inside folders named "+disp("_"+out)+", because of "+Objects.requireNonNull(mapSources.get(in))+".";
+    return inFolders(target)+" uses package name "+disp(in)+"\nto refer to the code inside folders named "+disp("_"+out)+",\nbecause of "+Objects.requireNonNull(mapSources.get(in))+".";
   }
   private static String inFolders(String pkg){ return "Source code inside folders named "+disp("_"+pkg); }
   private static String standsFor(String from, String to, Object directive){
@@ -129,19 +129,19 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException mapConflict(String in, List<String> bests){
     var limit= 12;
     var e= err()
-      .line("Maps of the same rank give package name "+disp(in)+" different folders, for source code inside folders named "+disp("_"+pkgName)+":");
+      .line("Maps of the same rank give package name "+disp(in)+" different folders,\nfor source code inside folders named "+disp("_"+pkgName)+":");
     bests.stream().limit(limit).forEach(e::line);
     if (bests.size() > limit){ e.line("- ... ("+(bests.size()-limit)+" more)"); }
     e.blank()
      .line("How maps work:")
      .bullet("A rank file can have lines like \"map name as _folder in _target;\".")
      .bullet("With no map, package name \"x\" refers to the code inside folders named \"_x\".")
-     .bullet("A map in a rank file of higher rank overrides the maps of lower rank, and lists their folders with \"instead of\".")
+     .bullet("A map in a rank file of higher rank overrides the maps of lower rank,\nand lists their folders with \"instead of\".")
      .blank()
      .line("How to fix it:")
-     .bullet("Decide which folder package name "+disp(in)+" refers to, for source code inside folders named "+disp("_"+pkgName)+".")
-     .bullet("Add one map in a rank file of higher rank (typically the rank file of your application"
-            +"), with \"instead of\" listing every folder chosen by the maps of lower rank.");
+     .bullet("Decide which folder package name "+disp(in)+" refers to,\nfor source code inside folders named "+disp("_"+pkgName)+".")
+     .bullet("Add one map in a rank file of higher rank\n(typically the rank file of your application),\n"
+            +"with \"instead of\" listing every folder chosen by the maps of lower rank.");
     return e.wf();
   }
   public FearlessException mapToMissingFolder(String role, String folder, String directive, List<String> pkgs){
@@ -151,13 +151,13 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public Err badRank(Err err){
     return err
-      .line("Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.")
+      .line("Every package must declare its rank:\nbase, core, driver, worker, framework, accumulator, tool, or app.")
       .line("The rank file is the file whose name matches the rank name.")
       .blank()
       .line("For example, for an application you would typically have a file named")
       .line("  \"_rank_app.fear\"")
       .line("Other examples: \"_rank_driver.fear\", \"_rank_framework.fear\" or \"_rank_app175.fear\"; with explicit rank number.")
-      .line("As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.");
+      .line("As a rule of thumb: final applications use appNNN;\nshared libraries often use workerNNN or frameworkNNN.");
   }
   public FearlessException usedDeclaredNameClash(Set<TName> names, Set<String> keySet){
     var n= names.stream().filter(x -> keySet.contains(x.s())).findFirst().get();
@@ -264,7 +264,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var e= err()
       .line("\"use\" directive refers to "+disp(tn.s())+", which is not a full type name.")
       .line("A \"use\" directive refers to a type of another package by its full type name.");
-    if (!tn.isPublic()){ return wfUse(e.line("Type names starting with \"_\" can only be used in their own package, so no \"use\" directive can refer to "+disp(tn.s())+"."), tn); }
+    if (!tn.isPublic()){ return wfUse(e.line("Type names starting with \"_\" can only be used in their own package,\nso no \"use\" directive can refer to "+disp(tn.s())+"."), tn); }
     if (pkgs.isEmpty()){ return wfUse(e.line("No other package declares a type named "+disp(tn.s())+"."), tn); }
     return wfUse(e.didYouMean(pkgs.stream().map(p -> disp("use "+p+"."+tn.s()+" as "+u.out()+";")).toList()), tn);
   }
@@ -275,7 +275,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line(inFolders(pkgName)+" uses the simple names of its own types."), tn);
   }
   public FearlessException mapToATargetOfAnotherMap(String out, List<String> directives){
-    var e= err().line(inFolders(pkgName)+" can use only one package name to refer to the code inside folders named "+disp("_"+out)+":");
+    var e= err().line(inFolders(pkgName)+" can use only one package name\nto refer to the code inside folders named "+disp("_"+out)+":");
     directives.forEach(e::line);
     return e.wf();
   }
@@ -288,16 +288,16 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("With no map, package name "+disp(in)+" refers to the code inside folders named "+disp("_"+in)+".").wf();
   }
   public FearlessException mapToItself(String directive){
-    return mapErr("A map cannot refer to the code inside folders named "+disp("_"+pkgName)+" for source code inside folders named "+disp("_"+pkgName), directive)
+    return mapErr("A map cannot refer to the code inside folders named "+disp("_"+pkgName)+"\nfor source code inside folders named "+disp("_"+pkgName), directive)
       .line(inFolders(pkgName)+" uses the simple names of its own types.").wf();
   }
-  private String notLower(String out, boolean sameRank){ return "the code inside folders named "+disp("_"+out)+", which has "+(sameRank ? "the same rank as" : "a higher rank than")+" the code inside folders named "+disp("_"+pkgName); }
-  private Err ranks(Err e, String out, Ref rank, Ref otherRank){ return e.line("Folders named "+disp("_"+pkgName)+" have rank "+rankDisp(rank)+" and folders named "+disp("_"+out)+" have rank "+rankDisp(otherRank)+".").line("Source code can only refer to code of a lower rank."); }
+  private String notLower(String out, boolean sameRank){ return "the code inside folders named "+disp("_"+out)+",\nwhich has "+(sameRank ? "the same rank as" : "a higher rank than")+" the code inside folders named "+disp("_"+pkgName); }
+  private Err ranks(Err e, String out, Ref rank, Ref otherRank){ return e.line("Folders named "+disp("_"+pkgName)+" have rank "+rankDisp(rank)+"\nand folders named "+disp("_"+out)+" have rank "+rankDisp(otherRank)+".").line("Source code can only refer to code of a lower rank."); }
   public FearlessException mapToNotLowerRank(String out, String directive, Ref rank, Ref otherRank, boolean sameRank){
     return ranks(mapErr("The map refers to "+notLower(out, sameRank), directive), out, rank, otherRank).wf();
   }
   public FearlessException insteadOfMismatch(String directive, List<String> overridden, FileFull.Map expected){
-    var e= mapErr("The \"instead of\" list of a map must name exactly the folders chosen by the maps of lower rank that the map overrides", directive);
+    var e= mapErr("The \"instead of\" list of a map must name exactly\nthe folders chosen by the maps of lower rank that the map overrides", directive);
     e.line(overridden.isEmpty() ? "No map of lower rank chooses another folder." : "These maps of lower rank choose other folders:");
     overridden.forEach(e::line);
     return e.line("Expected: "+disp(expected+";")+".").wf();
@@ -319,7 +319,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return typeName(e, tn);
   }
   public FearlessException typeWithAnAlias(TName tn, FileFull.Use u){
-    return typeName(fullNameInvalid(err(pkgMapped(pkgName, tn.pkgName(), map, mapSources)), tn).line(inFolders(pkgName)+" uses the simple name "+disp(u.out())+" to refer to "+disp(tn.s())+", because of "+disp(u)+"."), tn);
+    return typeName(fullNameInvalid(err(pkgMapped(pkgName, tn.pkgName(), map, mapSources)), tn).line(inFolders(pkgName)+" uses the simple name "+disp(u.out())+" to refer to "+disp(tn.s())+",\nbecause of "+disp(u)+"."), tn);
   }
   private Err fullNameInvalid(Err e, TName tn){ return e.line("The full type name "+disp(tn.s())+" is invalid in source code inside folders named "+disp("_"+pkgName)+"."); }
   private static FearlessException typeName(Err e, TName tn){ return e.wf().addFrame("a type name", TSpan.fromPos(tn.pos(), tn.s().length()).inner); }
@@ -443,7 +443,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return err()
       .line("Cannot infer signature and name for a method with "+count(n, "parameter")+".")
       .line(taken
-        ? "Each method with "+count(n, "parameter")+" of the supertypes is already overridden by another method of "+err().expRepr(origin)+"."
+        ? "Each method with "+count(n, "parameter")+" of the supertypes\nis already overridden by another method of "+err().expRepr(origin)+"."
         : "No supertype of "+err().expRepr(origin)+" has a method with "+count(n, "parameter")+".");
   }
   public FearlessException noAgreement(Methods meths, Agreement at, List<M.Sig> ss){
@@ -471,9 +471,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var names= and(res.stream().map(o -> option(false, o)).toList());
     var x= res.stream().filter(t -> !(t instanceof IT.RCC)).findFirst();
     var oneX= x.isPresent() && res.stream().allMatch(t -> t.withRC(RC.imm).equals(x.get().withRC(RC.imm)));
-    if (x.isPresent() && !oneX){ return Optional.of("The "+what+" differs, and "+disp(OneOr.of("Type parameters", x.get().ftv()))+" is a generic type parameter: no type can be a "+rel+" of "+names+"."); }
+    if (x.isPresent() && !oneX){ return Optional.of("The "+what+" differs, and "+disp(OneOr.of("Type parameters", x.get().ftv()))+" is a generic type parameter:\nno type can be a "+rel+" of "+names+"."); }
     var rcDiffers= oneX || res.stream().map(t -> ((IT.RCC)t).rc().orElse(RC.imm)).distinct().count() > 1;
-    if (rcDiffers){ return Optional.of("The "+what+" differs in reference capability; overriding must keep the reference capability."); }
+    if (rcDiffers){ return Optional.of("The "+what+" differs in reference capability;\noverriding must keep the reference capability."); }
     var cs= heads(res);
     var none= "No type currently visible is a "+rel+" of the "+(ret ? "return types: " : "types of parameter "+(i+1)+": ")+names+".";
     if (!ret){ return meths.commonSupertypes(bs, cs, at.lit().name()).isEmpty() ? Optional.of(none) : Optional.empty(); }
@@ -528,7 +528,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException methodBsDisagreementBetweenSupers(Methods meths, Agreement at, List<M.Sig> ss){
     var i= firstRcsDisagreementIndex(ss.stream().map(s -> s.bs().get()).distinct().toList());
-    return cannotImplement(sigBlock(meths, at, ss).line("The capability bounds of generic type parameter "+(i+1)+" differ; overriding must keep the capability bounds."), at);
+    return cannotImplement(sigBlock(meths, at, ss).line("The capability bounds of generic type parameter "+(i+1)+" differ;\noverriding must keep the capability bounds."), at);
   }
   public FearlessException methodBsDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
     assert userBs.size() == superBs.size();
@@ -537,7 +537,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var s= superBs.get(i);
     var m= err().methodSig(at.mName());
     return wf(invalidMethImpl(at)
-      .line("The method "+m+" declares different capability bounds than the supertypes for generic type parameter "+(i+1)+".")
+      .line("The method "+m+" declares different capability bounds for generic type parameter "+(i+1)+"\nthan the supertypes.")
       .line("Local declaration: "+disp(u)+".")
       .line("Capability bounds in the supertypes: "+disp(Join.of(s.rcs().stream(), "", ",", ""))+".")
       .line("Generic type parameter names may differ from the supertypes; only the position matters."), at);
@@ -566,8 +566,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private FearlessException typeArgAmbiguous(E at, String x, String of, List<IT> cands, List<IT.RCC> common, String example, Function<TName,core.E.Literal> decs){
     var cs= cands.stream().map(err(h -> h, n -> n, decs, List.of())::typeRepr).distinct().toList();
     var xs= Err.disp(x);
-    var e= err().line("The generic type argument "+xs+" of "+of+" can not be inferred: it is needed "+Join.of(cs, "as ", ", as ", "")+".");
-    if (!common.isEmpty()){ e.line(up(xs)+" could be "+Join.of(common.stream().map(err()::typeRepr), "", " or ", "")+": each is a supertype of "+Join.of(cs, "", " and ", "")+". The choice is ambiguous."); }
+    var e= err().line("The generic type argument "+xs+" of "+of+" can not be inferred:\nit is needed "+Join.of(cs, "as ", ", as ", "")+".");
+    if (!common.isEmpty()){ e.line(up(xs)+" could be "+Join.of(common.stream().map(err()::typeRepr), "", " or ", "")+":\neach is a supertype of "+Join.of(cs, "", " and ", "")+".\nThe choice is ambiguous."); }
     return wf(e.line("Write the generic type argument explicitly, in place of \"_\" in "+disp(example)+"."), at);
   }
   public String callWithTargs(E.Call c, List<IT> targs, int k){
@@ -610,7 +610,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException typeGrowsForever(E at){
     return wf(err()
       .line("Type inference finds no type for "+err().expRepr(at)+".")
-      .line("Each round of inference nests its type one level deeper, as "+err().typeRepr(at.t(), 2)+"; it would grow without bound."), at);
+      .line("Each round of inference nests its type one level deeper, as "+err().typeRepr(at.t(), 2)+";\nit would grow without bound."), at);
   }
   public FearlessException ambiguousImpl(E.Literal origin, boolean abs, M m, List<M.Sig> options){
     return wf(err()
@@ -638,7 +638,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var ctx= up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
-      .line("The body of method "+err().methodSig("", owner, m.sig().m().get())+" needs to be duplicated to satisfy multiple reference capability overloads from the supertypes.")
+      .line("The body of method "+err().methodSig("", owner, m.sig().m().get())+" needs to be duplicated\nto satisfy multiple reference capability overloads from the supertypes.")
       .line("However, the body declares type "+err().tNameADisp(in.name())+".")
       .line("Object literals with their own unique explicit type cannot be duplicated."), owner);
   }
@@ -681,7 +681,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException finalNotMethodName(E.Literal owner, IT.C c){
     return wf(err()
       .line(up(err().expRepr(owner))+" implements "+claimRepr(owner, c)+".")
-      .line("The generic type argument of "+err().tNameADisp(LiteralDeclarations.finalMethods)+" is a type name in quotes holding a method name, like "+disp("\".name\"")+" or "+disp("\"+\"")+"."), owner);
+      .line("The generic type argument of "+err().tNameADisp(LiteralDeclarations.finalMethods)+" is a type name in quotes holding a method name,\nlike "+disp("\".name\"")+" or "+disp("\"+\"")+"."), owner);
   }
   public FearlessException finalImplemented(E.Literal owner, M m, TName origin, IT.C claim){
     var ctx= up(err().expRepr(owner));
@@ -695,7 +695,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var c= err().tNameADisp(claim);
     return wf(err()
       .line(up(ctx)+" implements "+c+".")
-      .line("Only a main can implement "+c+": "+ctx+" must also implement "+err().tNameADisp(LiteralDeclarations.main)+", directly or through one of its supertypes."), owner);
+      .line("Only a main can implement "+c+":\n"+ctx+" must also implement "+err().tNameADisp(LiteralDeclarations.main)+",\ndirectly or through one of its supertypes."), owner);
   }
   public FearlessException claimIconNotConcrete(E.Literal owner, IT.C c){
     return wf(claim(owner, c)
@@ -706,28 +706,28 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var examples= c.name().simpleName().equals("Shortcut") ? disp("\"fapp042\"") : disp("\"ffile347\"")+", "+disp("\"xml\"")+" or "+disp("\"txt\"");
     return wf(claim(owner, c)
       .line("The extension "+err().typeRepr(c.ts().get(1))+" is not a type name in quotes.")
-      .line("An extension is written as a type name in quotes, like "+examples+"; "+chooseOne(c)+"."), owner);
+      .line("An extension is written as a type name in quotes, like "+examples+";\n"+chooseOne(c)+"."), owner);
   }
   public FearlessException claimExtInvalid(E.Literal owner, IT.C c, String ext){
     return wf(claim(owner, c)
       .line(disp(ext)+" is not a valid extension.")
-      .line((ext.equals("fearless") ? "The extension \"fearless\" is reserved" : "An extension is 1 to "+Fs.maxExtSeg+" characters, each a lowercase letter \"a\"-\"z\" or a digit \"0\"-\"9\", with no dot")+"; "+chooseOne(c)+"."), owner);
+      .line((ext.equals("fearless") ? "The extension \"fearless\" is reserved" : "An extension is 1 to "+Fs.maxExtSeg+" characters,\neach a lowercase letter \"a\"-\"z\" or a digit \"0\"-\"9\", with no dot")+";\n"+chooseOne(c)+"."), owner);
   }
   public FearlessException claimShortcutNotFapp(E.Literal owner, IT.C c, String ext){
     return wf(claim(owner, c)
-      .line(disp(ext)+" is not a shortcut extension: a shortcut file only starts its main, so it must not look like a document of another program or a file of the project.")
-      .line("A shortcut extension is \"fapp\" followed by three digits, like \"fapp042\"; "+chooseOne(c)+"."), owner);
+      .line(disp(ext)+" is not a shortcut extension:\na shortcut file only starts its main,\nso it must not look like a document of another program or a file of the project.")
+      .line("A shortcut extension is \"fapp\" followed by three digits, like \"fapp042\";\n"+chooseOne(c)+"."), owner);
   }
   public FearlessException claimOpenWithFapp(E.Literal owner, IT.C c, String ext){
     return wf(claim(owner, c)
-      .line(disp(ext)+" is a shortcut extension: \"fapp\" followed by three digits names the shortcut files of the Fearless manager.")
-      .line("Use an extension of the form \"ffile\" followed by three digits, like \"ffile042\", or a system extension, like \"htm\"; "+chooseOne(c)+"."), owner);
+      .line(disp(ext)+" is a shortcut extension:\n\"fapp\" followed by three digits names the shortcut files of the Fearless manager.")
+      .line("Use an extension of the form \"ffile\" followed by three digits, like \"ffile042\",\nor a system extension, like \"htm\";\n"+chooseOne(c)+"."), owner);
   }
   public FearlessException claimExtTwice(E.Literal owner, IT.C first, IT.C second, String ext){
     return wf(err()
       .line(up(err().expRepr(owner))+" claims the extension "+disp(ext)+" more than once:")
       .line("both "+claimRepr(owner, first)+" and "+claimRepr(owner, second)+" claim it.")
-      .line("A main can claim each extension at most once, across all its "+err().tNameADisp(LiteralDeclarations.claims.get(1))+" and "+err().tNameADisp(LiteralDeclarations.claims.get(3))+", since one extension has one icon."), owner);
+      .line("A main can claim each extension at most once,\nacross all its "+err().tNameADisp(LiteralDeclarations.claims.get(1))+" and "+err().tNameADisp(LiteralDeclarations.claims.get(3))+",\nsince one extension has one icon."), owner);
   }
   private String chooseOne(IT.C c){ return "or implement "+err().tNameADisp(LiteralDeclarations.claims.get(LiteralDeclarations.claims.indexOf(c.name())-1))+" to let the Fearless manager choose one"; }
   private Err claim(E.Literal owner, IT.C c){ return err().line(up(err().expRepr(owner))+" implements "+claimRepr(owner, c)+"."); }
@@ -744,7 +744,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException implementsAnonymousType(E.Literal l, E.Literal owner){
     return err()
-      .line("Type inference concluded that the object literal at "+at(l.span().inner)+" should implement the object literal at "+at(owner.span().inner)+".")
+      .line("Type inference concluded that the object literal at "+at(l.span().inner)+"\nshould implement the object literal at "+at(owner.span().inner)+".")
       .line("An object literal can only implement a standalone type.")
       .line("A type is standalone if it is declared at top level, or if it implements "+err().tNameADisp(LiteralDeclarations.captureFree)+".")
       .wf().addFrame("object literal "+disp("{...}")+" (line "+l.span().inner.startLine()+")", l.span().inner);

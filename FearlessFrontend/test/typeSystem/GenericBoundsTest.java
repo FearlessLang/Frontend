@@ -782,7 +782,8 @@ A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x }
 
 While inspecting parameter "x" > method "Box[X].get" (line 2) > method "A.m(_)" (line 2)
 Parameter "x" has type "X".
-Parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "Box[X]" (line 2).
+Parameter "x" can observe mutation;
+thus it cannot be captured in the "iso" object literal instance of "Box[X]" (line 2).
 Capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
@@ -807,7 +808,8 @@ A:{ .m[X:imm](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x }
 
 While inspecting parameter "b" > method "Fresh[_].get" (line 3) > method "A.m(_)" (line 3)
 Parameter "b" has type "Box[X]".
-That type is not well kinded under the generic type parameters of object literal "Fresh[_]" (line 3): "X:imm,mut,read".
+That type is not well kinded under the generic type parameters "X:imm,mut,read"
+of object literal "Fresh[_]" (line 3).
 The bounds declared by the object literal are all it knows about its generic type parameters,
 and thus parameter "b" cannot be captured.
 """, List.of("""
@@ -821,7 +823,8 @@ A:{ .m[X:imm](b: Box[X]): read Get[X] -> read Fresh[X:imm,mut,read]:Get[X]{ .get
 
 While inspecting parameter "b" > method "Fresh[_].get" (line 3) > method "A.m(_)" (line 3)
 Parameter "b" has type "Box[X]".
-That type is not well kinded under the generic type parameters of object literal "Fresh[_]" (line 3): "X:imm,mut,read".
+That type is not well kinded under the generic type parameters "X:imm,mut,read"
+of object literal "Fresh[_]" (line 3).
 The bounds declared by the object literal are all it knows about its generic type parameters,
 and thus parameter "b" cannot be captured.
 """, List.of("""
@@ -1009,7 +1012,8 @@ B:Sup{ .m -> { .k -> {} } }
 
 While inspecting object literal instance of "Foo" > method "B[_].m" (line 3)
 Object literal instance of "Foo" is required to be of type "_AX".
-"_AX" is a generic type parameter; an object literal is always of a nominal type.
+"_AX" is a generic type parameter;
+an object literal is always of a nominal type.
 Original signature:
 -       Sup.m[X:*]: X
 Signature as inherited by type declaration "B[_]":
@@ -1025,7 +1029,8 @@ B[X:*]:Sup{ .m -> Foo{} }
 
 While inspecting object literal instance of "Foo" > method "Fresh.k" (line 4) > method "B.m" (line 4)
 Object literal instance of "Foo" is required to be of type "X".
-"X" is a generic type parameter; an object literal is always of a nominal type.
+"X" is a generic type parameter;
+an object literal is always of a nominal type.
 Signature as inherited by object literal "Fresh":
 -       K.k[X:*]: X
 """, List.of("""

@@ -71,7 +71,9 @@ Object literal has type "iso base.Void" instead of a subtype of "a.A".
 Signature as inherited by type declaration "B":
 -       a.A.fromC: a.A
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cA), Map.of("a", "c"), """
 B:a.A{ .fromC -> base.Void }
 """); }
@@ -96,7 +98,9 @@ Object literal has type "iso base.Void" instead of a subtype of "a.A".
 Signature as inherited by type declaration "B":
 -       a.A.fromC: a.A
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b instead of _e, _d", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b instead of _e, _d", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", fe.render(o));
   }
   @Test void typeErrorWritesTheMappedName(){ fail("""
@@ -109,7 +113,9 @@ While inspecting method call ".m" > method "B.k(_)" (line 1)
 The body of method ".k(_)" of type declaration "B" is an expression returning "a.A".
 Method call "a.A.m" has type "a.A" instead of a subtype of "B".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", "A:{.m:A->this}"), Map.of("a", "c"), """
 B:{.k(x:a.A):B->x.m}
 """); }
@@ -128,7 +134,9 @@ Signatures as inherited by type declaration "B":
 "B.m" return type must be a subtype of "a.A" and "a.A2".
 Such type currently visible: "B".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness""", Map.of("c", "A:{.m:A->this} A2:{.m:A2->this}"), Map.of("a", "c"), """
 B:a.A,a.A2{}
 """); }
@@ -142,7 +150,9 @@ While inspecting a type name
 Type "A" is not declared in package "a".
 In scope: "a.C".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "C:{}"), Map.of("a", "c"), """
 B:{.m(x:a.A):B->this}
@@ -165,7 +175,9 @@ Did you mean "a" ?
 Visible package names:
 - "a"
 - "base"
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 B:{.m(x:a.A):c.A->x.fromC}
@@ -236,7 +248,9 @@ Did you mean "a" ?
 Visible package names:
 - "a"
 - "base"
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 B:{.m(x:c.Z):B->this}
@@ -254,7 +268,9 @@ Did you mean one of the following?
 - "a.B"
 - "d.B"
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "B:{}", "d", "B:{}", "e", "B:{}"), Map.of("a", "c"), """
 use e.B as EB;
@@ -284,7 +300,9 @@ While inspecting a type name
 Type "Z" is not declared in package "a".
 In scope: "a.A".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 B:{.m(x:a.Z):B->this}
@@ -302,7 +320,9 @@ In file: [###].fear
 While inspecting package header
 "use" directive refers to type "Z", which is not declared in package "a".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_cc", because of "map a as _cc in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_cc",
+because of "map a as _cc in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("cc", cA), Map.of("a", "cc"), """
 use a.Z as Z;
@@ -320,7 +340,9 @@ Did you mean "a" ?
 Visible package names:
 - "a"
 - "base"
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 use c.A as X;
@@ -334,7 +356,8 @@ In file: [###].fear
 
 While inspecting a type name
 The full type name "c.A" is invalid in source code inside folders named "_b".
-Source code inside folders named "_b" uses the simple name "X" to refer to "c.A", because of "use c.A as X".
+Source code inside folders named "_b" uses the simple name "X" to refer to "c.A",
+because of "use c.A as X".
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of(), """
 use c.A as X;
@@ -348,9 +371,12 @@ In file: [###].fear
 
 While inspecting a type name
 The full type name "a.A" is invalid in source code inside folders named "_b".
-Source code inside folders named "_b" uses the simple name "X" to refer to "a.A", because of "use a.A as X".
+Source code inside folders named "_b" uses the simple name "X" to refer to "a.A",
+because of "use a.A as X".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 use a.A as X;
@@ -370,7 +396,9 @@ Available methods on type "A":
 -       .fromC: A
 
 Name "A" stands for "a.A" because of "use a.A as A".
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", cA), Map.of("a", "c"), """
 use a.A as A;
@@ -422,7 +450,9 @@ Type "A" is only declared with 0 generic type parameters.
 There may be too many generic type arguments.
 
 Name "X" stands for "a.A" because of "use a.A as X".
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 use a.A as X;
@@ -443,7 +473,9 @@ Did you mean "webserver" ?
 Visible package names:
 - "base"
 - "webserver"
-Source code inside folders named "_b" uses package name "webserver" to refer to the code inside folders named "_webserver_v12", because of "map webserver as _webserver_v12 in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "webserver"
+to refer to the code inside folders named "_webserver_v12",
+because of "map webserver as _webserver_v12 in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("webserver_v12", "Server:{.v12:Server->this}"), Map.of("webserver", "webserver_v12"), """
 B:{.m(x:webserver_v12.Server):webserver.Server->x.v12}
@@ -492,7 +524,9 @@ While inspecting a type name
 Source code inside folders named "_b" cannot use package name "base".
 Did you mean "bb" ?
 Visible package names: "bb".
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of(), Map.of("bb", "base"), """
 B:{ .v:base.Void -> {} }
@@ -507,7 +541,9 @@ While inspecting object literal instance of "bb.Nat" > method "B.m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "iso bb.Nat".
 Object literal has type "iso bb.Nat" instead of a subtype of "B".
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
 B:{ .m:B -> 5 }
 """); }
@@ -525,7 +561,9 @@ Available methods on type "bb.Nat":
 -       *(bb.Nat): bb.Nat
 -       +(bb.Nat): bb.Nat
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""",Map.of(), Map.of("bb", "base"), """
 B:{ .m:B -> 5.foo }
 """); }
@@ -542,7 +580,9 @@ Sealed types can only be implemented in their own package.
 Type declaration "B" is in package "b".
 Type "a.S" is in package "a".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", sealedC), Map.of("a", "c"), """
 B:a.S{ .m -> this }
@@ -560,7 +600,9 @@ Type declaration "B" is in package "b".
 Type "X" is in package "a".
 
 Name "X" stands for "a.S" because of "use a.S as X".
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", sealedC), Map.of("a", "c"), """
 use a.S as X;
@@ -579,7 +621,9 @@ Required by: "a.S".
 Sealed types can only be implemented in their own package.
 Type "a.S" is in package "a".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""",Map.of("c", sealedC), Map.of("a", "c"), """
 B:{ .k:a.S -> a.S }
 """); }
@@ -595,7 +639,9 @@ In scope: "B".
 Did you mean "a.Server" ?
 Add a "use" or write the full type name.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "Server:{}"), Map.of("a", "c"), """
 B:{.m(x:Server):B->this}
@@ -614,7 +660,9 @@ In scope:
 Did you mean "Remote" ?
 
 Name "Remote" stands for "a.Server" because of "use a.Server as Remote".
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "Server:{}"), Map.of("a", "c"), """
 use a.Server as Remote;
@@ -632,7 +680,9 @@ Did you mean "Remote" ?
 In scope: "Remote".
 
 Name "Remote" stands for "a.Server" because of "use a.Server as Remote".
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "Server:{}"), Map.of("a", "c"), """
 use a.Server as Remote;
@@ -649,7 +699,9 @@ Type "Z" is not declared in package "a".
 In scope: "X".
 
 Name "X" stands for "a.A" because of "use a.A as X".
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 use a.A as X;
@@ -667,7 +719,9 @@ In scope: "d.Client".
 Did you mean "Remote" ?
 
 Name "Remote" stands for "a.Server" because of "use a.Server as Remote".
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "Server:{}", "d", "Client:{}"), Map.of("a", "c"), """
 use a.Server as Remote;
@@ -684,7 +738,9 @@ Type "Server" is not declared in package "a".
 In scope: "a.A".
 Did you mean "Server" ?
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 B:{.m(x:a.Server):B->this}
@@ -702,7 +758,9 @@ In scope: "d.Client".
 Did you mean "a.Server" ?
 Add a "use" or write the full type name.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "Server:{}", "d", "Client:{}"), Map.of("a", "c"), """
 B:{.m(x:d.Server):B->this}
@@ -718,7 +776,9 @@ While inspecting method call ".get" > method "B.m(_)" (line 1)
 The body of method ".m(_)" of type declaration "B" is an expression returning "a.A".
 Method call "a.Box[_].get" has type "a.A" instead of a subtype of "B".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m(x:a.Box[a.A]):B->x.get}
 """); }
@@ -732,7 +792,9 @@ While inspecting method call ".get" > method "B.m(_)" (line 1)
 The body of method ".m(_)" of type declaration "B" is an expression returning "B".
 Method call "a.Box[_].get" has type "B" instead of a subtype of "a.A".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m(x:a.Box[B]):a.A->x.get}
 """); }
@@ -747,7 +809,9 @@ The body of method ".m(_)" of type declaration "B" is an expression returning "X
 Method call "a.Box[_].get" has type "X" instead of a subtype of "B".
 
 Name "X" stands for "a.A" because of "use a.A as X".
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 use a.A as X;
 B:{.m(x:a.Box[X]):B->x.get}
@@ -764,7 +828,9 @@ Method call "Bx[_].get" has type "X" instead of a subtype of "B".
 
 Name "X" stands for "a.A" because of "use a.A as X".
 Name "Bx" stands for "a.Box" because of "use a.Box as Bx".
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 use a.Box as Bx;
 use a.A as X;
@@ -778,9 +844,12 @@ In file: [###].fear
 
 While inspecting a type name
 The full type name "a.A" is invalid in source code inside folders named "_b".
-Source code inside folders named "_b" uses the simple name "X" to refer to "a.A", because of "use a.A as X".
+Source code inside folders named "_b" uses the simple name "X" to refer to "a.A",
+because of "use a.A as X".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cBox), Map.of("a", "c"), """
 use a.A as X;
@@ -798,7 +867,9 @@ Did you mean "a" ?
 Visible package names:
 - "a"
 - "base"
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m(x:a.Box[c.A]):B->this}
@@ -824,8 +895,12 @@ The body of method ".m(_)" of type declaration "B" is an expression returning "O
 Parameter "x" has type "OldServer" instead of a subtype of "web.Server".
 
 Name "OldServer" stands for "legacy.Server" because of "use legacy.Server as OldServer".
-Source code inside folders named "_b" uses package name "legacy" to refer to the code inside folders named "_web_v1", because of "map legacy as _web_v1 in _b", written in fear:/_b/_rank_app.fear.
-Source code inside folders named "_b" uses package name "web" to refer to the code inside folders named "_web_v2", because of "map web as _web_v2 in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "legacy"
+to refer to the code inside folders named "_web_v1",
+because of "map legacy as _web_v1 in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "web"
+to refer to the code inside folders named "_web_v2",
+because of "map web as _web_v2 in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", webVersions, legacyAndWeb, """
 use legacy.Server as OldServer;
 B:{.m(x:OldServer):web.Server->x}
@@ -845,7 +920,9 @@ Available methods on type "OldServer":
 -       .v1: OldServer
 
 Name "OldServer" stands for "legacy.Server" because of "use legacy.Server as OldServer".
-Source code inside folders named "_b" uses package name "legacy" to refer to the code inside folders named "_web_v1", because of "map legacy as _web_v1 in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "legacy"
+to refer to the code inside folders named "_web_v1",
+because of "map legacy as _web_v1 in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", webVersions, legacyAndWeb, """
 use legacy.Server as OldServer;
 B:{.m(x:OldServer, y:web.Server):web.Server->x.v2}
@@ -863,7 +940,9 @@ Method ".nope" is not declared on type "a.A".
 Available methods on type "a.A":
 -       .fromC: a.A
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m(x:a.A):a.A->x.nope}
 """); }
@@ -877,7 +956,9 @@ While inspecting parameter "x" > method "B.m(_)" (line 1)
 The body of method ".m(_)" of type declaration "B" is an expression returning "read a.A".
 Parameter "x" has type "read a.A" instead of a subtype of "mut a.A".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m(x:read a.A):mut a.A->x}
 """); }
@@ -896,7 +977,9 @@ This call to method "a.Box[_].put(_)" cannot typecheck.
 Argument 1 has type "a.D".
 That is not a subtype of "a.A" (the type required by the method signature).
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m(x:a.Box[a.A], d:a.D):a.Box[a.A]->x.put(d)}
 """); }
@@ -912,7 +995,9 @@ Argument 1 has type "a.D".
 That is not a subtype of "X" (the type required by the method signature).
 
 Name "X" stands for "a.A" because of "use a.A as X".
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 use a.A as X;
 B:{.m(x:a.Box[X], d:a.D):a.Box[X]->x.put(d)}
@@ -930,7 +1015,9 @@ Object literal has type "iso base.Void" instead of a subtype of "a.A".
 Signature as inherited by object literal instance of "a.A":
 -       a.A.fromC: a.A
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m:a.A->a.A{.fromC->base.Void}}
 """); }
@@ -946,7 +1033,9 @@ Missing: "imm .get".
 Required by: "a.Box[_]".
 Add an implementation for ".get" inside the object literal.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m:a.Box[a.A]->{}}
 """); }
@@ -960,7 +1049,9 @@ While inspecting object literal instance of "bb.Str" > method "B.m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "iso bb.Str".
 Object literal has type "iso bb.Str" instead of a subtype of "B".
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
 B:{ .m:B -> "hi" }
 """); }
@@ -975,7 +1066,9 @@ The body of method ".m" of type declaration "B" is an expression returning "iso 
 Object literal has type "iso N" instead of a subtype of "B".
 
 Name "N" stands for "bb.Nat" because of "use bb.Nat as N".
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
 use bb.Nat as N;
 B:{ .m:B -> 5 }
@@ -990,7 +1083,9 @@ While inspecting object literal instance of "bb.Int" > method "B.m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "iso bb.Int".
 Object literal has type "iso bb.Int" instead of a subtype of "bb.Nat".
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
 B:{ .m:bb.Nat -> +5 }
 """); }
@@ -1004,7 +1099,9 @@ While inspecting parameter "x" > method "B.m(_)" (line 1)
 The body of method ".m(_)" of type declaration "B" is an expression returning "a.B".
 Parameter "x" has type "a.B" instead of a subtype of "B".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", "B:{.fromC:B->this}"), Map.of("a", "c"), """
 B:{.m(x:a.B):B->x}
 """); }
@@ -1018,8 +1115,12 @@ While inspecting method call ".n" > method "B.m(_)" (line 1)
 The body of method ".m(_)" of type declaration "B" is an expression returning "bb.Nat".
 Method call "a.A.n" has type "bb.Nat" instead of a subtype of "B".
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", "A:{.n:base.Nat->5}"), Map.of("a", "c", "bb", "base"), """
 B:{.m(x:a.A):B->x.n}
 """); }
@@ -1033,7 +1134,9 @@ While inspecting method call ".id(_)" > method "B.m(_,_)" (line 1)
 The body of method ".m(_,_)" of type declaration "B" is an expression returning "a.D".
 Method call "a.G.id(_)" has type "a.D" instead of a subtype of "B".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", "D:{} G:{.id[X](x:X):X->x}"), Map.of("a", "c"), """
 B:{.m(x:a.G, d:a.D):B->x.id[a.D](d)}
 """); }
@@ -1055,7 +1158,9 @@ Signature as inherited by object literal instance of "X":
 -       X.fromC: X
 
 Name "X" stands for "a.A" because of "use a.A as X".
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 use a.A as X;
 B:{.m:X->X{.fromC->B}}
@@ -1065,8 +1170,8 @@ use bb.Nat as N;
 use bb.Str as S;
 B:{ .m:N -> 5; .k(x:N):N -> x+5; .s:S -> "hi"; .i:bb.Int -> +5; .f:bb.Float -> 1.5 }
 """); }
-  static final String noteA= "Source code inside folders named \"_b\" uses package name \"a\" to refer to the code inside folders named \"_c\", because of \"map a as _c in _b\", written in fear:/_b/_rank_app.fear.";
-  static final String noteBb= "Source code inside folders named \"_b\" uses package name \"bb\" to refer to the code inside folders named \"_base\", because of \"map bb as _base in _b\", written in fear:/_b/_rank_app.fear.";
+  static final String noteA= "Source code inside folders named \"_b\" uses package name \"a\"\nto refer to the code inside folders named \"_c\",\nbecause of \"map a as _c in _b\", written in fear:/_b/_rank_app.fear.";
+  static final String noteBb= "Source code inside folders named \"_b\" uses package name \"bb\"\nto refer to the code inside folders named \"_base\",\nbecause of \"map bb as _base in _b\", written in fear:/_b/_rank_app.fear.";
   @Test void undeclaredSimpleNameSuggestsAnAliasOfAnUnmappedTypeWithNoNote(){ fail("""
 In file: [###].fear
 
@@ -1194,8 +1299,12 @@ Did you mean one of the following?
 - "z.Server"
 Add a "use" or write the full type name.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_e", because of "map a as _e in _b", written in fear:/_b/_rank_app.fear.
-Source code inside folders named "_b" uses package name "z" to refer to the code inside folders named "_c", because of "map z as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_e",
+because of "map a as _e in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "z"
+to refer to the code inside folders named "_c",
+because of "map z as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "Server:{}", "e", "Server:{}"), Map.of("z", "c", "a", "e"), """
 B:{.m(x:Server):B->this}
@@ -1314,7 +1423,8 @@ In file: [###].fear
 
 While inspecting method "A.caller(_,_)" (line 1)
 This call to method "A.f(_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
+Each argument is compatible with at least one promotion,
+but no single promotion fits all arguments.
 
 Compatible promotions by argument:
 - Argument 1 has type "readH A" and is compatible with: Allow readH arguments, Allow mutH argument 1.
@@ -1343,8 +1453,12 @@ While inspecting parameter "x" > method "B.m(_)" (line 1)
 The body of method ".m(_)" of type declaration "B" is an expression returning "z.A".
 Parameter "x" has type "z.A" instead of a subtype of "a.A".
 
-Source code inside folders named "_b" uses package name "z" to refer to the code inside folders named "_c", because of "map z as _c in _b", written in fear:/_b/_rank_app.fear.
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_e", because of "map a as _e in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "z"
+to refer to the code inside folders named "_c",
+because of "map z as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_e",
+because of "map a as _e in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cA, "e", aA), Map.of("z", "c", "a", "e"), """
 B:{.m(x:z.A):a.A->x}
 """); }
@@ -1378,7 +1492,9 @@ Parameter "x" has type "Y" instead of a subtype of "X".
 
 Name "Y" stands for "z.A" because of "use z.A as Y".
 Name "X" stands for "a.A" because of "use a.A as X".
-Source code inside folders named "_b" uses package name "z" to refer to the code inside folders named "_e", because of "map z as _e in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "z"
+to refer to the code inside folders named "_e",
+because of "map z as _e in _b", written in fear:/_b/_rank_app.fear.
 """+noteA+"""
 
 Error 8 TypeError""", Map.of("c", cA, "e", dA), Map.of("a", "c", "z", "e"), """
@@ -1422,7 +1538,9 @@ Did you mean "a" ?
 Visible package names:
 - "a"
 - "base"
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c__v_", because of "map a as _c__v_ in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c__v_",
+because of "map a as _c__v_ in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c__v_", cA), Map.of("a", "c__v_"), """
 B:{.m(x:a.A):c__v_.A->x.fromC}
@@ -1439,7 +1557,9 @@ Did you mean "as" ?
 Visible package names:
 - "as"
 - "base"
-Source code inside folders named "_b" uses package name "as" to refer to the code inside folders named "_in", because of "map as as _in in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "as"
+to refer to the code inside folders named "_in",
+because of "map as as _in in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("in", cA), Map.of("as", "in"), """
 B:{.m(x:as.A):in.A->x.fromC}
@@ -1453,7 +1573,9 @@ In file: [###].fear
 While inspecting package header
 "use" directive refers to type "Z", which is not declared in package "of".
 
-Source code inside folders named "_b" uses package name "of" to refer to the code inside folders named "_c", because of "map of as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "of"
+to refer to the code inside folders named "_c",
+because of "map of as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("of", "c"), """
 use of.Z as Z;
@@ -1500,7 +1622,8 @@ In file: [###].fear
 While inspecting package header
 "use" directive refers to "_A", which is not a full type name.
 A "use" directive refers to a type of another package by its full type name.
-Type names starting with "_" can only be used in their own package, so no "use" directive can refer to "_A".
+Type names starting with "_" can only be used in their own package,
+so no "use" directive can refer to "_A".
 Error 7 WellFormedness
 """, Map.of("d", "_A:{}"), Map.of(), """
 use _A as X;
@@ -1518,7 +1641,9 @@ In scope: "B".
 Did you mean "in.A" ?
 Add a "use" or write the full type name.
 
-Source code inside folders named "_b" uses package name "in" to refer to the code inside folders named "_c", because of "map in as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "in"
+to refer to the code inside folders named "_c",
+because of "map in as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("in", "c"), """
 B:{.m(x:A):B->this}
@@ -1675,7 +1800,7 @@ use zz.A as X;
 Str:{}
 """); }
   static final Map<String,String> jsons= Map.of("json_v1", "Parser:{.v1:Parser->this}", "json_v2", "Parser:{.v2:Parser->this}");
-  static final String jsonNote= "Source code inside folders named \"_b\" uses package name \"json\" to refer to the code inside folders named \"_json_v2\", because of \"map json as _json_v2 in _b\", written in fear:/_b/_rank_app.fear.";
+  static final String jsonNote= "Source code inside folders named \"_b\" uses package name \"json\"\nto refer to the code inside folders named \"_json_v2\",\nbecause of \"map json as _json_v2 in _b\", written in fear:/_b/_rank_app.fear.";
   @Test void aHiddenVersionSuggestsTheMapNameOverACloserVersion(){ fail("""
 In file: [###].fear
 
@@ -1751,7 +1876,9 @@ Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "a.Box[_]".
 Here "X" can only use capability "imm".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", "Box[X:imm]:{}"), mapA, """
 B:{.m(x:a.Box[mut B]):B->this}
@@ -1769,7 +1896,9 @@ for generic type parameter "X" in "Bx[_]".
 Here "X" can only use capability "imm".
 
 Name "Bx" stands for "a.Box" because of "use a.Box as Bx".
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", "Box[X:imm]:{}"), mapA, """
 use a.Box as Bx;
@@ -1787,7 +1916,9 @@ Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "a.G#(_)".
 Here "X" can only use capability "imm".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", "G:{ #[X:imm](x:X):G->this }"), mapA, """
 B:{.m(g:a.G, b:mut B):a.G->g#[mut B](b)}
@@ -1804,7 +1935,9 @@ The method ".g(_)" accepts parameter 1 of type "a.Q".
 But "a.Parent.g(_)" requires "a.P", which is not a subtype of "a.Q".
 It is instead a supertype: you are strengthening the parameter instead of weakening it.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", cOver), mapA, """
 B:a.Parent{ .g(x:a.Q):base.Void -> base.Void }
@@ -1819,9 +1952,12 @@ While inspecting type declaration "B"
 Invalid method signature for "B.g(_)".
 The method ".g(_)" accepts parameter 1 of type "read a.P".
 But "a.Parent.g(_)" requires "imm a.P".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result,
+but not their reference capabilities.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", cOver), mapA, """
 B:a.Parent{ .g(x:read a.P):base.Void -> base.Void }
@@ -1836,9 +1972,12 @@ While inspecting type declaration "B"
 Invalid method signature for "B.h".
 The method ".h" returns type "read a.Q".
 But "a.Sup.h" returns type "imm a.Q".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result,
+but not their reference capabilities.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", cOver), mapA, """
 B:a.Sup{ .h:read a.Q -> a.Q }
@@ -1855,7 +1994,9 @@ The method ".h" returns type "a.P".
 But "a.Sup.h" returns type "a.Q", which is not a supertype of "a.P".
 It is instead a subtype: you are weakening the result instead of strengthening it.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", cOver), mapA, """
 B:a.Sup{ .h:a.P -> a.P }
@@ -1873,7 +2014,9 @@ But "S.h" returns type "a.Q", which is not a supertype of "a.P".
 It is instead a subtype: you are weakening the result instead of strengthening it.
 
 Name "S" stands for "a.Sup" because of "use a.Sup as S".
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", cOver), mapA, """
 use a.Sup as S;
@@ -1890,7 +2033,9 @@ The type "Foo" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "bb.CaptureFree".
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of(), mapBb, """
 G:{ #[X:*](a:X, b:X):bb.Void -> bb.Void }
@@ -1909,7 +2054,9 @@ The object literal instance of "a.M" is "read", so it will never be seen as "mut
 Signature as inherited by object literal instance of "a.M":
 -   mut a.M.bar: mut a.M
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", "M:{ mut .bar:mut M }"), mapA, """
 B:{ mut .baz(m:mut a.M):read a.M -> { .bar -> m } }
@@ -1925,7 +2072,9 @@ The self name "s" is dead code.
 No method of the object literal instance of "a.A" uses it.
 Remove "'s" from the object literal.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", cA), mapA, """
 B:{.m(x:a.A):a.A->a.A{'s .fromC -> x}}
@@ -1941,7 +2090,9 @@ The iso parameter "x" violates the single-use rule in method "a.F.m(_)" (line 1)
 It is used directly 2 times.
 An iso parameter can either be captured into object literals, or be used directly once.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", "D:{} F:{ .m(x:iso D):D } Use2:{ #(a:iso D, b:iso D):D -> a }"), mapA, """
 B:{.k:a.F -> a.F{ .m(x) -> a.Use2#(x, x) }}
@@ -1954,10 +2105,13 @@ In file: [###].fear
 
 While inspecting parameter "x" > method "a.G#" (line 1) > method "B.m(_)" (line 1)
 Parameter "x" has type "mut a.D".
-Parameter "x" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "a.G" (line 1).
+Parameter "x" can observe mutation;
+thus it cannot be captured in the "imm" object literal instance of "a.G" (line 1).
 Capture an immutable copy instead, or move this use outside the object literal.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", "D:{} G:{ #:base.Void } Ignore:{ #(x:read D):base.Void -> {} }"), mapA, """
 B:{ .m(x:mut a.D):a.G -> a.G{ # -> a.Ignore#(x) } }
@@ -1972,8 +2126,12 @@ While inspecting parameter "d" > method "a.G#" (line 1) > method "B#(_)" (line 1
 Object literal instance of "a.G" (line 1) implements "bb.CaptureFree".
 Thus parameter "d" (line 1) cannot be captured in that object literal.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", "D:{} G:base.CaptureFree{ #:D }"), mapABb, """
 B:{ #(d:a.D):a.G -> {d} }
@@ -1990,7 +2148,9 @@ There is a method ".fromC" on type "a.A",
 but with a different number of arguments.
 This call supplies 1, but available methods take 0.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", cA), mapA, """
 B:{.m(x:a.A):a.A->x.fromC(x)}
@@ -2007,7 +2167,9 @@ Method ".go" exists on type "a.R", but not with the requested capability.
 This call requires a method with capability "read".
 Available capabilities for this method: "mut".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", "R:{ mut .go:R }"), mapA, """
 B:{.m(x:mut a.R):a.R->x.go[read]}
@@ -2027,7 +2189,9 @@ Receiver required by each promotion:
 - "mut" (As declared)
 - "iso" (Strengthen result)
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", "R:{ mut .go:R }"), mapA, """
 B:{.m(x:read a.R):a.R->x.go}
@@ -2045,7 +2209,9 @@ Method ".pair(_,_)" declares 2 generic type parameters.
 Declared generic type parameters: "X", "Y".
 This call provides 1 generic type argument.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", "Pairer:{ .pair[X,Y](x:X, y:Y):X -> x }"), mapA, """
 B:{.m(p:a.Pairer):B->p.pair[B](this, this)}
@@ -2066,7 +2232,9 @@ Type required by each promotion:
 - "mut a.A2" (As declared)
 - "iso a.A2" (Strengthen result)
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", "D:{} A2:{ mut .foo:A2 } Need:{ #(x:mut A2):D -> D }"), mapA, """
 B:{.f:a.D->a.Need#(read a.A2{})}
@@ -2089,7 +2257,9 @@ Capture adaptation trace:
 Signature as inherited by object literal instance of "a.Get":
 -  read a.Get.get: mut a.D
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", "D:{} Get:{ read .get:mut D }"), mapA, """
 B:{ read .m(x:mut a.D):mut a.D -> read a.Get{ x } }
@@ -2105,7 +2275,9 @@ Type declaration "I" implements "bb.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of(), mapBb, """
 I:bb.BaseId[I,I]{ #(x) -> this }
@@ -2148,7 +2320,9 @@ While inspecting type declaration "B"
 Duplicate supertype in type declaration: "a.A".
 Remove one of them.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), mapA, """
 B:a.A,a.A{}
@@ -2163,7 +2337,9 @@ While inspecting type declaration "B"
 Duplicate supertype in type declaration: "a.Box[a.A]" and "a.Box[imm a.A]" denote the same type.
 Remove one of them.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cBox), mapA, """
 B:a.Box[a.A],a.Box[imm a.A]{}
@@ -2179,7 +2355,9 @@ Duplicate supertype in type declaration: "X".
 Remove one of them.
 
 Name "X" stands for "a.A" because of "use a.A as X".
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), mapA, """
 use a.A as X;
@@ -2199,7 +2377,9 @@ Signatures as inherited by type declaration "B":
 No type currently visible is a supertype of the types of parameter 1: "a.P" and "a.Q".
 Type declaration "B" cannot implement all of those supertypes.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "P:{} Q:{} A1:{ .m(x:P):P } A2:{ .m(x:Q):P }"), mapA, """
 B:a.A1,a.A2{}
@@ -2215,10 +2395,13 @@ Supertypes disagree on the signature of method "imm .m".
 Signatures as inherited by type declaration "B":
 -       a.A1.m: a.P
 -       a.A2.m: mut a.P
-The return type differs in reference capability; overriding must keep the reference capability.
+The return type differs in reference capability;
+overriding must keep the reference capability.
 Type declaration "B" cannot implement all of those supertypes.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "P:{} A1:{ .m:P } A2:{ .m:mut P }"), mapA, """
 B:a.A1,a.A2{}
@@ -2237,10 +2420,13 @@ Original signatures:
 Signatures as inherited by type declaration "B[_]":
 -       a.A1.id[_AX](_AX): _AX
 -       a.A2.id[Y:read](Y): Y
-The capability bounds of generic type parameter 1 differ; overriding must keep the capability bounds.
+The capability bounds of generic type parameter 1 differ;
+overriding must keep the capability bounds.
 Type declaration "B[_]" cannot implement all of those supertypes.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "A1:{ .id[X](x:X):X } A2:{ .id[Y:read](y:Y):Y }"), mapA, """
 B[X:*]:a.A1,a.A2{}
@@ -2255,7 +2441,9 @@ While inspecting object literal instance of "a.Sup"
 Invalid method signature for "a.Sup.f(_)".
 The method ".f(_)" declares 2 generic type parameters, but supertype "a.Sup" declares 1.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "Sup:{ .f[X](x:X):base.Void }"), mapA, """
 B:{ .k:a.Sup -> a.Sup{ .f[X,Y](x:X):base.Void -> base.Void } }
@@ -2268,12 +2456,15 @@ In file: [###].fear
 
 While inspecting object literal instance of "a.Sup"
 Invalid method signature for "a.Sup.id(_)".
-The method ".id(_)" declares different capability bounds than the supertypes for generic type parameter 1.
+The method ".id(_)" declares different capability bounds for generic type parameter 1
+than the supertypes.
 Local declaration: "X:imm,read".
 Capability bounds in the supertypes: "imm".
 Generic type parameter names may differ from the supertypes; only the position matters.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "Sup:{ .id[X:imm](x:X):base.Void }"), mapA, """
 B:{ .k:a.Sup -> a.Sup{ .id[X:imm,read](x:X):base.Void -> base.Void } }
@@ -2287,10 +2478,13 @@ In file: [###].fear
 While inspecting parameter "beer"
 Parameter "beer" has type "a.Beer[X]", using the generic type parameter "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
-A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
+A type declaration only sees the generic type parameters it declares itself;
+here "Foo" declares none.
 Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "Beer[X:imm,mut,read]:{ read .bar:base.Void }"), mapA, """
 B:{ read .m[X:imm,mut,read](beer:a.Beer[X]):read Foo -> read Foo:{ read .k:base.Void -> beer.bar } }
@@ -2302,11 +2496,16 @@ In file: [###].fear
    |                                                              ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred: it is needed as "a.Y", as "a.Z".
-"T" could be "a.A" or "a.B2": each is a supertype of "a.Y" and "a.Z". The choice is ambiguous.
+The generic type argument "T" of ".both" can not be inferred:
+it is needed as "a.Y", as "a.Z".
+"T" could be "a.A" or "a.B2":
+each is a supertype of "a.Y" and "a.Z".
+The choice is ambiguous.
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "A:{} B2:{} Y:A,B2{} Z:A,B2{}"), mapA, """
 U:{ .both[T](x:T, y:T):a.A -> a.A; .use(y:a.Y, z:a.Z):a.A -> this.both(y, z) }
@@ -2318,12 +2517,19 @@ In file: [###].fear
    |                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "bb.ThenElse[_]"
-The generic type argument "R" of "bb.ThenElse[_]" can not be inferred: it is needed as "a.Y", as "a.Z".
-"R" could be "a.S1" or "a.S2": each is a supertype of "a.Y" and "a.Z". The choice is ambiguous.
+The generic type argument "R" of "bb.ThenElse[_]" can not be inferred:
+it is needed as "a.Y", as "a.Z".
+"R" could be "a.S1" or "a.S2":
+each is a supertype of "a.Y" and "a.Z".
+The choice is ambiguous.
 Write the generic type argument explicitly, in place of "_" in "bb.ThenElse[_]{...}".
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "S1:{} S2:{} Y:S1,S2{} Z:S1,S2{}"), mapABb, """
 A:{}
@@ -2340,7 +2546,9 @@ While inspecting object literal instance of "a.T0[_]"
 Type inference concluded that this object literal implements "a.T0[?]",
 but it could not infer generic type argument 1 for generic type parameter "X" of "a.T0[_]".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "T0[X]:{ .m:T0[base.Void] }"), mapA, """
 B:{ .k:a.T0[base.Void] -> {}.m }
@@ -2353,9 +2561,12 @@ In file: [###].fear
 
 While inspecting object literal instance of "a.Foo[_]"
 Type inference finds no type for object literal instance of "a.Foo[_]".
-Each round of inference nests its type one level deeper, as "a.Foo[a.Box[a.Box[...]]]"; it would grow without bound.
+Each round of inference nests its type one level deeper, as "a.Foo[a.Box[a.Box[...]]]";
+it would grow without bound.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "N:{} Box[X]:{} Wrap:{ #[Y](y:Y):Box[Y] -> {} } Foo[X]:{ .m(x:X):X } Take:{ #[Z](f:Foo[Z]):N -> N }"), mapA, """
 Use:{ .go:a.N -> a.Take#{ .m(x) -> a.Wrap#(x) } }
@@ -2373,7 +2584,9 @@ Implemented by the supertypes:
 - "a.I2"
 Type declaration "B" must declare a method ".m" explicitly implementing the desired behaviour.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "I1:{ .m:base.Void -> base.Void } I2:{ .m:base.Void -> base.Void }"), mapA, """
 B:a.I1,a.I2{}
@@ -2392,8 +2605,12 @@ Found the following "bb.WidenTo[_]" supertypes:
 - "bb.WidenTo[B]"
 - "bb.WidenTo[a.A]"
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), mapABb, """
 B:bb.WidenTo[B],bb.WidenTo[a.A]{}
@@ -2408,7 +2625,9 @@ While inspecting type declaration "MyId"
 Type declaration "MyId" implements "bb.BaseId[_,_]".
 Only the method "#(_)" can be declared or inherited here.
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of(), mapBb, """
 P:{}
@@ -2426,8 +2645,12 @@ Type declaration "MyId" implements "bb.BaseId[_,_]".
 It inherits the implementation of "#(_)" from "a.Forge", which does not implement "bb.BaseId[_,_]".
 Method "#(_)" must be implemented here, or inherited from a type implementing "bb.BaseId[_,_]".
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "P:{} Cu:{} Forge:{ #(x:Cu):P -> P }"), mapABb, """
 MyId:bb.BaseId[a.Cu,a.P], a.Forge{}
@@ -2447,7 +2670,9 @@ This means that the type name:
 - is none of "Con", "Prn", "Aux", "Nul", "Com1".."Com9", "Lpt1".."Lpt9";
 - does not start with "_Rank".
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of(), mapBb, """
 Foo_bar:bb.FileLog{ .name -> bb.Nope! }
@@ -2467,7 +2692,9 @@ This means that the type name:
 - is none of "Con", "Prn", "Aux", "Nul", "Com1".."Com9", "Lpt1".."Lpt9";
 - does not start with "_Rank".
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of(), mapBb, """
 Con:bb.FileLog{ .name -> bb.Nope! }
@@ -2482,7 +2709,9 @@ While inspecting type declaration "Hello[_]"
 Type declaration "Hello[_]" implements "bb.Main" and has generic type parameters.
 A type implementing "bb.Main" must have zero generic type parameters.
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of(), mapBb, """
 Hello[X]:bb.Main{ .main -> bb.Void }
@@ -2495,9 +2724,12 @@ In file: [###].fear
 
 While inspecting type declaration "A"
 Type declaration "A" implements `bb.Final["foo"]`.
-The generic type argument of "bb.Final[_]" is a type name in quotes holding a method name, like `".name"` or `"+"`.
+The generic type argument of "bb.Final[_]" is a type name in quotes holding a method name,
+like `".name"` or `"+"`.
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of(), mapBb, """
 A:bb.Final["foo"]{}
@@ -2513,7 +2745,9 @@ Type declaration "Fake" implements method ".name".
 "bb.Named" implements `bb.Final[".name"]` and type declaration "Fake" implements "bb.Named",
 thus type declaration "Fake" cannot override any method named ".name".
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of(), mapBb, """
 Fake:bb.DataRead{ .name -> bb.Nope! }
@@ -2529,7 +2763,9 @@ Type declaration "B" implements method ".foo".
 "a.A" implements `base.Final[".foo"]` and type declaration "B" implements "a.A",
 thus type declaration "B" cannot override any method named ".foo".
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "A:base.Final[\".foo\"]{ .foo:A -> this }"), mapA, """
 B:a.A{ .foo -> this }
@@ -2542,9 +2778,13 @@ In file: [###].fear
 
 While inspecting type declaration "Assoc"
 Type declaration "Assoc" implements "bb.OpenWith[_,_]".
-Only a main can implement "bb.OpenWith[_,_]": type declaration "Assoc" must also implement "bb.Main", directly or through one of its supertypes.
+Only a main can implement "bb.OpenWith[_,_]":
+type declaration "Assoc" must also implement "bb.Main",
+directly or through one of its supertypes.
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of(), mapBb, """
 Assoc:bb.OpenWith[Icon,"foo"]{}
@@ -2561,8 +2801,12 @@ Type declaration "One" implements `bb.OpenWith[a.Box[a.Icon],"foo"]`.
 "a.Box[a.Icon]" is not a valid icon.
 Only concrete types with zero generic type arguments are valid icons.
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "Box[X]:{} Icon:{}"), mapABb, """
 One:bb.Main, bb.OpenWith[a.Box[a.Icon],"foo"]{ .main -> bb.Void }
@@ -2576,10 +2820,15 @@ In file: [###].fear
 While inspecting type declaration "One"
 Type declaration "One" implements "bb.OpenWith[a.Icon,a.Icon]".
 The extension "a.Icon" is not a type name in quotes.
-An extension is written as a type name in quotes, like `"ffile347"`, `"xml"` or `"txt"`; or implement "bb.OpenWith[_]" to let the Fearless manager choose one.
+An extension is written as a type name in quotes, like `"ffile347"`, `"xml"` or `"txt"`;
+or implement "bb.OpenWith[_]" to let the Fearless manager choose one.
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "Icon:{}"), mapABb, """
 One:bb.Main, bb.OpenWith[a.Icon,a.Icon]{ .main -> bb.Void }
@@ -2593,9 +2842,13 @@ In file: [###].fear
 While inspecting type declaration "One"
 Type declaration "One" implements `bb.OpenWith[Icon,"Foo"]`.
 "Foo" is not a valid extension.
-An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; or implement "bb.OpenWith[_]" to let the Fearless manager choose one.
+An extension is 1 to 16 characters,
+each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot;
+or implement "bb.OpenWith[_]" to let the Fearless manager choose one.
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of(), mapBb, """
 One:bb.Main, bb.OpenWith[Icon,"Foo"]{ .main -> bb.Void }
@@ -2609,10 +2862,15 @@ In file: [###].fear
 
 While inspecting type declaration "One"
 Type declaration "One" implements `bb.Shortcut[Icon,"foo"]`.
-"foo" is not a shortcut extension: a shortcut file only starts its main, so it must not look like a document of another program or a file of the project.
-A shortcut extension is "fapp" followed by three digits, like "fapp042"; or implement "bb.Shortcut[_]" to let the Fearless manager choose one.
+"foo" is not a shortcut extension:
+a shortcut file only starts its main,
+so it must not look like a document of another program or a file of the project.
+A shortcut extension is "fapp" followed by three digits, like "fapp042";
+or implement "bb.Shortcut[_]" to let the Fearless manager choose one.
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of(), mapBb, """
 One:bb.Main, bb.Shortcut[Icon,"foo"]{ .main -> bb.Void }
@@ -2626,10 +2884,15 @@ In file: [###].fear
 
 While inspecting type declaration "One"
 Type declaration "One" implements `bb.OpenWith[Icon,"fapp001"]`.
-"fapp001" is a shortcut extension: "fapp" followed by three digits names the shortcut files of the Fearless manager.
-Use an extension of the form "ffile" followed by three digits, like "ffile042", or a system extension, like "htm"; or implement "bb.OpenWith[_]" to let the Fearless manager choose one.
+"fapp001" is a shortcut extension:
+"fapp" followed by three digits names the shortcut files of the Fearless manager.
+Use an extension of the form "ffile" followed by three digits, like "ffile042",
+or a system extension, like "htm";
+or implement "bb.OpenWith[_]" to let the Fearless manager choose one.
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of(), mapBb, """
 One:bb.Main, bb.OpenWith[Icon,"fapp001"]{ .main -> bb.Void }
@@ -2644,9 +2907,13 @@ In file: [###].fear
 While inspecting type declaration "Two"
 Type declaration "Two" claims the extension "foo" more than once:
 both `bb.OpenWith[Icon,"foo"]` and `bb.OpenWith[Icon2,"foo"]` claim it.
-A main can claim each extension at most once, across all its "bb.OpenWith[_,_]" and "bb.Shortcut[_,_]", since one extension has one icon.
+A main can claim each extension at most once,
+across all its "bb.OpenWith[_,_]" and "bb.Shortcut[_,_]",
+since one extension has one icon.
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of(), mapBb, """
 Two:bb.Main, bb.OpenWith[Icon,"foo"], bb.OpenWith[Icon2,"foo"]{ .main -> bb.Void }
@@ -2660,11 +2927,14 @@ In file: [###].fear
    |                                           ^^
 
 While inspecting object literal "{...}" (line 2)
-Type inference concluded that the object literal at line 2, column 43 should implement the object literal at line 2, column 19.
+Type inference concluded that the object literal at line 2, column 43
+should implement the object literal at line 2, column 19.
 An object literal can only implement a standalone type.
 A type is standalone if it is declared at top level, or if it implements "bb.CaptureFree".
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of(), mapBb, """
 G:{ #[X:*](a:X, b:X):bb.Void -> bb.Void }
@@ -2681,7 +2951,9 @@ The self name "self" is dead code.
 No method of the object literal instance of "a.A" uses it.
 Remove "'self" from the object literal.
 
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "A:{ read .get:base.Nat -> 0 }"), mapA, """
 Make:{ #:a.A -> {'self} }
@@ -2698,7 +2970,9 @@ Type "+421381834238972893748972389723" is out of range for "bb.Int".
 Valid range: -9223372036854775808 .. 9223372036854775807.
 If you need arbitrary precision numbers, use "bb.Num".
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of(), mapBb, """
 Main:{ .m:bb.Int -> +421381834238972893748972389723 }
@@ -2715,7 +2989,9 @@ Type "421381834238972893748972389723" is out of range for "bb.Nat".
 Valid range: 0 .. 18446744073709551615.
 If you need arbitrary precision numbers, use "bb.Num".
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of(), mapBb, """
 Main:{ .m:bb.Nat -> 421381834238972893748972389723 }
@@ -2733,7 +3009,9 @@ If rounded, the nearest representable value is "+0.10000000000000000555111512312
 Write "+0.1soft" to accept that rounding.
 If you need arbitrary precision numbers, use "bb.Num".
 
-Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb"
+to refer to the code inside folders named "_base",
+because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of(), mapBb, """
 Main:{ .m:bb.Float -> +0.1 }
@@ -2760,17 +3038,24 @@ In file: [###].fear
    |                                                                           ^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".two(_,_,_)"
-The generic type argument "T" of ".two" can not be inferred: it is needed as "a.Y", as "a.Z".
-"T" could be "a.A" or "a.B2": each is a supertype of "a.Y" and "a.Z". The choice is ambiguous.
+The generic type argument "T" of ".two" can not be inferred:
+it is needed as "a.Y", as "a.Z".
+"T" could be "a.A" or "a.B2":
+each is a supertype of "a.Y" and "a.Z".
+The choice is ambiguous.
 Write the generic type argument explicitly, in place of "_" in "this.two[d.Q,_](q, y, z)".
 
-Source code inside folders named "_b" uses package name "d" to refer to the code inside folders named "_e", because of "map d as _e in _b", written in fear:/_b/_rank_app.fear.
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "d"
+to refer to the code inside folders named "_e",
+because of "map d as _e in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_c",
+because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "A:{} B2:{} Y:A,B2{} Z:A,B2{}", "e", "Q:{}"), Map.of("a", "c", "d", "e"), """
 U:{ .two[S,T](s:S, x:T, y:T):a.A -> a.A; .use(q:d.Q, y:a.Y, z:a.Z):a.A -> this.two(q, y, z) }
 """); }
-  static final String noteD= "Source code inside folders named \"_b\" uses package name \"d\" to refer to the code inside folders named \"_e\", because of \"map d as _e in _b\", written in fear:/_b/_rank_app.fear.";
+  static final String noteD= "Source code inside folders named \"_b\" uses package name \"d\"\nto refer to the code inside folders named \"_e\",\nbecause of \"map d as _e in _b\", written in fear:/_b/_rank_app.fear.";
   @Test void aMappedAliasNotPrintedInTheErrorAddsNoNotes(){ fail("""
 In file: [###].fear
 
@@ -2885,8 +3170,12 @@ While inspecting parameter "x" > method "B.m(_,_)" (line 1)
 The body of method ".m(_,_)" of type declaration "B" is an expression returning "z.A".
 Parameter "x" has type "z.A" instead of a subtype of "a.A".
 
-Source code inside folders named "_b" uses package name "z" to refer to the code inside folders named "_c", because of "map z as _c in _b", written in fear:/_b/_rank_app.fear.
-Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_e", because of "map a as _e in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "z"
+to refer to the code inside folders named "_c",
+because of "map z as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a"
+to refer to the code inside folders named "_e",
+because of "map a as _e in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
 """, Map.of("c", cA, "e", aA, "f", "Q:{}"), Map.of("z", "c", "a", "e", "d", "f"), """
 B:{.m(x:z.A, q:d.Q):a.A->x}
