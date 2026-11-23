@@ -19,10 +19,12 @@ import utils.Streams;
 
 public final class CompactPrinter{
   public CompactPrinter(String mainPkg, Map<String,String> uses, Consumer<String> printed){ t= new TypeNamePrinter(mainPkg, uses, printed); }
-  String limit(E e, E focus){
+  record Limited(String text, boolean omitted){}
+  Limited limit(E e, E focus){
     markPath(e, focus);
     var root= ofE(e);
-    var len= render(root).length();
+    var full= render(root).length();
+    var len= full;
     while (len > 120){
       var k= new BestPicker().pick(root);
       if (k.pinned){ break; }
@@ -31,12 +33,10 @@ public final class CompactPrinter{
       if (shorter >= len){ k.keep(); continue; }
       len = shorter;
     }
-    return render(root);
+    return new Limited(render(root), len < full);
   }
-  boolean omitted;
   private String render(PE root){
     sb.setLength(0);
-    omitted= false;
     root.accString(this);
     return sb.toString();
   }
@@ -53,14 +53,13 @@ public final class CompactPrinter{
     return sb.toString();
   }
   CompactPrinter append(String s){ sb.append(s); return this; }
-  CompactPrinter omit(){ omitted= true; return append("..."); }
   String bounds(List<B> bs){ return Join.of(bs.stream().map(b -> b.rcs().equals(EnumSet.of(RC.imm)) ? b.x() : b.compactToString()), "[", ",", "]", ""); }
   static final class Compactable{
     static final Compactable no= new Compactable(true);
     boolean compacted; boolean pinned; Compactable(boolean pinned){ this.pinned= pinned; }
     void compact(){ assert !compacted && !pinned; compacted = true; }
     void keep(){ assert compacted; compacted = false; pinned = true; }
-    <N extends PN> Acc<N> acc(){ return compacted ? (_,b) -> b.omit() : PN::accString; }
+    <N extends PN> Acc<N> acc(){ return compacted ? (_,b) -> b.append("...") : PN::accString; }
   }
   interface Acc<XX>{ void acc(XX x, CompactPrinter sb); }
   static <XX> void wrap(CompactPrinter sb, String open, String close, List<XX> xs, String sep, Acc<XX> a){
@@ -105,7 +104,7 @@ public final class CompactPrinter{
     @Override public void accString(CompactPrinter sb){
       sb.append(rc.toStrSpace()).append(name);
       if (csShown()){ wrap(sb, "", "", cs, ",", PC::accString); }
-      if (k.compacted){ sb.append("{").omit().append("}"); return; }
+      if (k.compacted){ sb.append("{...}"); return; }
       if (ms.isEmpty()){ sb.append("{}"); return; }
       var selfHidden= self.equals("this") || self.equals("_");
       var start= selfHidden ? "{" : "{'"+self+" ";

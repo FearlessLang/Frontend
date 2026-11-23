@@ -215,10 +215,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
   FearlessException ex(E footerE, E focus, List<T> inferred){
     var ts= Push.of(inferred, chainInferredTargs(focus)).stream().map(t -> typeRepr(true, t)).distinct().toList();
     if (ts.isEmpty()){ return typeErr(); }
-    var quietCp= cpOf.apply(true);
-    var footer= quietCp.limit(footerE, focus);
-    var header= "See inferred typing context below for how "+and(ts)+(ts.size() == 1 ? " was" : " were")+" introduced"+(quietCp.omitted ? " (\"...\" marks omitted code):\n" : ":\n");
-    return withNotes(Code.TypeError, "\n\n"+header+footer);
+    var footer= cpOf.apply(true).limit(footerE, focus);
+    var header= "See inferred typing context below for how "+and(ts)+(ts.size() == 1 ? " was" : " were")+" introduced"+(footer.omitted() ? " (\"...\" marks omitted code):\n" : ":\n");
+    return withNotes(Code.TypeError, "\n\n"+header+footer.text());
   }
   private static List<T> chainInferredTargs(E e){
     if (!(e instanceof Call c)){ return List.of(); }
