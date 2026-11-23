@@ -111,8 +111,8 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var renamed= Streams.zip(original, ss).anyMatch((os,s) -> os.stream().anyMatch(o -> !B.xs(o.bs()).equals(B.xs(s.bs()))));
     if (!renamed && !always){ return false; }
     var flat= original.stream().flatMap(List::stream).toList();
-    if (renamed){ bullets("Original signature", "Original signatures", sigLines(flat.stream().map(o -> head(_decs.apply(o.origin()))).toList(), flat)); }
-    bullets("Signature as inherited by "+who, "Signatures as inherited by "+who, sigLines(heads, ss));
+    if (renamed){ bulletsByCount("Original signature", "Original signatures", sigLines(flat.stream().map(o -> head(_decs.apply(o.origin()))).toList(), flat)); }
+    bulletsByCount("Signature as inherited by "+who, "Signatures as inherited by "+who, sigLines(heads, ss));
     return true;
   }
   private List<Sig> originals(TName n, Sig s){
@@ -124,7 +124,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     if (written){ return List.of(new Sig(sig.rc(), sig.m(), sig.bs(), sig.ts(), sig.ret(), n, sig.abs(), sig.span())); }
     return direct(d.cs()).stream().flatMap(c -> originals(c.name(), s).stream()).toList();
   }
-  private void bullets(String one, String many, List<String> lines){ bullets((lines.size() == 1 ? one : many)+":", lines); }
+  private void bulletsByCount(String one, String many, List<String> lines){ bullets((lines.size() == 1 ? one : many)+":", lines); }
   private static T.C head(Literal d){ return new T.C(d.name(), asTs(d.bs())); }
   private List<String> sigLines(List<T.C> heads, List<Sig> ss){ return Streams.zip(heads, ss).map(this::sigLine).distinct().toList(); }
   private String sigLine(T.C h, Sig s){
