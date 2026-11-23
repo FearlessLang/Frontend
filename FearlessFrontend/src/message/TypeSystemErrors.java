@@ -474,7 +474,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   private void addNoPrecedenceHintIfOperator(Err e, TypeScope s, Call c){
     var name= c.name().s();
     var notOperator= name.startsWith(".") || name.equals("#");
-    var receiver= s.outer() instanceof TypeScope.CallSite(var p, _) && p.e() == c;
+    var receiver= s instanceof TypeScope.CallSite(var p, _) && p.e() == c;
     if (notOperator || !receiver){ return; }
     e.line("All method names have the same precedence,\nso an expression like \"a.get + b.get\" "
          +"parses as \"(a.get + b).get\", not \"a.get + (b.get)\".\n"

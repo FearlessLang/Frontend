@@ -81,21 +81,20 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   }
   private void accArgi(Literal d, RC recv, MType base, ArgMatrix acc, int argi){
     var reqs= argRequirements(acc.cs(), argi);
-    var cts= new TypeSystem(ts.scope().pushCall(this.c), ts.v());
-    var resByReq= cts.typeOf(bs, g, c.es().get(argi), reqs);
+    var resByReq= new TypeSystem(ts.scope().pushCall(this.c), ts.v()).typeOf(bs, g, c.es().get(argi), reqs);
     assert resByReq.size() == reqs.size();
-    if (resByReq.stream().noneMatch(Reason::isEmpty)){ throw argCannotMeetAnyPromotion(cts, d, recv, base, acc, argi, reqs, resByReq); }
+    if (resByReq.stream().noneMatch(Reason::isEmpty)){ throw argCannotMeetAnyPromotion(d, recv, base, acc, argi, reqs, resByReq); }
     var reqTs= reqs.stream().map(TRequirement::t).toList();
     var res= acc.cs().stream().map(m -> resByReq.get(reqTs.indexOf(m.ts().get(argi)))).toList();
     acc.okByArg().add(IntStream.range(0, res.size()).filter(i -> res.get(i).isEmpty()).boxed().toList());
     acc.resByArg().add(res);
   }
-  private FearlessException argCannotMeetAnyPromotion(TypeSystem cts, Literal d, RC recv, MType base, ArgMatrix acc, int argi, List<TRequirement> reqs, List<Reason> resByReq){
+  private FearlessException argCannotMeetAnyPromotion(Literal d, RC recv, MType base, ArgMatrix acc, int argi, List<TRequirement> reqs, List<Reason> resByReq){
     var withH= mayBeH(recv, base) || Stream.concat(acc.resByArg().stream().flatMap(List::stream), resByReq.stream()).anyMatch(r -> mayBeH(r.best));
     var shown= withH ? reqs : argRequirements(MultiMeth.of(bs, base, false).stream().filter(m -> recv.isSubType(m.rc())).toList(), argi);
     var reqTs= reqs.stream().map(TRequirement::t).toList();
     var res= shown.stream().map(q -> resByReq.get(reqTs.indexOf(q.t()))).toList();
-    return cts.tsE().methodArgumentCannotMeetAnyPromotion(cts, bs, d, c, argi, base.ts().get(argi), shown, res);
+    return ts.tsE().methodArgumentCannotMeetAnyPromotion(ts, bs, d, c, argi, base.ts().get(argi), shown, res);
   }
   private Reason resForReq(Literal d, Sig sig, ArgMatrix mat, List<Integer> possible, TRequirement req){
     var okRet= possible.stream()
