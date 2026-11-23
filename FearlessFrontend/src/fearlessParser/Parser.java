@@ -374,9 +374,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
       RCap, DotName, Op,                 // method sig starters
       _RoundGroup, _CurlyGroup, _SquareGroup, // inferred-name sig / patterns / grouped expr
       LowercaseId, Underscore,          // x->e, e, patterns
-      ColonColon,                      // :: / ::.foo
-      SStr, UStr,
-      SignedInt, SignedFloat, UnSignedFloat, UnsignedInt
+      ColonColon                       // :: / ::.foo
     );
   }
   Declaration parseDeclaration(boolean top){
