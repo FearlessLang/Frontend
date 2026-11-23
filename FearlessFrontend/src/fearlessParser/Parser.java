@@ -512,7 +512,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     fwdIf(peek(RCap));
     fwdIf(peekOrder(Token::isTypeName));
     fwdIf(peek(_SquareGroup));
-    if (fwdIf(peek(Colon))){ while (fwdIf(peek(UppercaseId, SignedFloat, UnSignedFloat, SignedInt, UnsignedInt, SStr, UStr, Comma, _SquareGroup))){} }
+    if (fwdIf(peek(Colon))){ while (fwdIf(peekIf(t -> t.isTypeName() || t.is(Comma, _SquareGroup)))){} }
     fwdIf(peek(_CurlyGroup));
   }
   interface Cut extends NextCut<Parser>{}
