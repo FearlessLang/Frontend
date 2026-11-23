@@ -497,31 +497,19 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     assert reqs.size() == res.size();
     assert res.stream().noneMatch(Reason::isEmpty);
     assert reqs.stream().allMatch(r -> canon(r.t()).equals(canon(declared)));
-    if (isWrongUnderlyingType(ts, bs, canon(declared), res)){ return wrongUnderlyingTypeErr(ts, bs, d, c, argi, declared, res); }
-    var gotHdr= headerBest(res);
-    var r= res.stream().filter(ri -> ri.showImm).findFirst().orElse(res.getFirst());
-    var e= err()
-      .pCallCantBeSatisfied(d, c)
-      .line("Argument "+(argi+1)+" has type "+err().typeRepr(false, gotHdr)+".")
-      .line(up(r.info(printed)))
-      .blank()
-      .bullets("Type required by each promotion:", reqs.stream().map(q -> err().typeRepr(false, q.t())+" ("+q.reqName()+")").toList());
-    addNoPrecedenceHintIfOperator(e, ts.scope(), c);
-    var footer= r.footerE.get();
-    return withCallSpans(e.ex(footer, c.es().get(argi), inferredInParam(d, c, argi)), c.es().get(argi), c);
-  }
-  private FearlessException wrongUnderlyingTypeErr(TypeSystem ts, List<B> bs, Literal d, Call c, int argi, T declared, List<Reason> res){
     var gotHdr= headerBest(res);//TODO: Eventually this will need to be matched with the meth body subtype and both
     //should make an attempt to say what the generics in the result should have been instantiate to instead
     //in particular here we are in a methCall, so we can talk about OUR type args impacting the expected argument type
+    var wrongUnderlyingType= res.stream().noneMatch(ri -> ts.isSub(bs, canon(ri.best), canon(declared)));
     var inferred= inferredInParam(d, c, argi);
-    var e= err()
-      .pCallCantBeSatisfied(d, c)
-      .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
-      .line("That is not a subtype of "+err().typeRepr(true, declared)+(inferred.isEmpty() ? " (the type required by the method signature)." : "."));
-    if (lambdaFits(ts, bs, declared, gotHdr)){ e.line("Write the argument inside curly braces:\nthe curly braces make an object literal instance of "+err().typeRepr(true, declared.withRC(RC.imm))+",\nwhose single method returns the argument."); }
+    var r= res.stream().filter(ri -> ri.showImm).findFirst().orElse(res.getFirst());
+    var e= err().pCallCantBeSatisfied(d, c).line("Argument "+(argi+1)+" has type "+err().typeRepr(wrongUnderlyingType, gotHdr)+".");
+    if (wrongUnderlyingType){ e.line("That is not a subtype of "+err().typeRepr(true, declared)+(inferred.isEmpty() ? " (the type required by the method signature)." : ".")); }
+    if (wrongUnderlyingType && lambdaFits(ts, bs, declared, gotHdr)){ e.line("Write the argument inside curly braces:\nthe curly braces make an object literal instance of "+err().typeRepr(true, declared.withRC(RC.imm))+",\nwhose single method returns the argument."); }
+    if (!wrongUnderlyingType){ e.line(up(r.info(printed))).blank().bullets("Type required by each promotion:", reqs.stream().map(q -> err().typeRepr(false, q.t())+" ("+q.reqName()+")").toList()); }
     addNoPrecedenceHintIfOperator(e, ts.scope(), c);
-    return withCallSpans(e.ex(c, c.es().get(argi), inferred), c.es().get(argi), c);
+    var arg= c.es().get(argi);
+    return withCallSpans(e.ex(wrongUnderlyingType ? c : r.footerE.get(), arg, inferred), arg, c);
   }
   private boolean lambdaFits(TypeSystem ts, List<B> bs, T declared, T got){
     if (!(declared instanceof T.RCC(_, var c, _)) || foreignSealed(c.name())){ return false; }
@@ -538,9 +526,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     e.line("All method names have the same precedence,\nso an expression like \"a.get + b.get\" "
          +"parses as \"(a.get + b).get\", not \"a.get + (b.get)\".\n"
          +"If this argument needed a method applied to it first, wrap it in parentheses.");
-  }
-  private static boolean isWrongUnderlyingType(TypeSystem ts, List<B> bs, T reqCanon, List<Reason> res){
-    return res.stream().map(r -> canon(r.best)).noneMatch(r -> ts.isSub(bs, r, reqCanon));
   }
   private static T canon(T t){ return t.withRC(RC.imm); }
 
