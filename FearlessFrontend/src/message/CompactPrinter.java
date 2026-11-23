@@ -35,7 +35,7 @@ public final class CompactPrinter{
     }
     return new Limited(render(root), len < full);
   }
-  private String render(PE root){
+  private String render(PN root){
     sb.setLength(0);
     root.accString(this);
     return sb.toString();
@@ -48,10 +48,7 @@ public final class CompactPrinter{
   }
   StringBuilder sb= new StringBuilder();
   TypeNamePrinter t;
-  public String msgT(T t){
-    ofT(t).accString(this);
-    return sb.toString();
-  }
+  public String msgT(T t){ return render(ofT(t)); }
   CompactPrinter append(String s){ sb.append(s); return this; }
   String bounds(List<B> bs){ return Join.of(bs.stream().map(b -> b.rcs().equals(EnumSet.of(RC.imm)) ? b.x() : b.compactToString()), "[", ",", "]", ""); }
   static final class Compactable{
@@ -199,9 +196,7 @@ public final class CompactPrinter{
   }
   static final int rcWidth= 6;
   String sig(Sig s){
-    assert sb.isEmpty();
-    append(" ".repeat(rcWidth-s.rc().toStrSpace().length())).append(s.rc().toStrSpace()+s.m().s()+bounds(s.bs()));//line up
-    wrap(this, "(", ")", ofTs(s.ts()), ", ", PN::accString);
-    return append(": ").msgT(s.ret());
+    var head= " ".repeat(rcWidth-s.rc().toStrSpace().length())+s.rc().toStrSpace()+s.m().s()+bounds(s.bs());//line up
+    return head+Join.of(s.ts().stream().map(this::msgT), "(", ", ", ")", "")+": "+msgT(s.ret());
   }
 }
