@@ -316,7 +316,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var subject= err().expRepr(x);
     var l= why.l();
     if (why instanceof Change.CapFree){ return up(atLine(l))+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+".\n"
-      +"Thus "+subject+" (line "+x.span().inner.startLine()+") cannot be captured in that object literal.";
+      +"Thus "+atLine(x)+" cannot be captured in that object literal.";
     }
     var bounds= disp(Join.of(l.bs(), "", ", ", "", ""));
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"+switch (why){
@@ -334,7 +334,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       case Change.DropFTV _, Change.CapFree _ -> throw Bug.unreachable();
     };
   }
-  private String atLine(Literal l){ return err().expRepr(l)+" (line "+l.span().inner.startLine()+")"; }
+  private String atLine(E e){ return err().expRepr(e)+" (line "+e.span().inner.startLine()+")"; }
   ///Receiver expression of call c is typed into a type parameter (X / RC X / read/imm X), not a concrete RC C.
   ///Methods cannot be called on type parameters, so this call can never resolve.
   ///Raised when checking method calls.
