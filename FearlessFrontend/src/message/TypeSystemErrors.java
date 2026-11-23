@@ -377,10 +377,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, T.RCC recv){
     var receiverIsThis= c.e() instanceof X(var xName, _) && xName.equals("this");
     if (!receiverIsThis){ return; }
-    var declaredIn= scope.methods().map(TypeScope.Method::l).filter(l -> l.ms().stream().anyMatch(m -> m.sig().m().equals(c.name()))).findFirst();
+    var declaredIn= scope.methods().map(TypeScope.Method::l).filter(l -> declares(l, c.name())).findFirst();
     if (declaredIn.isEmpty()){ return; }
-    var lit= "Method "+err().methodSig(c.name())+" is declared in the "+err().expRepr(declaredIn.get());
-    var selfName= declaredIn.get().thisName();
+    var l= declaredIn.get();
+    var lit= "Method "+err().methodSig(c.name())+" is declared in the "+err().expRepr(l);
+    var selfName= l.thisName();
     e.line("Parameter \"this\" has type "+err().typeRepr(true, recv)+".");
     if (!selfName.equals("_")){ e.line(lit+", whose self name is "+disp(selfName)+"."); return; }
     e.line(lit+", which has no self name.")
@@ -391,6 +392,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
      .line("    .withWidth(width': Nat): Rectangle -> this#(width', height);")
      .line("  }}");
   }
+  private static boolean declares(Literal l, MName m){ return l.ms().stream().anyMatch(mi -> mi.sig().m().equals(m)); }
   private static Err bestNameMsg(Err e, String onStr, List<Sig> candidates, List<String> cs, Optional<String> best){
     best.ifPresent(b -> e.line("Did you mean "+disp(b)+" ?"));
     var sigs= cs.stream().flatMap(n -> candidates.stream().filter(s -> s.m().s().equals(n))).map(s -> e.cp().sig(s)).toList();
