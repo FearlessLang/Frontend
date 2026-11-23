@@ -9,7 +9,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import inject.TypeRename;
@@ -414,16 +416,17 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///No promotion accepts this receiver, so the call cannot succeed regardless of argument types.
   ///Raised when checking method calls.
   public FearlessException receiverRCBlocksCall(TypeScope s, Literal d, Call c, RC recvRc, List<MType> promos, Gamma g){
-    var needed= promos.stream().map(MType::rc).distinct().sorted().map(Err::disp).toList();
+    var byRc= promos.stream().collect(Collectors.groupingBy(MType::rc, TreeMap::new, Collectors.mapping(MType::promotion, Collectors.toList())));
     var e= err()
       .pCallCantBeSatisfied(d, c)
       .line("The receiver (the expression before the method name) has capability "+disp(recvRc)+".")
-      .line(Join.of(needed, "This call requires a receiver with capability ", " or ", "."));
+      .line(Join.of(byRc.keySet().stream().map(Err::disp), "This call requires a receiver with capability ", " or ", "."));
     if (c.e() instanceof X x && g.bind(x.name()).current() instanceof Change.Keep w){ e.line(Reason.adaptation(this, isSelfName(s, x.name()), x, w)); }
     if (c.e() instanceof X x && g.bind(x.name()).current() instanceof Change.Same(T.RCC t) && t.rc() == RC.imm && !isSelfName(s, x.name())){
       e.line(up(err().expRepr(x))+" has type "+err().typeRepr(false, t)+": a type written without a capability, as "+err().typeRepr(true, t)+", is \"imm\".");
     }
-    return withCallSpans(e.pReceiverRequiredByPromotion(promos).ex(c), c.e(), c);
+    if (byRc.size() > 1){ e.blank().bullets("Receiver required by each promotion:", byRc.entrySet().stream().map(en -> disp(en.getKey())+" ("+Join.of(en.getValue().stream().distinct(), "", ", ", "")+")").toList()); }
+    return withCallSpans(e.ex(c), c.e(), c);
   }
   ///For argument index argi in call c, the argument's type does not satisfy any promotion's requirement.
   ///Receiver and arguments are well typed, but this argument does not match any promotion.

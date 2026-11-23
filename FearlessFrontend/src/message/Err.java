@@ -1,11 +1,9 @@
 package message;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.Locale;
 import java.util.Optional;
@@ -16,7 +14,6 @@ import inject.TypeRename;
 import metaParser.Message;
 import metaParser.Span;
 import typeSystem.Sources;
-import typeSystem.TypeSystem.*;
 import utils.Bug;
 import utils.Join;
 import utils.Pos;
@@ -206,13 +203,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return line("The self name "+disp(self)+" is dead code.").line("No method of the "+litRepr+" uses it.").line("Remove "+disp("'"+self)+" from the object literal.");
   }
   Err standalone(){ return line("A type is standalone if it is declared at top level, or if it implements "+tNameADisp(LiteralDeclarations.captureFree)+"."); }
-  Err pReceiverRequiredByPromotion(List<MType> promos){
-    var byRc= promos.stream().collect(Collectors.groupingBy(MType::rc, LinkedHashMap::new, Collectors.mapping(MType::promotion, Collectors.toList())));
-    if (byRc.size() <= 1){ return this; }
-    return blank().bullets("Receiver required by each promotion:", byRc.keySet().stream()
-      .sorted()
-      .map(rc -> disp(rc)+" ("+Join.of(byRc.get(rc).stream().distinct(), "", ", ", "")+")").toList());
-  }
   String gotMsg(boolean skipImm, String label, List<T> got, T expected){
     return label+" has type "+Join.of(got.stream().map(t -> typeRepr(skipImm, t)), "", " or ", "")
       +" instead of a subtype of "+typeRepr(skipImm, expected)+".";
