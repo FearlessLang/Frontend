@@ -102,25 +102,29 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   public FearlessException typeNotWellKinded(E toErr, KindingTarget target, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     assert index >= 0;
     var err= switch (target){
-      case T.C c -> typeNotWellKinded("The type "+err().typeRepr(c)+" is invalid.", c, index, caps(bounds), caps(got));
-      case KindingTarget.CallKinding(var t, var c) -> typeNotWellKindedSig(t, c, index, caps(bounds), caps(got));
+      case T.C c -> typeArgBounds("The type "+err().typeRepr(c)+" is invalid.", err().tNameADisp(c.name()), decs.apply(c.name()).bs().get(index), c.ts().get(index), index, bounds, got);
+      case KindingTarget.CallKinding(var t, var c) -> typeNotWellKindedSig(t, c, index, bounds, got);
     };
     var span= toErr.span().inner.contained(target.span().inner) ? target.span().inner : toErr.span().inner;
     return addExpFrame(toErr, err.ex(toErr).addSpan(span));
   }
   private static String caps(EnumSet<RC> rcs){ return (rcs.size() == 1 ? "capability " : "capabilities ")+Join.of(rcs.stream().map(Err::disp).sorted(), "", " or ", ""); }
-  private Err typeNotWellKinded(String first, T.C c, int index, String allowedStr, String gotStr){
-    var bad= c.ts().get(index);
-    var bs= decs.apply(c.name()).bs();
-    return err().pTypeArgBounds(first, err().tNameADisp(c.name()), disp(bs.get(index).x()), index, bad, allowedStr, gotStr);
-  }
-  private Err typeNotWellKindedSig(T.C t, E.Call c, int index, String allowedStr, String gotStr){
+  private Err typeNotWellKindedSig(T.C t, E.Call c, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     var d= decs.apply(t.name());
     var m= OneOr.of("Malformed methods", d.ms().stream().filter(mi -> mi.sig().m().equals(c.name()) && mi.sig().rc() == c.rc()));
-    var param= m.sig().bs().get(index);
     var decName= err().methodSig(c.rc().toStrSpace(), d, c.name()); // p.A.m(...)
-    var bad= c.targs().get(index);
-    return err().pTypeArgBounds("This call to method "+decName+" cannot typecheck.", decName, disp(param.x()), index, bad, allowedStr, gotStr);
+    return typeArgBounds("This call to method "+decName+" cannot typecheck.", decName, m.sig().bs().get(index), c.targs().get(index), index, bounds, got);
+  }
+  private Err typeArgBounds(String first, String kindingTarget, B param, T bad, int index, EnumSet<RC> bounds, EnumSet<RC> got){
+    var badStr= err().typeRepr(false, bad);
+    var x= disp(param.x());
+    var e= err().line(first)
+      .line("Generic type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds")
+      .line("for generic type parameter "+x+" in "+kindingTarget+".")
+      .line("Here "+x+" can only use "+caps(bounds)+".");
+    var capabilityHidden= bad instanceof T.X || bad instanceof T.ReadImmX;
+    if (!capabilityHidden){ return e; }
+    return e.line("But generic type argument "+badStr+" can only use "+caps(got)+".");
   }
   private List<T> inferredInParam(Literal d, Call c, int argi){
     if (!Err.inferredTargs(c)){ return List.of(); }

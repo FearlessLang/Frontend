@@ -163,17 +163,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String methodSig(String pre, inference.E.Literal l, MName m){ return methodSig(pre+tNameA(bestName(l)), m); }
   static String methodSig(String pre, MName m){ return disp(Join.of(Collections.nCopies(m.arity(), "_"), pre+m.s()+"(", ",", ")", pre+m.s())); }
   String text(){ return sb.toString().stripTrailing(); }
-  public Err pTypeArgBounds(String first, String kindingTarget, String paramName, int index, T bad, String allowedStr, String gotStr){
-    var badStr= typeRepr(false, bad);
-    var e= line(first)
-      .line("Generic type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds")
-      .line("for generic type parameter "+paramName+" in "+kindingTarget+".")
-      .line("Here "+paramName+" can only use "+allowedStr+".");
-    var capabilityHidden= bad instanceof T.X || bad instanceof T.ReadImmX;
-    if (!capabilityHidden){ return e; }
-    return e.line("But generic type argument "+badStr+" can only use "+gotStr+".");
-  }
-
   Err line(String s){
     assert !s.isEmpty();
     assert sb.lastIndexOf("\n") == sb.length()-1;
