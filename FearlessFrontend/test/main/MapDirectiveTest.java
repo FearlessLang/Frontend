@@ -59,7 +59,7 @@ public final class MapDirectiveTest extends testUtils.FearlessTestBase{
     for (var e : pkgs.entrySet()){ compactAll(e.getKey(), oraclePkg(List.of(e.getValue())), base).stream().flatMap(MapDirectiveTest::compactAllLs).forEach(other::add); }
     return compactAll("b", map, o, other);
   }
-  @Test void typingContextShowsSupertypeWrittenThroughAMap(){ fail("""
+  @Test void inheritedSignatureShowsSupertypeWrittenThroughAMap(){ fail("""
 In file: [###].fear
 
 001| B:a.A{ .fromC -> base.Void }
@@ -2676,7 +2676,7 @@ Error 7 WellFormedness
 """, Map.of(), mapBb, """
 Foo_bar:bb.FileLog{ .name -> bb.Nope! }
 """); }
-  @Test void sweepFileLogFileNameNotAllowedThroughAMap(){ fail("""
+  @Test void sweepFileLogWithAReservedDeviceNameThroughAMap(){ fail("""
 In file: [###].fear
 
 001| Con:bb.FileLog{ .name -> bb.Nope! }
