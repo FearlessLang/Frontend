@@ -24,8 +24,8 @@ public final class BadTokens{
       .put(Ws,           (_,_,_) -> Stream.of())
       .put(LineComment,  (_,_,_) -> Stream.of())
       .put(BlockComment, (_,_,_) -> Stream.of())
-      .put(BadUStrUnclosed, (idx, t, tz) -> frontOrBack(idx, t, tz, '\"'))
-      .put(BadSStrUnclosed, (idx, t, tz) -> frontOrBack(idx, t, tz, '`'))
+      .put(BadUStrUnclosed, (idx, t, tz) -> unclosedQuote(idx, t, tz, '\"'))
+      .put(BadSStrUnclosed, (idx, t, tz) -> unclosedQuote(idx, t, tz, '`'))
       .put(BadUnclosedBlockComment, (_, t, tz) -> badBlockComment(tz, t))
       .put(BadUnopenedBlockCommentClose, BadTokens::strayBlockCommentCloser)
       .put(OSquareArg, BadTokens::squareAfterLiteral)
@@ -127,7 +127,7 @@ This character can only appear inside comments and inside type names in quotes, 
       .of("Unterminated block comment. Add \"*/\" to close it.")
       .addFrame("a block comment", s);
   }
-  private static Stream<Token> frontOrBack(int idx, Token t, Tokenizer tz, int quoteChar){
+  private static Stream<Token> unclosedQuote(int idx, Token t, Tokenizer tz, int quoteChar){
     var file= tz.fileName();
     var b= t.span(file);
     assert b.isSingleLine();

@@ -118,7 +118,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var d= decs.apply(t.name());
     var s= Sources.findCanonical(d, c.name(), c.rc()).get();
     var decName= err().methodSig(c.rc().toStrSpace(), d, c.name()); // p.A.m(...)
-    return typeArgBounds(err().pCallCantBeSatisfied(d, c), decName, s.bs().get(index), c.targs().get(index), index, bounds, got);
+    return typeArgBounds(err().callCannotTypecheck(d, c), decName, s.bs().get(index), c.targs().get(index), index, bounds, got);
   }
   private Err typeArgBounds(Err e, String targetRepr, B param, T bad, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     var badStr= err().typeRepr(false, bad);
@@ -328,7 +328,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   public FearlessException methodReceiverIsTypeParameter(TypeScope s, Call c, T recvType){
     var best= TypeScope.bestInterestingScope(s, List.of(recvType));
     return withCallSpans(err()
-      .pCallCantBeSatisfied(c)
+      .callCannotTypecheck(c)
       .line("The receiver has type "+err().typeRepr(true, recvType)+", where "+disp(((T.RCX)recvType.withRC(RC.imm)).x().name())+" is a generic type parameter.")
       .line("Generic type parameters cannot be receivers of method calls.")
       .ex(best.contextE(), c.e()), c.e(), c);
@@ -346,7 +346,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var candidates= d.ms().stream().map(M::sig).toList();
     var sameName= candidates.stream().filter(s -> s.m().s().equals(name)).toList();
     if (sameName.isEmpty()){
-      var e= err().pCallCantBeSatisfied(c).line("Method "+methodSig(c.name())+" is not declared on "+on+".");
+      var e= err().callCannotTypecheck(c).line("Method "+methodSig(c.name())+" is not declared on "+on+".");
       addEnclosingLiteralHintIfReceiverIsThis(e, scope, c, recv);
       if (candidates.isEmpty()){ return withCallSpans(e.line(up(subj)+" does not have any methods.").typeErr(), c); }
       var names= candidates.stream().map(s -> s.m().s()).distinct().sorted().toList();
@@ -357,7 +357,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       var avail= Join.of(sameName.stream().map(s -> s.m().arity()).distinct().sorted().map(String::valueOf), "", " or ", "");
       var forms= sameName.stream().map(s -> methodSig(s.m())).distinct().sorted().toList();
       return withCallSpans(err()
-        .pCallCantBeSatisfied(c)
+        .callCannotTypecheck(c)
         .line((forms.size() == 1 ? "There is a method " : "There are methods ")+Join.of(forms, "", " and ", "")+" on "+on+",\nbut with a different number of arguments.")
         .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
         .typeErr(), c);
@@ -365,7 +365,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var rcs= sameArity.stream().map(Sig::rc).sorted().toList();
     var availRc= Join.of(rcs.stream().map(Err::disp), "", " and ", ".");
     return withCallSpans(err()
-      .pCallCantBeSatisfied(c)
+      .callCannotTypecheck(c)
       .line("Method "+methodSig(c.name())+" exists on "+on+", but not with the requested capability.")
       .line("This call requires a method with capability "+disp(c.rc())+".")
       .line("Available capabilities for this method: "+availRc)
@@ -407,7 +407,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var sig= methodSig(c.name());
     var expS= expected == 0 ? "no generic type parameters" : count(expected, "generic type parameter");
     var gotS= got == 0 ? "no generic type arguments" : count(got, "generic type argument");
-    var e= err().pCallCantBeSatisfied(d, c)
+    var e= err().callCannotTypecheck(d, c)
       .line("Wrong number of generic type arguments for "+sig+".")
       .line("Method "+sig+" declares "+expS+".");
     if (expected != 0){ e.line("Declared generic type parameters: "+Join.of(bs.stream().map(b -> disp(b.x())), "", ", ", ".")); }
@@ -420,7 +420,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var byRc= promos.stream().collect(Collectors.groupingBy(MType::rc, TreeMap::new,
       Collectors.mapping(MType::promotion, Collectors.toCollection(LinkedHashSet::new))));
     var e= err()
-      .pCallCantBeSatisfied(d, c)
+      .callCannotTypecheck(d, c)
       .line("The receiver (the expression before the method name) has capability "+disp(recvRc)+".")
       .line(Join.of(byRc.keySet().stream().map(Err::disp), "This call requires a receiver with capability ", " or ", "."));
     if (c.e() instanceof X x && g.bind(x.name()).current() instanceof Change.Keep w){ e.line(Reason.adaptation(this, isSelfName(s, x.name()), x, w)); }
@@ -456,7 +456,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var wrongUnderlyingType= res.stream().noneMatch(ri -> Reason.onlyRC(ts, bs, ri.best, declared));
     var inferred= inferredInParam(d, c, argi);
     var r= res.stream().filter(ri -> ri.showImm).findFirst();
-    var e= err().pCallCantBeSatisfied(d, c).line("Argument "+(argi+1)+" has type "+err().typeRepr(wrongUnderlyingType, gotHdr)+".");
+    var e= err().callCannotTypecheck(d, c).line("Argument "+(argi+1)+" has type "+err().typeRepr(wrongUnderlyingType, gotHdr)+".");
     if (wrongUnderlyingType){ e.line("That is not a subtype of "+err().typeRepr(true, declared)+(inferred.isEmpty() ? " (the type required by the method signature)." : ".")); }
     if (wrongUnderlyingType && lambdaFits(ts, bs, declared, gotHdr)){ e.line("Write the argument inside curly braces:\nthe curly braces make an object literal instance of "+err().typeRepr(true, declared.withRC(RC.imm))+",\nwhose single method returns the argument."); }
     if (!wrongUnderlyingType){ printed.addAll(r.get().printed); e.line(up(r.get().info)).blank().bullets("Type required by each promotion:", reqs.stream().map(q -> err().typeRepr(false, q.t())+" ("+q.reqName()+")").toList()); }
@@ -501,7 +501,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     assert args > 0;
     assert mat.resByArg().size() == args;
     var e= err()
-      .pCallCantBeSatisfied(d, c)
+      .callCannotTypecheck(d, c)
       .line("Each argument is compatible with at least one promotion,\nbut no single promotion fits all arguments.")
       .blank()
       .bullets("Compatible promotions by argument:", IntStream.range(0, args).mapToObj(argi -> compatible(mat, argi)).toList());

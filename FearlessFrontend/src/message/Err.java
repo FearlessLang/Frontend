@@ -195,10 +195,10 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
     assert !s.isBlank();
     return line("- "+s.replace("\n", "\n  "));
   }
-  Err pCallCantBeSatisfied(Literal d, Call c){
+  Err callCannotTypecheck(Literal d, Call c){
     return line("This call to method "+methodSig(c.rc().toStrSpace(), d, c.name())+" cannot typecheck.");
   }
-  Err pCallCantBeSatisfied(Call c){
+  Err callCannotTypecheck(Call c){
     return line("This call to method "+methodSig(c.name())+" cannot typecheck.");
   }
   Err selfNameDeadCode(String self, String litRepr){

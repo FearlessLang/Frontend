@@ -529,7 +529,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line(Err.funnel(missing, owner.name().simpleName(), xs)), x);
   }
   public FearlessException typeArgAmbiguous(E.Call at, String x, List<IT> targs, int k, List<IT> cands, List<IT.RCC> common, Function<TName,core.E.Literal> decs){
-    return typeArgAmbiguous(at, x, disp(at.name().s()), cands, common, src(at.e(), at.name(), holed(targs, k), at.es()), decs);
+    return typeArgAmbiguous(at, x, disp(at.name().s()), cands, common, example(at.e(), at.name(), holed(targs, k), at.es()), decs);
   }
   public FearlessException literalHeadAmbiguous(E.Literal at, String x, IT.C c, int i, List<IT> cands, List<IT.RCC> common, Function<TName,core.E.Literal> decs){
     var ts= holed(c.ts(), i);
@@ -543,13 +543,13 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     if (!common.isEmpty()){ e.line(up(xs)+" could be "+Join.of(common.stream().map(err()::typeRepr), "", " or ", "")+":\neach is a supertype of "+Join.of(cs, "", " and ", "")+".\nThe choice is ambiguous."); }
     return wf(e.line("Write the generic type argument explicitly, in place of \"_\" in "+disp(example)+"."), at);
   }
-  private String src(E e){ return switch (e){
+  private String example(E e){ return switch (e){
     case E.X x -> x.name();
     case E.Literal _ -> "{...}";
     case E.Type t -> err().typeReprRaw(t.type());
-    case E.Call c -> src(c.e(), c.name(), "", c.es());
+    case E.Call c -> example(c.e(), c.name(), "", c.es());
   };}
-  private String src(E recv, MName m, String targs, List<E> es){ return src(recv)+m.s()+targs+Join.of(es.stream().map(this::src), "(", ", ", ")", ""); }
+  private String example(E recv, MName m, String targs, List<E> es){ return example(recv)+m.s()+targs+Join.of(es.stream().map(this::example), "(", ", ", ")", ""); }
   public FearlessException literalHeadNotInferred(E.Literal at, IT.C c, List<Integer> unknown, List<String> xs){
     var s= unknown.size() == 1 ? "" : "s";
     return wf(err()

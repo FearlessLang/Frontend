@@ -96,8 +96,8 @@ public final class CompactPrinter{
       wrap(sb, group ? "(" : "", group ? ")" : "", List.of(e), "", acc);
     }
   }
-  record PLit(RC rc, boolean priv, String name, List<PC> cs, String self, List<PM> ms, Compactable k) implements PE{
-    boolean csShown(){ return priv || !k.compacted; }
+  record PLit(RC rc, boolean infName, String name, List<PC> cs, String self, List<PM> ms, Compactable k) implements PE{
+    boolean csShown(){ return infName || !k.compacted; }
     @Override public void accString(CompactPrinter sb){
       sb.append(rc.toStrSpace()).append(name);
       if (csShown()){ wrap(sb, "", "", cs, ",", PC::accString); }
@@ -152,12 +152,12 @@ public final class CompactPrinter{
   }
   private PE ofLit(Literal l){
     var ms= l.ms().stream().filter(m -> m.sig().origin().equals(l.name())).map(this::ofM).toList();
-    var priv= l.infName();
-    var name= priv ? ""
+    var infName= l.infName();
+    var name= infName ? ""
       : t.of(l.name())+bounds(l.bs())+":"; // name[bs]:
-    var cs= ofCs(l.src(), priv ? l.cs().stream().limit(1).toList() : l.cs());
+    var cs= ofCs(l.src(), infName ? l.cs().stream().limit(1).toList() : l.cs());
     var rc= l.thisName().equals("this") ? RC.imm : l.rc();
-    return new PLit(rc, priv, name, cs, l.thisName(), ms, new Compactable(path.contains(l)));
+    return new PLit(rc, infName, name, cs, l.thisName(), ms, new Compactable(path.contains(l)));
   }
   private List<PT> ofTs(List<T> ts){ return ts.stream().map(this::ofT).toList(); }
   private PT ofT(T t){ return switch (t){
