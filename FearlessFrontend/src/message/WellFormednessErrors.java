@@ -657,10 +657,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("thus "+err().expRepr(owner)+" cannot override any method named "+disp(m.sig().m().get().s())+"."), owner);
   }
   public FearlessException claimNotMain(E.Literal owner, TName claim){
-    var ctx= err().expRepr(owner);
-    var c= err().tNameADisp(claim);
     return wf(implementing(owner, claim)
-      .line("Only a main can implement "+c+":\n"+ctx+" must also implement "+err().tNameADisp(LiteralDeclarations.main)+",\ndirectly or through one of its supertypes."), owner);
+      .line("Only a main can implement "+err().tNameADisp(claim)+":\n"+err().expRepr(owner)+" must also implement "+err().tNameADisp(LiteralDeclarations.main)+",\ndirectly or through one of its supertypes."), owner);
   }
   public FearlessException claimIconNotConcrete(E.Literal owner, IT.C c){
     return wf(implementing(owner, c)
