@@ -166,8 +166,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
   Err blank(){
     var n= sb.length();
     assert sb.charAt(n-1) == '\n';
-    var noBlankYet= n < 2 || sb.charAt(n-2) != '\n';
-    if (noBlankYet){ sb.append('\n'); }
+    if (sb.charAt(n-2) != '\n'){ sb.append('\n'); }
     return this;
   }
   Err list(String heading, List<String> items){
