@@ -19,20 +19,19 @@ final class BestPicker{
     }
   }
   void visitPC(PC x, int depth){
-    if (!x.k().isCompactable()){ return; }
+    if (x.k().compacted){ return; }
     for (var t : x.ts()){ visit(t, depth); }
   }
   void visitPCall(PCall x, int depth){
     var targsVisible= CompactPrinter.showTargs(x.rc(), x.targs().size()) && !x.k().pinned;
     if (targsVisible){ for (var t : x.targs()){ visit(t, depth); } }
-    if (!x.k().isCompactable()){ return; }
+    if (x.k().compacted){ return; }
     visit(x.recv(), depth);
     for (var a : x.args()){ visit(a, depth); }
   }
   void visitPLit(PLit x, int depth){
-    var cVisible= (x.k().isCompactable() || x.priv()) && !x.k().pinned;
-    if (cVisible){ for (var a : x.cs()){ visit(a, depth); } }
-    if (!x.k().isCompactable()){ return; }
+    if (x.csShown() && !x.k().pinned){ for (var a : x.cs()){ visit(a, depth); } }
+    if (x.k().compacted){ return; }
     for (var m : x.ms()){ visit(m, depth); }
   }
   void visitPM(PM x, int depth){
@@ -40,10 +39,10 @@ final class BestPicker{
       for (var t : x.ts()){ visit(t, depth); }
       visit(x.ret(), depth);
     }
-    if (x.k().isCompactable()){ x.body().ifPresent(b -> visit(b, depth)); }
+    if (!x.k().compacted){ x.body().ifPresent(b -> visit(b, depth)); }
   }
   void consider(PN n, int score){
-    if (!n.k().isCompactable() || n.k().pinned){ return; }
+    if (n.k().compacted || n.k().pinned){ return; }
     if (score > bestScore){ bestScore = score; best = n.k(); }
   }
 }

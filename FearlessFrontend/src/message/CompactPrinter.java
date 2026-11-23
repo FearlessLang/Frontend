@@ -26,7 +26,7 @@ public final class CompactPrinter{
     var len= render(root).length();
     while (len > 120){
       var k= new BestPicker().pick(root);
-      if (!k.isCompactable()){ break; }
+      if (k.pinned){ break; }
       k.compact();
       var shorter= render(root).length();
       if (shorter >= len){ k.keep(); continue; }
@@ -51,7 +51,6 @@ public final class CompactPrinter{
     if (res){ path.add(e); }
     return res;
   }
-  private Compactable k(Optional<E> e){ return Compactable.of(e.filter(path::contains).isPresent()); }
   StringBuilder sb= new StringBuilder();
   TypeNamePrinter t;
   public String msgT(T t){
@@ -62,12 +61,11 @@ public final class CompactPrinter{
   CompactPrinter omit(){ omitted= true; return append("..."); }
   String bounds(List<B> bs){ return Join.of(bs.stream().map(b -> b.rcs().equals(EnumSet.of(RC.imm)) ? b.x() : b.compactToString()), "[", ",", "]", ""); }
   static final class Compactable{
-    static final Compactable no= new Compactable(false, false);
-    boolean compacted; boolean pinned; private Compactable(boolean can, boolean pinned){ compacted= !can; this.pinned= pinned; }
-    static Compactable of(boolean pinned){ return new Compactable(true, pinned); }
-    boolean isCompactable(){ return !compacted; }
+    static final Compactable no= new Compactable(true);
+    boolean compacted; boolean pinned; Compactable(boolean pinned){ this.pinned= pinned; }
     void compact(){ assert !compacted && !pinned; compacted = true; }
     void keep(){ assert compacted; compacted = false; pinned = true; }
+    <N extends PN> Acc<N> acc(){ return compacted ? (_,b) -> b.omit() : PN::accString; }
   }
   interface Acc<XX>{ void acc(XX x, CompactPrinter sb); }
   static <XX> void wrap(CompactPrinter sb, String open, String close, List<XX> xs, String sep, Acc<XX> a){
@@ -102,25 +100,24 @@ public final class CompactPrinter{
   record PCall(PE recv, String m, RC rc, List<PT> targs, List<PE> args, Compactable k) implements PE{
     boolean infix(){ return args.size() == 1 && !m.startsWith(".") && !m.equals("#"); }
     @Override public void accString(CompactPrinter sb){
-      Acc<PE> acc= k.isCompactable() ? PN::accString : (_,b) -> b.omit();
-      accGrouped(sb, acc, recv, k.isCompactable() ? recv instanceof PCall c && c.infix() : !infix());
+      Acc<PE> acc= k.acc();
+      accGrouped(sb, acc, recv, k.compacted ? !infix() : recv instanceof PCall c && c.infix());
       sb.append(infix() ? " "+m : m);
       accTargs(sb, rc, targs);
       if (!infix()){ wrap(sb, "(", ")", args, ",", acc); return; }
       sb.append(" ");
-      accGrouped(sb, acc, args.getFirst(), k.isCompactable() && args.getFirst() instanceof PCall);
+      accGrouped(sb, acc, args.getFirst(), !k.compacted && args.getFirst() instanceof PCall);
     }
     private void accGrouped(CompactPrinter sb, Acc<PE> acc, PE e, boolean group){
       wrap(sb, group ? "(" : "", group ? ")" : "", List.of(e), "", acc);
     }
   }
   record PLit(RC rc, boolean priv, String name, List<PC> cs, String self, List<PM> ms, Compactable k) implements PE{
+    boolean csShown(){ return priv || !k.compacted; }
     @Override public void accString(CompactPrinter sb){
-      sb.append(rc.toStrSpace());
-      if (!priv){ sb.append(name); }
-      else if (!cs.isEmpty()){ cs.getFirst().accString(sb); }
-      if (!k.isCompactable()){ sb.append("{").omit().append("}"); return; }
-      if (!priv){ wrap(sb, "", "", cs, ",", PC::accString); }
+      sb.append(rc.toStrSpace()).append(name);
+      if (csShown()){ wrap(sb, "", "", cs, ",", PC::accString); }
+      if (k.compacted){ sb.append("{").omit().append("}"); return; }
       if (ms.isEmpty()){ sb.append("{}"); return; }
       var selfHidden= self.equals("this") || self.equals("_");
       var start= selfHidden ? "{" : "{'"+self+" ";
@@ -139,7 +136,7 @@ public final class CompactPrinter{
   record PC(String name, List<PT> ts, Compactable k) implements PN{
     @Override public void accString(CompactPrinter sb){
       sb.append(name);
-      wrap(sb, "[", "]", ts, ",", k.isCompactable() ? PN::accString : (_,b) -> b.omit());
+      wrap(sb, "[", "]", ts, ",", k.acc());
     }
   }
   record PM(RC rc, String m, String bs, List<String> xs, List<PT> ts, PT ret, Optional<PE> body, Compactable k) implements PN{
@@ -148,12 +145,7 @@ public final class CompactPrinter{
       wrap(sb, "(", ")", Streams.zip(xs, ts).<Consumer<CompactPrinter>>map((x,t) -> b -> param(b, x, t)).toList(), ",", Consumer::accept);
       sb.append(":");
       ret.accString(sb);
-      body.ifPresent(e -> accBody(sb, e));
-    }
-    private void accBody(CompactPrinter sb, PE e){
-      sb.append("->");
-      if (!k.isCompactable()){ sb.omit(); return; }
-      e.accString(sb);
+      wrap(sb, "->", "", body.stream().toList(), "", k.acc());
     }
     private static void param(CompactPrinter b, String x, PT t){
       if (!x.equals("_")){ b.append(x).append(":"); }
@@ -175,7 +167,7 @@ public final class CompactPrinter{
   private PE ofCall(Call c){
     var targs= ofTs(c.targs());
     var args= ofEs(c.es());
-    return new PCall(ofE(c.e()), c.name().s(), c.rc(), targs, args, k(Optional.of(c)));
+    return new PCall(ofE(c.e()), c.name().s(), c.rc(), targs, args, new Compactable(path.contains(c)));
   }
   private PE ofLit(Literal l){
     var ms= l.ms().stream().filter(m -> m.sig().origin().equals(l.name())).map(this::ofM).toList();
@@ -186,7 +178,7 @@ public final class CompactPrinter{
     var cs= ofCs(l.src(), onlyFirstC ? List.of(l.cs().getFirst()) : l.cs());
     var top= l.thisName().equals("this");
     var rc= top ? RC.imm : l.rc();
-    return new PLit(rc, priv, name, cs, l.thisName(), ms, k(Optional.of(l)));
+    return new PLit(rc, priv, name, cs, l.thisName(), ms, new Compactable(path.contains(l)));
   }
   private List<PE> ofEs(List<E> es){ return es.stream().map(this::ofE).toList(); }
   private List<PT> ofTs(List<T> ts){ return ts.stream().map(this::ofT).toList(); }
@@ -197,7 +189,7 @@ public final class CompactPrinter{
     case T.RCC(var rc, var c, _) -> new PTRCC(rc, ofC(c));
   };}
   private PC ofC(T.C c){
-    return new PC(t.of(c.name()), ofTs(c.ts()), c.ts().isEmpty() ? Compactable.no : Compactable.of(false));
+    return new PC(t.of(c.name()), ofTs(c.ts()), new Compactable(false));
   }
   private List<PC> ofCs(Src src, List<T.C> cs){
     List<fearlessFullGrammar.T.C> oCs= switch (src.inner){
@@ -219,9 +211,10 @@ public final class CompactPrinter{
   }
   private PM ofM(M m){
     var e= m.e().map(this::ofE);
-    var implicit= m.xs().stream().anyMatch(implicits::contains);
+    var xs= m.xs().stream().anyMatch(implicits::contains) ? List.of("_") : m.names();
+    var k= new Compactable(m.e().filter(path::contains).isPresent());
     var s= m.sig();
-    return new PM(s.rc(), s.m().s(), bounds(s.bs()), implicit ? List.of("_") : m.names(), ofTs(s.ts()), ofT(s.ret()), e, k(m.e()));
+    return new PM(s.rc(), s.m().s(), bounds(s.bs()), xs, ofTs(s.ts()), ofT(s.ret()), e, k);
   }
   String sig(Sig s){
     assert sb.isEmpty();
