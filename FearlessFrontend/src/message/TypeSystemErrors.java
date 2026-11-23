@@ -448,7 +448,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   void bestNameMsg(Err e, String onStr, List<Sig> candidates, List<String> cs, Optional<String> best){
     best.ifPresent(b -> e.line("Did you mean "+disp(b)+" ?"));
-    e.blank().bullets("Available methods on "+onStr+":", cs.stream().flatMap(n -> candidates.stream().filter(s -> s.m().s().equals(n))).map(s -> e.cp().sig(s)).toList());
+    var sigs= cs.stream().flatMap(n -> candidates.stream().filter(s -> s.m().s().equals(n))).map(s -> e.cp().sig(s)).toList();
+    e.blank().bullets("Available methods on "+onStr+":", sigs);
   }
   ///A method matching c by name / arity / RC exists, but c supplies the wrong number of type arguments.
   ///Triggered only for explicitly written [Ts]; inference never reaches this error.
