@@ -602,8 +602,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .bullets("Found the following "+w+" supertypes:", widen.stream().map(this::headRepr).toList()), owner);
   }
   public FearlessException duplicatedNamedLiteral(E.Literal owner, M m, E.Literal in){
-    return wf(err()
-      .line(up(err().expRepr(owner))+" implements method "+methodSig(m.sig().m().get())+".")
+    return wf(implementing(owner, m.sig().m().get())
       .line("The body of method "+err().methodSig("", owner, m.sig().m().get())+" needs to be duplicated\nto satisfy multiple reference capability overloads from the supertypes.")
       .line("However, the body declares type "+err().tNameADisp(in.name())+".")
       .line("Object literals with their own unique explicit type cannot be duplicated."), owner);
@@ -643,8 +642,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("The generic type argument of "+err().tNameADisp(LiteralDeclarations.finalMethods)+" is a type name in quotes holding a method name,\nlike "+disp("\".name\"")+" or "+disp("\"+\"")+"."), owner);
   }
   public FearlessException finalImplemented(E.Literal owner, M m, TName origin, IT.C claim){
-    return wf(err()
-      .line(up(err().expRepr(owner))+" implements method "+methodSig(m.sig().m().get())+".")
+    return wf(implementing(owner, m.sig().m().get())
       .line(err().tNameADisp(origin)+" implements "+headRepr(claim)+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
       .line("thus "+err().expRepr(owner)+" cannot override any method named "+disp(m.sig().m().get().s())+"."), owner);
   }
@@ -687,6 +685,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private String chooseOne(IT.C c){ return "or implement "+err().tNameADisp(LiteralDeclarations.claims.get(LiteralDeclarations.claims.indexOf(c.name())-1))+" to let the Fearless manager choose one"; }
   private Err implementing(E.Literal owner, TName t){ return err().line(up(err().expRepr(owner))+" implements "+err().tNameADisp(t)+"."); }
   private Err implementing(E.Literal owner, IT.C c){ return err().line(up(err().expRepr(owner))+" implements "+headRepr(c)+"."); }
+  private Err implementing(E.Literal owner, MName m){ return err().line(up(err().expRepr(owner))+" implements method "+methodSig(m)+"."); }
   private String headRepr(IT.C c){ return disp(err().typeReprRaw(new IT.RCC(Optional.empty(), c, TSpan.fromPos(Pos.unknown)))); }
   public FearlessException extendedForeign(E owner, TName target, String kind){
     var targetPkg= target.pkgName();
