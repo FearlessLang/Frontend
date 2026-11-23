@@ -1120,7 +1120,8 @@ Foo:{#(a:A):G->{a}}
 
 While inspecting parameter "loooooong" > method "G#" (line 8) > method "User.m(_)" (line 7)
 Parameter "loooooong" has type "mut A".
-Parameter "loooooong" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "G" (line 8).
+Parameter "loooooong" can observe mutation;
+thus it cannot be captured in the "imm" object literal instance of "G" (line 8).
 Capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 A:{}
@@ -1196,7 +1197,8 @@ User:{
 While inspecting parameter "beer"
 Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
-A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
+A type declaration only sees the generic type parameters it declares itself;
+here "Foo" declares none.
 Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
@@ -1213,7 +1215,8 @@ Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 While inspecting parameter "x"
 Parameter "x" has type "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
-A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
+A type declaration only sees the generic type parameters it declares itself;
+here "Foo" declares none.
 Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
@@ -1229,7 +1232,8 @@ Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 While inspecting parameter "beer"
 Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
-A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
+A type declaration only sees the generic type parameters it declares itself;
+here "Foo" declares none.
 Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
@@ -1247,7 +1251,8 @@ Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 While inspecting parameter "beer"
 Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
-A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
+A type declaration only sees the generic type parameters it declares itself;
+here "Foo" declares none.
 Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
@@ -1263,7 +1268,8 @@ Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 [###]
 Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
-A type declaration only sees the generic type parameters it declares itself; here "Foo" declares "Z".
+A type declaration only sees the generic type parameters it declares itself;
+here "Foo" declares "Z".
 Funnel "X" into "Foo" by writing "Foo[Z:..,X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
@@ -1356,7 +1362,8 @@ In file: [###].fear
 
 While inspecting type declaration "Current"
 Invalid method signature for "Current.id(_)".
-The method ".id(_)" declares different capability bounds than the supertypes for generic type parameter 1.
+The method ".id(_)" declares different capability bounds for generic type parameter 1
+than the supertypes.
 Local declaration: "X:imm,read".
 Capability bounds in the supertypes: "imm".
 Generic type parameter names may differ from the supertypes; only the position matters.
@@ -1391,7 +1398,8 @@ While inspecting type declaration "Current"
 Invalid method signature for "Current.g(_)".
 The method ".g(_)" accepts parameter 1 of type "imm P".
 But "Parent.g(_)" requires "read P".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result,
+but not their reference capabilities.
 """, List.of("""
 
 P:{}
@@ -1407,7 +1415,8 @@ While inspecting type declaration "Sub"
 Invalid method signature for "Sub.h".
 The method ".h" returns type "read P".
 But "Sup.h" returns type "imm P".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result,
+but not their reference capabilities.
 """, List.of("""
 P:{}
 Sup:{ imm .h():imm P; }
@@ -1738,7 +1747,9 @@ While inspecting method "Plus.go" (line 5)
 This call to method "Plus+(_)" cannot typecheck.
 Argument 1 has type "Plus".
 That is not a subtype of "A" (the type required by the method signature).
-All method names have the same precedence, so an expression like "a.get + b.get" parses as "(a.get + b).get", not "a.get + (b.get)". If this argument needed a method applied to it first, wrap it in parentheses.
+All method names have the same precedence,
+so an expression like "a.get + b.get" parses as "(a.get + b).get", not "a.get + (b.get)".
+If this argument needed a method applied to it first, wrap it in parentheses.
 """, List.of("""
 A:{}
 Plus:{
@@ -1928,7 +1939,8 @@ User:{
 
 While inspecting method "A.caller(_,_)" (line 3)
 This call to method "A.f(_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
+Each argument is compatible with at least one promotion,
+but no single promotion fits all arguments.
 
 Compatible promotions by argument:
 - Argument 1 has type "readH A" and is compatible with: Allow readH arguments, Allow mutH argument 1.
@@ -1954,7 +1966,8 @@ A:{
 
 While inspecting method "A.caller(_,_)" (line 3)
 This call to method "A.f(_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
+Each argument is compatible with at least one promotion,
+but no single promotion fits all arguments.
 
 Compatible promotions by argument:
 - Argument 1 has type "mutH A" and is compatible with: Allow mutH argument 1.
@@ -2274,7 +2287,8 @@ A:{
 
 While inspecting method "A.caller(_,_)" (line 3)
 This call to method "A.f(_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
+Each argument is compatible with at least one promotion,
+but no single promotion fits all arguments.
 
 Compatible promotions by argument:
 - Argument 1 has type "readH A" and is compatible with: Allow readH arguments, Allow mutH argument 1.
@@ -2300,7 +2314,8 @@ A:{
 
 While inspecting method "A.caller(_,_)" (line 4)
 This call to method "A.f(_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
+Each argument is compatible with at least one promotion,
+but no single promotion fits all arguments.
 
 Compatible promotions by argument:
 - Argument 1 has type "readH A" and is compatible with: Allow readH arguments, Allow mutH argument 1.
@@ -2334,7 +2349,8 @@ A:{
 
 While inspecting parameter "aaaa" > method "BB.foo" (line 4) > method "A.f(_)" (line 4)
 Parameter "aaaa" has type "mut A".
-Parameter "aaaa" can observe mutation; thus it cannot be captured in the "imm" object literal "BB" (line 4).
+Parameter "aaaa" can observe mutation;
+thus it cannot be captured in the "imm" object literal "BB" (line 4).
 Capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 Skip:{#[X:**](X):B->B}
@@ -2350,7 +2366,8 @@ A:{
 
 While inspecting parameter "aaaa" > method "B.foo" (line 4) > method "A.f(_)" (line 4)
 Parameter "aaaa" has type "mut A".
-Parameter "aaaa" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "B" (line 4).
+Parameter "aaaa" can observe mutation;
+thus it cannot be captured in the "imm" object literal instance of "B" (line 4).
 Capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 Skip:{#[X:**](X):B->B}
@@ -4682,7 +4699,8 @@ User:{ .f: read Sup -> Ids#({ .g -> Foo }) }
 
 While inspecting parameter "c" > method "Sup.run" (line 4) > method "User.f(_,_)" (line 4)
 Parameter "c" has type "mut Foo".
-Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
+Parameter "c" can observe mutation;
+thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
 Capture an immutable copy instead, or move this use outside the object literal.
 
 See inferred typing context below for how "Sup" was introduced:
@@ -4705,7 +4723,8 @@ User:{ .f(s: mut Sup, c: mut Foo): Foo -> Two#(s, mut Sup{ .run -> c }) }
 
 While inspecting parameter "c" > method "Box.get" (line 4) > method "User.f(_,_)" (line 4)
 Parameter "c" has type "mut Foo".
-Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Box" (line 4).
+Parameter "c" can observe mutation;
+thus it cannot be captured in the "imm" object literal instance of "Box" (line 4).
 Capture an immutable copy instead, or move this use outside the object literal.
 
 See inferred typing context below for how "Box" was introduced:
@@ -4728,7 +4747,8 @@ User:{ .f(s: mut Box, c: mut Foo): Foo -> Two#(s, mut Box{ .get -> c }) }
 
 While inspecting parameter "c" > method "Sup.run" (line 4) > method "User.f(_,_)" (line 4)
 Parameter "c" has type "mut Foo".
-Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
+Parameter "c" can observe mutation;
+thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
 Capture an immutable copy instead, or move this use outside the object literal.
 
 See inferred typing context below for how "Sup" was introduced:
@@ -4964,8 +4984,11 @@ U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): B -> this.both(y, z) }
    |                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred: it is needed as "Y", as "Z".
-"T" could be "A" or "B": each is a supertype of "Y" and "Z". The choice is ambiguous.
+The generic type argument "T" of ".both" can not be inferred:
+it is needed as "Y", as "Z".
+"T" could be "A" or "B":
+each is a supertype of "Y" and "Z".
+The choice is ambiguous.
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
 A:{} B:{} Y:A,B{} Z:A,B{}
@@ -4976,8 +4999,11 @@ U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
    |                                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred: it is needed as "mut Y[A]", as "mut Z[A]".
-"T" could be "mut G[A]" or "mut H[A]": each is a supertype of "mut Y[A]" and "mut Z[A]". The choice is ambiguous.
+The generic type argument "T" of ".both" can not be inferred:
+it is needed as "mut Y[A]", as "mut Z[A]".
+"T" could be "mut G[A]" or "mut H[A]":
+each is a supertype of "mut Y[A]" and "mut Z[A]".
+The choice is ambiguous.
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
 A:{} G[X:*]:{} H[X:*]:{} Y[X:*]:G[X],H[X]{} Z[X:*]:G[X],H[X]{}
@@ -4988,7 +5014,8 @@ U:{ .both[T:*](a: T, b: T): A -> A; .use(y: mut Y[A], z: mut Z[A]): A -> this.bo
    |                                                                 ^^^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".three(_,_,_)"
-The generic type argument "T" of ".three" can not be inferred: it is needed as "Y", as "Z".
+The generic type argument "T" of ".three" can not be inferred:
+it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "this.three[_](y, z, y)".
 """, List.of("""
 A:{} Y:{} Z:{}
@@ -4999,7 +5026,8 @@ U:{ .three[T](a: T, b: T, c: T): A -> A; .use(y: Y, z: Z): A -> this.three(y, z,
    |                                                                  ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred: it is needed as "mut Y", as "mut Z".
+The generic type argument "T" of ".both" can not be inferred:
+it is needed as "mut Y", as "mut Z".
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
 A:{} S1:{} S2:{} Y:S1,S2{} Z:S1,S2{}
@@ -5031,7 +5059,8 @@ U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
    |                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred: it is needed as "Y", as "Z".
+The generic type argument "T" of ".both" can not be inferred:
+it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
 A:{} Y:{} Z:{}
@@ -5042,7 +5071,8 @@ U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "base.ThenElse[_]"
-The generic type argument "R" of "base.ThenElse[_]" can not be inferred: it is needed as "Y", as "Z".
+The generic type argument "R" of "base.ThenElse[_]" can not be inferred:
+it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "base.ThenElse[_]{...}".
 """, List.of("""
 A:{} Y:{} Z:{}
@@ -5054,8 +5084,11 @@ U:{ .use(c: base.Bool, y: Y, z: Z): A -> Sink#(c ? { .then -> y; .else -> z }) }
    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "base.ThenElse[_]"
-The generic type argument "R" of "base.ThenElse[_]" can not be inferred: it is needed as "Y", as "Z".
-"R" could be "S1" or "S2": each is a supertype of "Y" and "Z". The choice is ambiguous.
+The generic type argument "R" of "base.ThenElse[_]" can not be inferred:
+it is needed as "Y", as "Z".
+"R" could be "S1" or "S2":
+each is a supertype of "Y" and "Z".
+The choice is ambiguous.
 Write the generic type argument explicitly, in place of "_" in "base.ThenElse[_]{...}".
 """, List.of("""
 A:{} S1:{} S2:{} Y:S1,S2{} Z:S1,S2{}
@@ -5103,7 +5136,8 @@ App:{ .m: base.Nat -> {.b:base.Void->base.Void;}.a }
    |                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred: it is needed as "Y", as "Z".
+The generic type argument "T" of ".both" can not be inferred:
+it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
 A:{} B:{} Sup[T]:{ .k: T } Y:Sup[A]{ .k -> A } Z:Sup[B]{ .k -> B }
@@ -5114,7 +5148,8 @@ U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
    |                                                               ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred: it is needed as "Sup[A]", as "Z".
+The generic type argument "T" of ".both" can not be inferred:
+it is needed as "Sup[A]", as "Z".
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
 A:{} B:{} Sup[T]:{ .k: T } Z:Sup[B]{ .k -> B }
@@ -5880,7 +5915,8 @@ U:{ .m(w: W[D]): Top -> w }
 
 While inspecting object literal instance of "Foo[_]"
 Type inference finds no type for object literal instance of "Foo[_]".
-Each round of inference nests its type one level deeper, as "Foo[Box[Box[...]]]"; it would grow without bound.
+Each round of inference nests its type one level deeper, as "Foo[Box[Box[...]]]";
+it would grow without bound.
 """, List.of("""
 N:{}
 Box[X]:{}
@@ -5894,7 +5930,8 @@ Use:{ .go: N -> Take#{ .m(x) -> Wrap#(x) } }
    |                                                                          ^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".two(_,_,_)"
-The generic type argument "T" of ".two" can not be inferred: it is needed as "Y", as "Z".
+The generic type argument "T" of ".two" can not be inferred:
+it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "this.two[_](y, z, this.mk)".
 """, List.of("""
 A:{} Y:{} Z:{} Box[X]:{}
@@ -5905,7 +5942,8 @@ U:{ .mk[R]: R; .two[T](a: T, b: T, c: Box[T]): A; .use(y: Y, z: Z): A -> this.tw
    |                              ^^^^^^^^^^^^^^^^^
 
 While inspecting method call "#(_)"
-The generic type argument "T" of "#" can not be inferred: it is needed as "Bar[A]", as "Bar[B]".
+The generic type argument "T" of "#" can not be inferred:
+it is needed as "Bar[A]", as "Bar[B]".
 Write the generic type argument explicitly, in place of "_" in "Ign#[_](Mk#.m(a, b))".
 """, List.of("""
 A:{}
@@ -5921,7 +5959,8 @@ User:{ .go(a: A, b: B): A -> Ign#(Mk#.m(a, b)) }
    |                                    ^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".choose(_,_)"
-The generic type argument "V" of ".choose" can not be inferred: it is needed as "Y", as "Z".
+The generic type argument "V" of ".choose" can not be inferred:
+it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "Left.choose[_](y, z)".
 """, List.of("""
 A:{} Y:{} Z:{}
@@ -5936,7 +5975,8 @@ Use:{ .go(y: Y, z: Z): A -> Take#{ Left.choose(y, z) } }
    |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".choose(_,_)"
-The generic type argument "Val" of ".choose" can not be inferred: it is needed as "base.Str", as "TankNN".
+The generic type argument "Val" of ".choose" can not be inferred:
+it is needed as "base.Str", as "TankNN".
 Write the generic type argument explicitly, in place of "_" in `Left.choose[_]("Hello", TankNN)`.
 """, List.of("""
 Fork:{ .choose[Val](leftVal: Val, rightVal: Val): Val }
@@ -6170,7 +6210,8 @@ I: base.BaseId[I,I]{ #(y)->this }
 While inspecting the file
 Type declaration "I" implements "base.BaseId[_,_]".
 The body of "#(_)" calls ".as(_)" on parameter "y".
-Calling ".as(_)" counts as the identity function only when the receiver has a type implementing "base.BaseContainer[_]".
+Calling ".as(_)" counts as the identity function only when
+the receiver has a type implementing "base.BaseContainer[_]".
 Parameter "y" has type "Box".
 """, List.of("""
 Box:{ .as(f: base.BaseId[Box,Box]):Box -> this }
@@ -6250,7 +6291,8 @@ Impl:{ #(x:I):I -> x }
 While inspecting the file
 Type declaration "I" implements "base.BaseId[_,_]".
 The body of "#(_)" calls ".as(_)" on parameter "x".
-Calling ".as(_)" counts as the identity function only when the receiver has a type implementing "base.BaseContainer[_]".
+Calling ".as(_)" counts as the identity function only when
+the receiver has a type implementing "base.BaseContainer[_]".
 Parameter "x" has type "Box".
 """, List.of("""
 Box:{ .as(f: base.BaseId[Box,Box]):Box -> this }
@@ -6325,7 +6367,8 @@ I: base.BaseId[I,I]{ #(x)->x#(x) }
 While inspecting the file
 Type declaration "I[_]" implements "base.BaseId[_,_]".
 The body of "#(_)" calls ".as(_)" on parameter "x".
-Calling ".as(_)" counts as the identity function only when the receiver has a type implementing "base.BaseContainer[_]".
+Calling ".as(_)" counts as the identity function only when
+the receiver has a type implementing "base.BaseContainer[_]".
 Parameter "x" has type "X".
 """, List.of("""
 I[X:*]: base.BaseId[X,I[X]]{ #(x)->x.as[I[X]](this) }
@@ -6350,7 +6393,8 @@ U:{ .m: base.Void -> Ig#(F#(Mk#, base.Void)) }
 
 While inspecting object literal instance of "A" > method "H[_].m" (line 3)
 Object literal instance of "A" is required to be of type "X".
-"X" is a generic type parameter; an object literal is always of a nominal type.
+"X" is a generic type parameter;
+an object literal is always of a nominal type.
 """, List.of("""
 G:{ #[T:*](x: T): T -> x }
 A:{ .k: base.Void }
@@ -6362,7 +6406,8 @@ H[X:*]:{ .m: X -> G#[X](A{ .k -> base.Void }) }
 
 While inspecting object literal instance of "A" > method "H[_].m" (line 3)
 Object literal instance of "A" is required to be of type "X".
-"X" is a generic type parameter; an object literal is always of a nominal type.
+"X" is a generic type parameter;
+an object literal is always of a nominal type.
 """, List.of("""
 G:{ #[T:*](x: T): T -> x }
 A:{}
@@ -6417,7 +6462,8 @@ U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
    |                                                 ^^
 
 While inspecting object literal "{...}" (line 2)
-Type inference concluded that the object literal at line 2, column 49 should implement the object literal at line 2, column 22.
+Type inference concluded that the object literal at line 2, column 49
+should implement the object literal at line 2, column 22.
 An object literal can only implement a standalone type.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 """, List.of("""
@@ -6429,7 +6475,8 @@ U:{ .m: base.Void -> {'s .j: base.Void -> G#(s, {}) }.j }
    |                                                 ^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal "{...}" (line 2)
-Type inference concluded that the object literal at line 2, column 49 should implement the object literal at line 2, column 22.
+Type inference concluded that the object literal at line 2, column 49
+should implement the object literal at line 2, column 22.
 An object literal can only implement a standalone type.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 """, List.of("""
@@ -6463,7 +6510,8 @@ U:{ .m: A -> Foo:A,base.CaptureFree{'s .k -> s; .v -> G#(s, {}) } }
    |                                           ^^^^^^^^
 
 While inspecting method call "#(_,_)"
-The generic type argument "X" of "#" can not be inferred: it is needed as the anonymous type of the object literal at line 3, column 22, as "B".
+The generic type argument "X" of "#" can not be inferred:
+it is needed as the anonymous type of the object literal at line 3, column 22, as "B".
 Write the generic type argument explicitly, in place of "_" in "G#[_](s, B)".
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
@@ -6603,7 +6651,8 @@ A:{ .m[X](x: X, y: X): X -> y; .k: Box[A] -> this.m(C, D) }
    |                                                                          ^^^^^^^^^^^^
 
 While inspecting method call ".m(_,_)"
-The generic type argument "X" of ".m" can not be inferred: it is needed as "C", as "D".
+The generic type argument "X" of ".m" can not be inferred:
+it is needed as "C", as "D".
 Write the generic type argument explicitly, in place of "_" in "this.m[_](C, D)".
 """, List.of("""
 Box[T]:{}
@@ -6616,7 +6665,8 @@ A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(
    |                                                                          ^^^^^^^^^^^^
 
 While inspecting method call ".m(_,_)"
-The generic type argument "X" of ".m" can not be inferred: it is needed as "C", as "D".
+The generic type argument "X" of ".m" can not be inferred:
+it is needed as "C", as "D".
 Write the generic type argument explicitly, in place of "_" in "this.m[_](C, D)".
 """, List.of("""
 Box[T]:{}
@@ -6756,8 +6806,11 @@ U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
    |                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred: it is needed as "Y", as "Z".
-"T" could be "A" or "B": each is a supertype of "Y" and "Z". The choice is ambiguous.
+The generic type argument "T" of ".both" can not be inferred:
+it is needed as "Y", as "Z".
+"T" could be "A" or "B":
+each is a supertype of "Y" and "Z".
+The choice is ambiguous.
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
 A:{} B:{} Y:A,B,base.WidenTo[A]{} Z:A,B,base.WidenTo[A]{}
@@ -6906,7 +6959,8 @@ User:{ .m(c: Cat, d: Dog): Animal -> Ids#(c, d).me }
 
 While inspecting object literal instance of "Foo[_]"
 Type inference finds no type for object literal instance of "Foo[_]".
-Each round of inference nests its type one level deeper, as "Foo[Box[Box[...]]]"; it would grow without bound.
+Each round of inference nests its type one level deeper, as "Foo[Box[Box[...]]]";
+it would grow without bound.
 """, List.of("""
 N:{}
 Box[X]:{}
@@ -7030,7 +7084,9 @@ While inspecting method "A#" (line 1)
 This call to method "mut base.Block[_].return(_)" cannot typecheck.
 Argument 1 has type "iso Nat".
 That is not a subtype of "mut base.ReturnStmt[Nat]" (the type required by the method signature).
-Write the argument inside curly braces: the curly braces make an object literal instance of "base.ReturnStmt[Nat]", whose single method returns the argument.
+Write the argument inside curly braces:
+the curly braces make an object literal instance of "base.ReturnStmt[Nat]",
+whose single method returns the argument.
 """, List.of("""
 use base.Nat as Nat; A:{ #: Nat -> base.Block#.return 5 }
 """));}
@@ -7042,7 +7098,9 @@ While inspecting method "U.m(_)" (line 3)
 This call to method "U.take(_)" cannot typecheck.
 Argument 1 has type "mut B".
 That is not a subtype of "Get" (the type required by the method signature).
-Write the argument inside curly braces: the curly braces make an object literal instance of "Get", whose single method returns the argument.
+Write the argument inside curly braces:
+the curly braces make an object literal instance of "Get",
+whose single method returns the argument.
 """, List.of("""
 B:{}
 Get:{ .get: mut B }
@@ -7056,7 +7114,9 @@ While inspecting method "U.m(_)" (line 3)
 This call to method "U.take(_)" cannot typecheck.
 Argument 1 has type "iso B".
 That is not a subtype of "mut Get" (the type required by the method signature).
-Write the argument inside curly braces: the curly braces make an object literal instance of "Get", whose single method returns the argument.
+Write the argument inside curly braces:
+the curly braces make an object literal instance of "Get",
+whose single method returns the argument.
 """, List.of("""
 B:{}
 Get:{ mut .get: mut B }

@@ -32,7 +32,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var declares= Xs.isEmpty() ? "none" : Join.of(Xs.stream().map(Err::disp), "", ", ", "", "");
     var funnelled= disp(Join.of(Push.of(Xs, X).stream().map(s -> s+":.."), owner+"[", ",", "]", ""));
     return "Generic type parameter "+x+" is not in scope inside the type declaration "+dec+".\n"
-      +"A type declaration only sees the generic type parameters it declares itself; here "+dec+" declares "+declares+".\n"
+      +"A type declaration only sees the generic type parameters it declares itself;\nhere "+dec+" declares "+declares+".\n"
       +"Funnel "+x+" into "+dec+" by writing "+funnelled+", restating the bounds of "+x+".";
   }
   public static String genArity(int n){ return Join.of(Collections.nCopies(n, "_"), "[", ",", "]", ""); }

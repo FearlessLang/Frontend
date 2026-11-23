@@ -328,7 +328,8 @@ A:{ read .m[T:mut,imm,read,readH,mutH](par: T) : read L[mutH T] -> mut L[mutH T]
 
 While inspecting parameter "par" > method "L.absMeth" (line 3) > method "A.m(_)" (line 3)
 Parameter "par" has type "mut B".
-Parameter "par" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "L" (line 3).
+Parameter "par" can observe mutation;
+thus it cannot be captured in the "iso" object literal instance of "L" (line 3).
 Capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 B:{}
@@ -341,7 +342,8 @@ A:{ read .m(par: mut B) : iso L -> iso L{.absMeth->par} }
 
 While inspecting parameter "par" > method "L.absMeth" (line 3) > method "A.m(_)" (line 3)
 Parameter "par" has type "read B".
-Parameter "par" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "L" (line 3).
+Parameter "par" can observe mutation;
+thus it cannot be captured in the "imm" object literal instance of "L" (line 3).
 Capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 B:{}
@@ -354,7 +356,8 @@ A:{ read .m(par: read B) : imm L -> imm L{.absMeth->par} }
 
 While inspecting parameter "a" > method "Foo#" (line 2) > method "Foos#(_)" (line 2)
 Parameter "a" has type "mut A".
-Parameter "a" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "Foo" (line 2).
+Parameter "a" can observe mutation;
+thus it cannot be captured in the "iso" object literal instance of "Foo" (line 2).
 Capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 A:{}
@@ -630,7 +633,8 @@ A:{
 
 While inspecting method "A.call(_)" (line 3)
 This call to method "A.m1(_,_,_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
+Each argument is compatible with at least one promotion,
+but no single promotion fits all arguments.
 
 Compatible promotions by argument:
 - Argument 1 has type "iso A" and is compatible with: Allow mutH argument 3, Allow mutH argument 4, Allow readH arguments, Allow mutH receiver, Allow mutH argument 1, Allow mutH argument 2, As declared, Strengthen result, Strengthen hygienic result.

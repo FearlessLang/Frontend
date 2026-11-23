@@ -117,8 +117,10 @@ In file: [###].fear
    |                  ~~~~~^~~~---
 
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
-Name "X" is already used by a generic type parameter declared outside the type declaration "B".
-Generic type parameters declared inside "B" can not reuse the name "X", even though "X" is not in scope there.
+Name "X" is already used by a generic type parameter
+declared outside the type declaration "B".
+Generic type parameters declared inside "B" can not reuse the name "X",
+even though "X" is not in scope there.
 Error 2 UnexpectedToken
 """, """
 A:{.foo[X]:A->B:{.bar[X]:B->B}; }
@@ -501,7 +503,8 @@ In file: [###].fear
 
 While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
 Missing method call after the equals sugar ".let y = ...".
-The equals sugar is followed by the rest of the chain, which can use "y", as in "Block#.let x = {5}.return {x}".
+The equals sugar is followed by the rest of the chain,
+which can use "y", as in "Block#.let x = {5}.return {x}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m -> (Block#.let y={7}) .use(y) }
@@ -514,7 +517,8 @@ In file: [###].fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Missing method call after the equals sugar ".var y = ...".
-The equals sugar is followed by the rest of the chain, which can use "y", as in "Block#.let x = {5}.return {x}".
+The equals sugar is followed by the rest of the chain,
+which can use "y", as in "Block#.let x = {5}.return {x}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m -> Block#.var y= {7} }
@@ -527,7 +531,8 @@ In file: [###].fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Missing method call after the equals sugar ".let {.a, .b} = ...".
-The equals sugar is followed by the rest of the chain, which can use "a" and "b", as in "Block#.let x = {5}.return {x}".
+The equals sugar is followed by the rest of the chain,
+which can use "a" and "b", as in "Block#.let x = {5}.return {x}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m -> Block#.let {.a,.b} = {this} }
@@ -1425,7 +1430,8 @@ In file: [###].fear
 
 While inspecting a type name
 Quote [Double Quote (") 0x22] is not closed before the end of the line.
-A comment opening sign is present later on this line; the quote may be meant to close before it.
+A comment opening sign is present later on this line;
+the quote may be meant to close before it.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1442,7 +1448,8 @@ In file: [###].fear
 
 While inspecting a type name
 Quote [Backtick (`) 0x60] is not closed before the end of the line.
-A comment opening sign is present later on this line; the quote may be meant to close before it.
+A comment opening sign is present later on this line;
+the quote may be meant to close before it.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1460,7 +1467,8 @@ In file: [###].fear
 
 While inspecting a type name
 Quote [Backtick (`) 0x60] is not closed before the end of the line.
-A comment opening sign is present later on this line; the quote may be meant to close before it.
+A comment opening sign is present later on this line;
+the quote may be meant to close before it.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1478,7 +1486,8 @@ In file: [###].fear
 
 While inspecting a type name
 Quote [Backtick (`) 0x60] is not closed before the end of the line.
-A comment opening sign is present later on this line; the quote may be meant to close before it.
+A comment opening sign is present later on this line;
+the quote may be meant to close before it.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -4093,7 +4102,8 @@ In file: [###].fear
 
 While inspecting a name
 "A.Size" is neither a type name nor a method call.
-A package name and a method name start with a lowercase letter, as in "a.Size" (type "Size" of package "a") and "A.size" (method ".size" called on "A").
+A package name and a method name start with a lowercase letter,
+as in "a.Size" (type "Size" of package "a") and "A.size" (method ".size" called on "A").
 Error 2 UnexpectedToken
 """, """
 A:{ .size: A -> A.Size }
@@ -4106,7 +4116,8 @@ In file: [###].fear
 
 While inspecting a name
 "Base.Nat" is neither a type name nor a method call.
-A package name and a method name start with a lowercase letter, as in "base.Nat" (type "Nat" of package "base") and "Base.nat" (method ".nat" called on "Base").
+A package name and a method name start with a lowercase letter,
+as in "base.Nat" (type "Nat" of package "base") and "Base.nat" (method ".nat" called on "Base").
 Error 2 UnexpectedToken
 """, """
 A:{ .size: Base.Nat -> 3 }
@@ -4197,7 +4208,8 @@ In file: [###].fear
 
 While inspecting file header > full file
 A rank file cannot start with "shape".
-A rank file starts with the "use" and "map" directives, if any, and then the type declarations, like "Point:{..}".
+A rank file starts with the "use" and "map" directives, if any,
+and then the type declarations, like "Point:{..}".
 Error 2 UnexpectedToken
 """, """
 shape:{ .x: base.Nat -> 3 }

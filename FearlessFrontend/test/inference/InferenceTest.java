@@ -63,13 +63,15 @@ B:{}
 No rank file found for package "p".
 Each package must have exactly one source file whose name is its rank,
 in some folder inside the project folder.
-Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.
+Every package must declare its rank:
+base, core, driver, worker, framework, accumulator, tool, or app.
 The rank file is the file whose name matches the rank name.
 
 For example, for an application you would typically have a file named
   "_rank_app.fear"
 Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear"; with explicit rank number.
-As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.
+As a rule of thumb: final applications use appNNN;
+shared libraries often use workerNNN or frameworkNNN.
 Error 7 WellFormedness
 """, fe.render(o));
 }
@@ -87,13 +89,15 @@ Found 2 files that look like rank head candidates:
 - fear:/p/_rank_app2.fear
 There must be exactly one source file whose name represents this package rank.
 Rename or remove the extra files so that only one file name is of form "_rank_*.fear".
-Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.
+Every package must declare its rank:
+base, core, driver, worker, framework, accumulator, tool, or app.
 The rank file is the file whose name matches the rank name.
 
 For example, for an application you would typically have a file named
   "_rank_app.fear"
 Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear"; with explicit rank number.
-As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.
+As a rule of thumb: final applications use appNNN;
+shared libraries often use workerNNN or frameworkNNN.
 Error 7 WellFormedness
 """, fe.render(o));
 }
@@ -902,7 +906,8 @@ Supertypes disagree on the signature of method "imm .id(_)".
 Signatures as inherited by type declaration "D":
 -       A.id[X](Box[X]): X
 -       C.id[Y:read](Box[Y]): Y
-The capability bounds of generic type parameter 1 differ; overriding must keep the capability bounds.
+The capability bounds of generic type parameter 1 differ;
+overriding must keep the capability bounds.
 Type declaration "D" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
@@ -922,7 +927,8 @@ Supertypes disagree on the signature of method "imm .id(_)".
 Signatures as inherited by type declaration "D":
 -       A.id[X](Box[X]): X
 -       C.id[Y:read](Box[Y]): Y
-The capability bounds of generic type parameter 1 differ; overriding must keep the capability bounds.
+The capability bounds of generic type parameter 1 differ;
+overriding must keep the capability bounds.
 Type declaration "D" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
@@ -1417,7 +1423,8 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Type declaration "B" implements method ".h".
-The body of method "B.h" needs to be duplicated to satisfy multiple reference capability overloads from the supertypes.
+The body of method "B.h" needs to be duplicated
+to satisfy multiple reference capability overloads from the supertypes.
 However, the body declares type "MyAge".
 Object literals with their own unique explicit type cannot be duplicated.
 Error 7 WellFormedness
