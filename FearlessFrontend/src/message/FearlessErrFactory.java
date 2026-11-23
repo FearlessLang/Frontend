@@ -7,7 +7,6 @@ import static offensiveUtils.Require.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -40,7 +39,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   @Override public FearlessException missing(Span at, String what, List<TokenKind> expectedLabels, Parser parser){
     assert nonNull(at, what, expectedLabels);
-    return Code.UnexpectedToken.of("Missing "+(what.isBlank() ? "element" : what)+".\n"+expected(what, expectedLabels)).addSpan(at);
+    return Code.UnexpectedToken.of(missingMsg(what, "", expectedLabels)).addSpan(at);
   }
   public FearlessException topLevelSemicolon(Span at){ return Code.UnexpectedToken.of(this::topLevelSemicolonMsg).addSpan(at); }
   private String topLevelSemicolonMsg(){
@@ -92,7 +91,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   @Override public FearlessException extraContent(Span from, String what, Collection<TokenKind> expectedTerminatorTokens, Parser parser){
     assert nonNull(from, parser, expectedTerminatorTokens);
-    var msg= expected("Extra content in the current group", "Expected: ", "Expected one of: ", expectedTerminatorTokens, tk -> tk.human);
+    var msg= expectedTerminatorTokens.isEmpty() ? "Extra content in the current group.\n" : expected("Expected", expectedTerminatorTokens);
     var here= parser.peek().get().span(from.fileName());
     return Code.ExtraTokenInGroup.of(msg).addSpan(here).addSpan(from);
   }
@@ -316,14 +315,14 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       owner+" cannot declare multiple "+plural+" with the same name.\n"
       +singular+" "+disp(redeclaredElement(names))+" is repeated.").addSpan(at);
   }
-  private static String expected(String what, Collection<TokenKind> items){
+  private static String missingMsg(String what, String found, Collection<TokenKind> items){
     var named= items.size() == 1 && what.contains(items.iterator().next().human);
-    return named ? "" : expected("", "Expected: ", "Expected one of: ", items, tk -> tk.human);
+    return "Missing "+(what.isBlank() ? "element" : what)+".\n"+found+(named ? "" : expected("Expected", items));
   }
-  private static <EE> String expected(String pre0, String pre1, String preMany, Collection<EE> items, Function<EE,String> f){
-    var labels= items.stream().map(f).distinct().toList();
-    if (labels.size() != 1){ return Join.of(labels.stream().map(l -> "\n- "+l), preMany.stripTrailing(), "", "\n", pre0.isEmpty() ? "" : pre0+".\n"); }
-    return pre1+labels.getFirst()+".\n";
+  private static String expected(String lead, Collection<TokenKind> items){
+    var labels= items.stream().map(tk -> tk.human).distinct().toList();
+    if (labels.size() == 1){ return lead+": "+labels.getFirst()+".\n"; }
+    return Join.of(labels.stream().map(l -> "\n- "+l), lead+" one of:", "", "\n", "");
   }
   @Override public FearlessException unrecognizedTextAt(Span at, String what, Tokenizer tokenizer){
     var head= what.isBlank()
@@ -362,7 +361,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       case Unknown       -> "";
     };
     var other= hint.isEmpty() ? "Expected" : "Otherwise expected";
-    var expected= sof ? "" : expected("", other+": ", other+" one of: ", expectedClosers, tk -> tk.human);
+    var expected= sof ? "" : expected(other, expectedClosers);
     var span= eof ? open.span(file) : metaParser.Token.makeSpan(file, open, stop);
     var code= sof ? Code.Unopened : (eof || isBarrier) ? Code.Unclosed : Code.UnexpectedToken;
     return code.of(base+hint+expected).addFrame("groups of parenthesis", span);
@@ -377,7 +376,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       "Unclosed "+disp(open.content())+" group.\n"
     +"Found a matching closer inside a"+where+" between here and the stopping point.\n"
     +"The closer may belong outside the"+where+".\n"
-    +expected("", "Otherwise expected: ", "Otherwise expected one of: ", expectedClosers, tk -> tk.human);
+    +expected("Otherwise expected", expectedClosers);
     var primary= metaParser.Token.makeSpan(file, open, hiddenFragment);
     var secondary= metaParser.Token.makeSpan(file, open, hiddenContainer);
     return Code.Unclosed.of(msg).addFrame("groups of parenthesis", primary).addSpan(secondary);
@@ -400,11 +399,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   @Override public FearlessException missingButFound(
       Span at, String what, Token found, Collection<TokenKind> expectedTokens, Parser parser){
     assert nonNull(at, what, found, expectedTokens);
-    var msg=
-      "Missing "+(what.isBlank() ? "element" : what)+".\n"
-    +"Found instead: "+found(found)+".\n"
-    +expected(what, expectedTokens);
-    return Code.UnexpectedToken.of(msg).addSpan(at);
+    return Code.UnexpectedToken.of(missingMsg(what, "Found instead: "+found(found)+".\n", expectedTokens)).addSpan(at);
   }
   public FearlessException badTopSelfName(Span at, String name){
     var msg= "Self name "+disp(name)+" is invalid in a top level type declaration.\n"
