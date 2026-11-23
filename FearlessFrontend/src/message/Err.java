@@ -128,10 +128,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var cs= d.cs().stream().map(T.C::name).toList();
     return cs.stream().filter(c -> cs.stream().noneMatch(o -> _decs.apply(o).cs().stream().anyMatch(oc -> oc.name().equals(c)))).flatMap(c -> originals(c, s).stream()).toList();
   }
-  private void bullets(String one, String many, List<String> lines){
-    line((lines.size() == 1 ? one : many)+":");
-    lines.forEach(this::bullet);
-  }
+  private void bullets(String one, String many, List<String> lines){ bullets((lines.size() == 1 ? one : many)+":", lines); }
   private static T.C head(Literal d){ return new T.C(d.name(), d.bs().stream().<T>map(b -> new T.X(b.x(), TSpan.fromPos(Pos.unknown))).toList()); }
   private List<String> sigLines(List<T.C> heads, List<Sig> ss){ return Streams.zip(heads, ss).map(this::sigLine).distinct().toList(); }
   private String sigLine(T.C h, Sig s){
@@ -198,15 +195,16 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   Err list(String heading, List<String> items){
     assert !items.isEmpty();
     if (items.size() == 1){ return line(heading+": "+items.getFirst()+"."); }
-    line(heading+":");
-    items.forEach(this::bullet);
-    return this;
+    return bullets(heading+":", items);
   }
   Err didYouMean(List<String> options){
     assert !options.isEmpty();
     if (options.size() == 1){ return line("Did you mean "+options.getFirst()+" ?"); }
-    line("Did you mean one of the following?");
-    options.forEach(this::bullet);
+    return bullets("Did you mean one of the following?", options);
+  }
+  Err bullets(String heading, List<String> items){
+    line(heading);
+    items.forEach(this::bullet);
     return this;
   }
   Err bullet(String s){
@@ -222,11 +220,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   Err pReceiverRequiredByPromotion(List<MType> promos){
     var byRc= promos.stream().collect(Collectors.groupingBy(MType::rc, LinkedHashMap::new, Collectors.mapping(MType::promotion, Collectors.toList())));
     if (byRc.size() <= 1){ return this; }
-    blank().line("Receiver required by each promotion:");
-    byRc.keySet().stream()
+    return blank().bullets("Receiver required by each promotion:", byRc.keySet().stream()
       .sorted()
-      .forEach(rc -> bullet(disp(rc)+" ("+Join.of(byRc.get(rc).stream().distinct(), "", ", ", "")+")"));
-    return this;
+      .map(rc -> disp(rc)+" ("+Join.of(byRc.get(rc).stream().distinct(), "", ", ", "")+")").toList());
   }
   public String gotMsg(boolean skipImm, String label, List<T> got, T expected){
     return label+" has type "+Join.of(got.stream().map(t -> typeRepr(skipImm, t)), "", " or ", "")

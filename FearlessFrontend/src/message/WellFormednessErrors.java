@@ -120,8 +120,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     }
     var e= err()
       .line("Ambiguous rank file for package "+disp(pkgName)+".")
-      .line("Found "+heads.size()+" files that look like rank head candidates:");
-    heads.forEach(u -> e.bullet(PrettyFileName.displayFileName(u.fearURI())));
+      .bullets("Found "+heads.size()+" files that look like rank head candidates:", heads.stream().map(u -> PrettyFileName.displayFileName(u.fearURI())).toList());
     e.line("There must be exactly one source file whose name represents this package rank.")
      .line("Rename or remove the extra files so that only one file name is of form \"_rank_*.fear\".");
     return badRank(e).wf();
@@ -410,9 +409,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     asName.ifPresent(x -> e.line(disp(x)+" is read as a parameter name: a method name starts with \".\", as in "+disp("."+x)+"."));
     var rest= sup.stream().map(WellFormednessErrors::supSig).distinct().sorted().filter(x -> !suggested.contains(x)).toList();
     if (rest.isEmpty()){ return wf(e, s, origin); }
-    e.line(suggested.isEmpty() ? "Methods of the supertypes:" : "Other methods of the supertypes:");
-    rest.forEach(e::bullet);
-    return wf(e, s, origin);
+    return wf(e.bullets(suggested.isEmpty() ? "Methods of the supertypes:" : "Other methods of the supertypes:", rest), s, origin);
   }
   private static String supSig(core.Sig s){ return methodSig(s.rc().toStrSpace(), s.m()); }
   private Err missingTypes(M m, boolean addReturnType){
@@ -623,13 +620,11 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException multipleWidenTo(E.Literal owner, List<IT.C> widen){
     var w= err().tNameADisp(LiteralDeclarations.widen);
-    var e= err()
+    return wf(err()
       .line(up(err().expRepr(owner))+" implements "+w+" more than once.")
       .line("At most one "+w+" supertype is allowed, because it defines the preferred widened type.")
       .blank()
-      .line("Found the following "+w+" supertypes:");
-    widen.forEach(c -> e.bullet(claimRepr(owner, c)));
-    return wf(e, owner);
+      .bullets("Found the following "+w+" supertypes:", widen.stream().map(c -> claimRepr(owner, c)).toList()), owner);
   }
   public FearlessException duplicatedNamedLiteral(E.Literal owner, M m, E.Literal in){
     var ctx= up(err().expRepr(owner));

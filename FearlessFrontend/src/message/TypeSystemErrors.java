@@ -304,8 +304,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var written= srcM(l, m.sig()).flatMap(fearlessFullGrammar.M::sig).flatMap(fearlessFullGrammar.Sig::rc).isPresent();
     var overloads= l.ms().stream().map(M::sig).filter(s -> !s.abs() && s.m().equals(m.sig().m())).map(s -> methodSig(s.rc()+" ", s.m())).toList();
     if (written || overloads.size() < 2){ return; }
-    e.line("Method "+err().methodSig(m.sig().m())+" is overloaded; to implement a specific overload only, write one of the following:");
-    overloads.forEach(e::bullet);
+    e.bullets("Method "+err().methodSig(m.sig().m())+" is overloaded; to implement a specific overload only, write one of the following:", overloads);
   }
 
 
@@ -446,12 +445,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   void bestNameMsg(Err e, String onStr, List<Sig> candidates, List<String> cs, Optional<String> best){
     best.ifPresent(b -> e.line("Did you mean "+disp(b)+" ?"));
-    e.blank().line("Available methods on "+onStr+":");
-    for (var n : cs){
-      candidates.stream()
-        .filter(s -> s.m().s().equals(n))
-        .forEach(s -> e.bullet(e.cp().sig(s)));
-    }
+    e.blank().bullets("Available methods on "+onStr+":", cs.stream().flatMap(n -> candidates.stream().filter(s -> s.m().s().equals(n))).map(s -> e.cp().sig(s)).toList());
   }
   ///A method matching c by name / arity / RC exists, but c supplies the wrong number of type arguments.
   ///Triggered only for explicitly written [Ts]; inference never reaches this error.
@@ -508,8 +502,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(false, gotHdr)+".")
       .line(up(r.info(printed)))
       .blank()
-      .line("Type required by each promotion:");
-    reqs.forEach(q -> e.bullet(err().typeRepr(false, q.t())+" ("+q.reqName()+")"));
+      .bullets("Type required by each promotion:", reqs.stream().map(q -> err().typeRepr(false, q.t())+" ("+q.reqName()+")").toList());
     addNoPrecedenceHintIfOperator(e, ts.scope(), c);
     var footer= r.footerE.get();
     return withCallSpans(e.ex(footer, c.es().get(argi), inferredInParam(d, c, argi)), c.es().get(argi), c);
