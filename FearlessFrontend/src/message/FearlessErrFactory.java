@@ -162,11 +162,9 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     return m.sig().map(s -> s.parameters().size()).orElse(0) + (m.hasImplicit() ? 1 : 0);
   }
   public FearlessException missingDotBeforeMethodName(Span at, String name){
-    return Code.WellFormedness.of(
-      "Method declaration missing \".\" before the name.\n"
-    +"To declare a method named "+disp(name)+", write \"."+name+"\" (dot "+name+").\n"
-    ).addSpan(at);
+    return Code.WellFormedness.of("Method declaration missing \".\" before the name.\n"+dotName(name)).addSpan(at);
   }
+  private static String dotName(String name){ return "To declare a method named "+disp(name)+", write \"."+name+"\" (dot "+name+").\n"; }
   private Stream<String> potentialMethodNames(M m){
     return m.sig().filter(s -> !s.hasParenthesis() && s.parameters().size() == 1).stream()
       .flatMap(s -> s.parameters().stream())
@@ -189,7 +187,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     +"A method declaration may be missing \".\" before its name.\n"
     +Join.of(hints.stream().map(Err::disp),
       "Parameters that may be method names written without \".\": ", ", ", ".\n")
-    +"To declare a method named "+disp(ex)+", write \"."+ex+"\" (dot "+ex+").\n"
+    +dotName(ex)
     +"Without the dot, "+disp(ex)+" is the only parameter of a method with inferred name.\n"
     ).addSpan(s).addSpan(at);
   }
