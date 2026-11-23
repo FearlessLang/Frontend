@@ -20,7 +20,7 @@ import utils.Streams;
 public final class CompactPrinter{
   public CompactPrinter(String mainPkg, Map<String,String> uses, Consumer<String> printed){ t= new TypeNamePrinter(mainPkg, uses, printed); }
   String limit(E e, E focus){
-    onPath(e, focus);
+    markPath(e, focus);
     var root= ofE(e);
     var len= render(root).length();
     while (len > 120){
@@ -41,8 +41,8 @@ public final class CompactPrinter{
     return sb.toString();
   }
   final Set<E> path= Collections.newSetFromMap(new IdentityHashMap<>());
-  private boolean onPath(E e, E focus){
-    var res= e == focus || e.children().anyMatch(ei -> onPath(ei, focus));
+  private boolean markPath(E e, E focus){
+    var res= e == focus || e.children().anyMatch(ei -> markPath(ei, focus));
     if (res){ path.add(e); }
     return res;
   }
