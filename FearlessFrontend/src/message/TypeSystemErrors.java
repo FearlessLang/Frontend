@@ -207,10 +207,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   public FearlessException literalImplementsTypeParameter(TypeScope scope, E at, T req){
     var x= err().typeRepr(true, req);
     var untyped= at instanceof Literal l && l.src().inner instanceof fearlessFullGrammar.E.Literal;
-    E typed= switch (at){ case Literal l -> l.withRC(RC.imm); case Type t -> new Type(t.type().withRC(RC.imm), t.src()); default -> throw Bug.unreachable(); };
     var e= untyped
       ? err().line(up(err().expRepr(at))+" cannot implement "+x+".").line(x+" is a generic type parameter;\nobject literals can only implement nominal types.")
-      : err().line(up(err().expRepr(typed))+" is required to be of type "+x+".").line(x+" is a generic type parameter;\nan object literal is always of a nominal type.");
+      : err().line(up(err().expRepr(at))+" is required to be of type "+x+".").line(x+" is a generic type parameter;\nan object literal is always of a nominal type.");
     declaring(scope, OneOr.of("Type parameters", TypeRename.tToIT(req).ftv())).ifPresent(m -> e.sigs(m.l(), m.m(), true));
     return addExpFrame(at, e.typeErr());
   }
@@ -239,7 +238,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var m= methodSig(s.rc()+" ", s.m());
     var e= err()
       .line("The method "+err().methodSig(s.rc().toStrSpace(), l, s.m())+" is dead code.")
-      .line("The "+err().expRepr(l.withRC(RC.imm))+" is "+disp(l.rc())+", so it will never be seen as "+disp(RC.mut)+".");
+      .line("The "+err().expRepr(l)+" is "+disp(l.rc())+", so it will never be seen as "+disp(RC.mut)+".");
     if (!e.sigs(l, got, true)){ e.line("But it implements method "+m+", which requires a "+disp(RC.mut)+" receiver."); }
     return addExpFrame(l, e.typeErr().addSpan(s.span().inner));
   }
@@ -429,7 +428,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       if (!(s instanceof TypeScope.Method(var l, _, _))){ continue; }
       var has= l.ms().stream().anyMatch(m -> m.sig().m().equals(c.name()));
       if (!has){ continue; }
-      var lit= "Method "+err().methodSig(c.name())+" is declared in the "+err().expRepr(l.withRC(RC.imm));
+      var lit= "Method "+err().methodSig(c.name())+" is declared in the "+err().expRepr(l);
       var selfName= l.thisName();
       e.line("Parameter \"this\" has type "+err().typeRepr(true, recv)+".");
       if (!selfName.equals("_")){ e.line(lit+", whose self name is "+disp(selfName)+"."); return; }
