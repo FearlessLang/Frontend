@@ -18,7 +18,7 @@ import utils.Range;
 import utils.Streams;
 
 public final class CompactPrinter{
-  public CompactPrinter(String mainPkg, Map<String,String> written, Consumer<String> printed){ t= new TypeNamePrinter(mainPkg, written, printed); }
+  public CompactPrinter(String mainPkg, Map<String,String> aliases, Consumer<String> printed){ t= new TypeNamePrinter(mainPkg, aliases, printed); }
   record Limited(String text, boolean omitted){}
   Limited limit(E e, E focus){
     markPath(e, focus);
@@ -176,15 +176,15 @@ public final class CompactPrinter{
       case fearlessFullGrammar.E.Literal _ -> List.of();
       default -> throw Bug.of(src.inner.getClass().getSimpleName());
     };
-    var map= WellFormednessErrors.written(t.written());
-    var original= oCs.stream().map(c -> resolved(map, c.name())).toList();
+    var real= WellFormednessErrors.written(t.aliases());
+    var original= oCs.stream().map(c -> resolved(real, c.name())).toList();
     return cs.stream()
       .filter(c -> original.isEmpty() || original.contains(c.name()))
       .map(this::ofC)
       .toList();
   }
-  private TName resolved(Map<String,String> map, TName n){
-    var s= map.getOrDefault(n.s(), n.pkgName().isEmpty() ? t.mainPkg()+"."+n.s() : map.getOrDefault(n.pkgName(), n.pkgName())+"."+n.simpleName());
+  private TName resolved(Map<String,String> real, TName n){
+    var s= real.getOrDefault(n.s(), n.pkgName().isEmpty() ? t.mainPkg()+"."+n.s() : real.getOrDefault(n.pkgName(), n.pkgName())+"."+n.simpleName());
     return new TName(s, n.arity(), n.pos());
   }
   private PM ofM(M m){
