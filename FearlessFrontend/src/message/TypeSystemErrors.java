@@ -241,7 +241,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var e= err();
     if (!iso){ e.line("Parameter "+x+" of type "+err().typeRepr(false, t)+", which can be instantiated with "+disp(RC.iso)); }
     e.line("The iso parameter "+x+" violates the single-use rule in method "+ms+" (line "+m.sig().span().inner.startLine()+").");
-    p.filter(_ -> earlyErrOnMoreThenOnceDirectly).ifPresent(d -> e.line("The pattern "+x+" calls "+Join.of(d.extract().stream().map(ns -> disp(ns.getFirst().s())), "", " and ", "")+" on it."));
+    if (earlyErrOnMoreThenOnceDirectly){ p.ifPresent(d -> e.line("The pattern "+x+" calls "+Join.of(d.extract().stream().map(ns -> disp(ns.getFirst().s())), "", " and ", "")+" on it.")); }
     var ex= e.line(earlyErrOnMoreThenOnceDirectly ? "It is used directly "+usages.size()+" times." : "It is used directly and also captured into object literals.")
       .line("An iso parameter can either be captured into object literals, or be used directly once.")
       .typeErr();
