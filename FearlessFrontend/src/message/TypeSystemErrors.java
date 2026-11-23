@@ -89,6 +89,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     return err.addFrame(err().expRepr(toErr), toErr.span().inner);
   }
   private FearlessException overrideErr(Literal l, Sig current, Sig parent, String got, String want, String why){
+    assert current.m().equals(parent.m());
     var e= err()
       .line("Invalid method signature for "+err().methodSig(current.rc().toStrSpace(), l, current.m())+".")
       .line("The method "+err().methodSig(current.m())+" "+got+".")
@@ -138,17 +139,13 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
   public FearlessException methodOverrideSignatureMismatchContravariance(TypeSystem ts, List<B> ctx, Literal l, Sig current, Sig parent, int index){
-    assert current.m().equals(parent.m());
     var parentArg= parent.ts().get(index);
     var currentArg= current.ts().get(index);
     assert !ts.isSub(ctx, parentArg, currentArg);
-    var inverse= ts.isSub(ctx, currentArg, parentArg)
-      ? "It is instead a supertype: you are strengthening the parameter instead of weakening it."
-      : "The two types are unrelated.";
     return overrideErr(l, current, parent,
       "accepts parameter "+(index+1)+" of type "+err().typeRepr(true, currentArg),
       "requires "+err().typeRepr(true, parentArg)+", which is not a subtype of "+err().typeRepr(true, currentArg),
-      inverse);
+      ts.isSub(ctx, currentArg, parentArg) ? "It is instead a supertype: you are strengthening the parameter instead of weakening it." : "The two types are unrelated.");
   }
   public FearlessException methodOverrideArgCapabilityChanged(Literal l, Sig current, Sig parent, int index){
     return overrideErr(l, current, parent,
@@ -166,17 +163,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
   public FearlessException methodOverrideSignatureMismatchCovariance(TypeSystem ts, List<B> ctx, Literal l, Sig current, Sig parent){
-    assert current.m().equals(parent.m());
-    var parentRet= parent.ret();
-    var currentRet= current.ret();
-    assert !ts.isSub(ctx, currentRet, parentRet);
-    var inverse= ts.isSub(ctx, parentRet, currentRet)
-      ? "It is instead a subtype: you are weakening the result instead of strengthening it."
-      : "The two types are unrelated.";
+    assert !ts.isSub(ctx, current.ret(), parent.ret());
     return overrideErr(l, current, parent,
-      "returns type "+err().typeRepr(true, currentRet),
-      "returns type "+err().typeRepr(true, parentRet)+", which is not a supertype of "+err().typeRepr(true, currentRet),
-      inverse);
+      "returns type "+err().typeRepr(true, current.ret()),
+      "returns type "+err().typeRepr(true, parent.ret())+", which is not a supertype of "+err().typeRepr(true, current.ret()),
+      ts.isSub(ctx, parent.ret(), current.ret()) ? "It is instead a subtype: you are weakening the result instead of strengthening it." : "The two types are unrelated.");
   }
   ///A required method was left abstract instead of being implemented.
   ///Raised when checking object literals
