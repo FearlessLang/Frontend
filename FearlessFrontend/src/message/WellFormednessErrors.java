@@ -98,17 +98,17 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .blank()
       .line("Found non-empty:");
     assert !f.noDirectives();
-    if (!f.maps().isEmpty()){ e.bullet("maps: "+previewList(f.maps(), 5)); }
-    if (!f.uses().isEmpty()){ e.bullet("uses: "+previewList(f.uses(), 8)); }
+    if (!f.maps().isEmpty()){ e.bullet("maps: "+Join.of(limited(f.maps(), 5), "", ", ", "")); }
+    if (!f.uses().isEmpty()){ e.bullet("uses: "+Join.of(limited(f.uses(), 8), "", ", ", "")); }
     var first= Stream.concat(
         f.maps().stream().map(m -> TSpan.fromPos(m.pos(), m.in().length()).inner),
         f.uses().stream().map(u -> TSpan.fromPos(u.in().pos(), u.in().s().length()).inner))
       .min(Comparator.comparingInt(Span::startLine).thenComparingInt(Span::startCol)).orElseThrow();
     return e.wf().addSpan(first);
   }
-  private String previewList(List<?> c, int limit){
-    var shown= Join.of(c.stream().limit(limit), "", ", ", "", "");
-    return c.size() <= limit ? shown : shown+", ... (size="+c.size()+")";
+  private static List<String> limited(List<?> xs, int limit){
+    var shown= xs.stream().limit(limit).map(Object::toString).toList();
+    return xs.size() <= limit ? shown : Push.of(shown, "... ("+(xs.size()-limit)+" more)");
   }
   public FearlessException expectedSingleUriForPackage(List<Ref> heads){
     if (heads.isEmpty()){
@@ -125,22 +125,19 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("Rename or remove the extra files so that only one file name is of form \"_rank_*.fear\".")).wf();
   }
   public FearlessException mapConflict(String in, List<String> bests){
-    var limit= 12;
-    var e= err()
-      .line("Maps of the same rank give package name "+disp(in)+" different folders,\nfor source code inside folders named "+disp("_"+pkgName)+":");
-    bests.stream().limit(limit).forEach(e::bullet);
-    if (bests.size() > limit){ e.bullet("... ("+(bests.size()-limit)+" more)"); }
-    e.blank()
-     .line("How maps work:")
-     .bullet("A rank file can have lines like \"map name as _folder in _target;\".")
-     .bullet("With no map, package name \"x\" refers to the code inside folders named \"_x\".")
-     .bullet("A map in a rank file of higher rank overrides the maps of lower rank,\nand lists their folders with \"instead of\".")
-     .blank()
-     .line("How to fix it:")
-     .bullet("Decide which folder package name "+disp(in)+" refers to,\nfor source code inside folders named "+disp("_"+pkgName)+".")
-     .bullet("Add one map in a rank file of higher rank\n(typically the rank file of your application),\n"
-            +"with \"instead of\" listing every folder chosen by the maps of lower rank.");
-    return e.wf();
+    return err()
+      .bullets("Maps of the same rank give package name "+disp(in)+" different folders,\nfor source code inside folders named "+disp("_"+pkgName)+":", limited(bests, 12))
+      .blank()
+      .line("How maps work:")
+      .bullet("A rank file can have lines like \"map name as _folder in _target;\".")
+      .bullet("With no map, package name \"x\" refers to the code inside folders named \"_x\".")
+      .bullet("A map in a rank file of higher rank overrides the maps of lower rank,\nand lists their folders with \"instead of\".")
+      .blank()
+      .line("How to fix it:")
+      .bullet("Decide which folder package name "+disp(in)+" refers to,\nfor source code inside folders named "+disp("_"+pkgName)+".")
+      .bullet("Add one map in a rank file of higher rank\n(typically the rank file of your application),\n"
+             +"with \"instead of\" listing every folder chosen by the maps of lower rank.")
+      .wf();
   }
   public FearlessException mapToMissingFolder(String role, String folder, String directive, List<String> pkgs){
     var e= mapErr("The map "+role+" folders named "+disp("_"+folder)+", but no folder is named "+disp("_"+folder), directive);
@@ -481,9 +478,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     e.line(err().methodSig("", at.lit(), at.mName())+(ret ? " return type must be a subtype of " : " parameter "+(i+1)+" type must be a supertype of ")+names+".");
     var opts= (ret ? meths.commonSubtypes(bs, cs, at.lit().name()) : meths.commonSupertypes(bs, cs, at.lit().name())).stream().map(c -> instance(first.rc(), c)).distinct().sorted().toList();
     if (opts.isEmpty()){ e.line("No such type is currently visible."); return; }
-    var limit= 6;
-    e.list("Such type"+(opts.size() == 1 ? "" : "s")+" currently visible", opts.stream().limit(limit).toList());
-    if (opts.size() > limit){ e.bullet("... ("+(opts.size()-limit)+" more)"); }
+    e.list("Such type"+(opts.size() == 1 ? "" : "s")+" currently visible", limited(opts, 6));
   }
   private String instance(Optional<RC> rc, IT.C c){
     var ts= c.ts().stream().map(t -> t == IT.U.Instance ? "_" : err().typeReprRaw(t)).toList();
