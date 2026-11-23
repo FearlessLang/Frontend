@@ -67,7 +67,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     List<fearlessFullGrammar.M> ms= switch (l.src().inner){
       case fearlessFullGrammar.Declaration d -> d.l().methods();
       case fearlessFullGrammar.E.Literal gl -> gl.methods();
-      case fearlessFullGrammar.E.TypedLiteral t -> t.l().map(fearlessFullGrammar.E.Literal::methods).orElse(List.of());
+      case fearlessFullGrammar.E.TypedLiteral t -> t.l().get().methods();
       default -> throw Bug.unreachable();
     };
     return OneOr.opt("Malformed methods", ms.stream().filter(mi -> mi.span().inner.equals(s.span().inner)));
@@ -204,7 +204,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   static Optional<TypeScope.Method> declaring(TypeScope s, String x){ return OneOr.opt("Type parameter declared twice", visible(s).stream().filter(m -> B.xs(m.m().sig().bs()).contains(x))); }
   private static List<TypeScope.Method> visible(TypeScope scope){
     var ms= scope.methods().toList();
-    var named= IntStream.range(0, ms.size()).filter(i -> !ms.get(i).l().infName()).findFirst().orElse(ms.size()-1);
+    var named= IntStream.range(0, ms.size()).filter(i -> !ms.get(i).l().infName()).findFirst().getAsInt();
     return ms.subList(0, named+1);
   }
   public FearlessException typeDeclaredInMethod(E at, Literal l){
@@ -451,14 +451,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     //in particular here we are in a methCall, so we can talk about OUR type args impacting the expected argument type
     var wrongUnderlyingType= res.stream().noneMatch(ri -> Reason.onlyRC(ts, bs, ri.best, declared));
     var inferred= inferredInParam(d, c, argi);
-    var r= res.stream().filter(ri -> ri.showImm).findFirst().orElse(res.getFirst());
+    var r= res.stream().filter(ri -> ri.showImm).findFirst();
     var e= err().pCallCantBeSatisfied(d, c).line("Argument "+(argi+1)+" has type "+err().typeRepr(wrongUnderlyingType, gotHdr)+".");
     if (wrongUnderlyingType){ e.line("That is not a subtype of "+err().typeRepr(true, declared)+(inferred.isEmpty() ? " (the type required by the method signature)." : ".")); }
     if (wrongUnderlyingType && lambdaFits(ts, bs, declared, gotHdr)){ e.line("Write the argument inside curly braces:\nthe curly braces make an object literal instance of "+err().typeRepr(true, declared.withRC(RC.imm))+",\nwhose single method returns the argument."); }
-    if (!wrongUnderlyingType){ e.line(up(r.info(printed))).blank().bullets("Type required by each promotion:", reqs.stream().map(q -> err().typeRepr(false, q.t())+" ("+q.reqName()+")").toList()); }
+    if (!wrongUnderlyingType){ e.line(up(r.get().info(printed))).blank().bullets("Type required by each promotion:", reqs.stream().map(q -> err().typeRepr(false, q.t())+" ("+q.reqName()+")").toList()); }
     addNoPrecedenceHintIfOperator(e, ts.scope(), c);
     var arg= c.es().get(argi);
-    return withCallSpans(e.ex(wrongUnderlyingType ? c : r.footerE.get(), arg, inferred), arg, c);
+    return withCallSpans(e.ex(wrongUnderlyingType ? c : r.get().footerE.get(), arg, inferred), arg, c);
   }
   private boolean lambdaFits(TypeSystem ts, List<B> bs, T declared, T got){
     if (!(declared instanceof T.RCC(_, var c, _)) || foreignSealed(c.name())){ return false; }
