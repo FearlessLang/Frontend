@@ -99,8 +99,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .blank()
       .line("Found non-empty:");
     assert !f.noDirectives();
-    if (!f.maps().isEmpty()){ e.bullet("maps: "+Join.of(limited(f.maps(), 5), "", ", ", "")); }
-    if (!f.uses().isEmpty()){ e.bullet("uses: "+Join.of(limited(f.uses(), 8), "", ", ", "")); }
+    if (!f.maps().isEmpty()){ e.bullet("maps: "+String.join(", ", limited(f.maps(), 5))); }
+    if (!f.uses().isEmpty()){ e.bullet("uses: "+String.join(", ", limited(f.uses(), 8))); }
     var first= Stream.concat(
         f.maps().stream().map(m -> TSpan.fromPos(m.pos(), m.in().length()).inner),
         f.uses().stream().map(u -> TSpan.fromPos(u.in().pos(), u.in().s().length()).inner))
@@ -127,7 +127,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException mapConflict(String in, List<String> bests){
     return err()
-      .bullets("Maps of the same rank give package name "+disp(in)+" different folders,\nfor source code inside folders named "+disp("_"+pkgName)+":", limited(bests, 12))
+      .bullets("Maps of the same rank give package name "+disp(in)+" different folders,\nfor source code inside folders named "+disp("_"+pkgName)+":",
+        limited(bests, 12))
       .blank()
       .line("How maps work:")
       .bullet("A rank file can have lines like \"map name as _folder in _target;\".")
