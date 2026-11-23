@@ -1170,9 +1170,10 @@ In file: [###].fear
 
 While inspecting generic bounds declaration > type declaration > full file
 Invalid bound for generic type parameter "X".
-Only "*" or "**" are allowed here.
-Write: [X: *]   meaning mut,read,imm
-   or: [X: **]  meaning everything.
+"X" with no ":" allows only the capability "imm".
+"X:*" allows the capabilities "imm", "mut" and "read".
+"X:**" allows every capability.
+A list, as in "X:imm,read", allows the capabilities in the list.
 Error 2 UnexpectedToken
 """, """
 A[X:***]:{}
@@ -1185,10 +1186,10 @@ In file: [###].fear
 
 While inspecting generic bounds declaration > type declaration > full file
 Missing bound for generic type parameter "X" after ":".
-Write: [X] alone (note, no colon) as a shortcut for [X: imm]
-   or: [X: *]   meaning mut,read,imm
-   or: [X: **]  meaning everything
-   or something like: [X: imm, read]  meaning imm or read.
+"X" with no ":" allows only the capability "imm".
+"X:*" allows the capabilities "imm", "mut" and "read".
+"X:**" allows every capability.
+A list, as in "X:imm,read", allows the capabilities in the list.
 Error 2 UnexpectedToken
 """, """
 A[X:]:{}
@@ -1201,10 +1202,10 @@ In file: [###].fear
 
 While inspecting generic bounds declaration > type declaration > full file
 Missing bound for generic type parameter "X" after ":".
-Write: [X] alone (note, no colon) as a shortcut for [X: imm]
-   or: [X: *]   meaning mut,read,imm
-   or: [X: **]  meaning everything
-   or something like: [X: imm, read]  meaning imm or read.
+"X" with no ":" allows only the capability "imm".
+"X:*" allows the capabilities "imm", "mut" and "read".
+"X:**" allows every capability.
+A list, as in "X:imm,read", allows the capabilities in the list.
 Error 2 UnexpectedToken
 """, """
 A[X:,Y]:{}
@@ -1249,7 +1250,7 @@ In file: [###].fear
 
 While inspecting nominal pattern > method parameters declaration > method declaration > type declaration body > type declaration > full file
 This nominal pattern extracts nothing.
-Write at least one chain, for example {.a}, instead of an empty {}.
+Write at least one chain, for example "{.a}", instead of an empty "{}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m({}):X }
@@ -1263,8 +1264,9 @@ In file: [###].fear
    |     ---^^^^^^~~---
 
 While inspecting nominal pattern > method parameters declaration > method declaration > type declaration body > type declaration > full file
-This nominal pattern has an empty chain between commas.
-Each comma must separate two non-empty chains; remove the stray comma, for example write {.a,.b} instead of {.a,,.b} or {,.a}.
+This nominal pattern has an empty chain.
+Each comma must separate two non-empty chains.
+Remove the stray comma: for example write "{.a,.b}" instead of "{.a,,.b}" or "{,.a}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m({,}Bob:X):X }
@@ -2829,7 +2831,7 @@ In file: [###].fear
 While inspecting package names
 Unrecognized text "con.Bar".
 Package names are restricted to be valid filenames on all operating systems.
-Names like aux, nul, lpt2 are invalid on Windows.
+Names like "aux", "nul", "lpt2" are invalid on Windows.
 Error 2 UnexpectedToken
 """, """
 A:{ .foo:con.Bar }

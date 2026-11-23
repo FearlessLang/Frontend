@@ -1145,7 +1145,7 @@ User:{
 
 While inspecting parameter "loooooong" > method "G#" (line 8) > method "User.m(_)" (line 7)
 Parameter "loooooong" has type "mutH A".
-The type of parameter "loooooong" is hygienic (readH or mutH)
+The type of parameter "loooooong" is hygienic ("readH" or "mutH")
 and thus it cannot be captured in the object literal instance of "G" (line 8).
 """, List.of("""
 A:{}
@@ -1168,7 +1168,7 @@ User:{
 
 While inspecting parameter "loooooong" > method "G#" (line 6) > method "User.m(_)" (line 5)
 Parameter "loooooong" has type "mutH A".
-The type of parameter "loooooong" is hygienic (readH or mutH)
+The type of parameter "loooooong" is hygienic ("readH" or "mutH")
 and thus it cannot be captured in the object literal instance of "G" (line 6).
 """, List.of("""
 A:{}
@@ -1281,7 +1281,7 @@ Funnel "X" into "Foo" by writing "Foo[Z:..,X:..]", restating the bounds of "X".
 
 While inspecting parameter "beer" > method "G[_].get" (line 3) > method "User.m(_)" (line 2)
 Parameter "beer" has type "X".
-The type of parameter "beer" can be instantiated with a hygienic capability (readH or mutH)
+The type of parameter "beer" can be instantiated with a hygienic capability ("readH" or "mutH")
 and thus it cannot be captured in the object literal "G[_]" (line 3).
 """, List.of("""
 User:{

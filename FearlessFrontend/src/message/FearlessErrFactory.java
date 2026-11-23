@@ -233,29 +233,30 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   public FearlessException emptyDestructPattern(Span at){
     return Code.UnexpectedToken.of(
       "This nominal pattern extracts nothing.\n"
-      +"Write at least one chain, for example {.a}, instead of an empty {}.")
+      +"Write at least one chain, for example \"{.a}\", instead of an empty \"{}\".")
       .addSpan(at);
   }
   public FearlessException emptyDestructChain(Span at){
     return Code.UnexpectedToken.of(
-      "This nominal pattern has an empty chain between commas.\n"
-      +"Each comma must separate two non-empty chains; remove the stray comma, for example write {.a,.b} instead of {.a,,.b} or {,.a}.")
+      "This nominal pattern has an empty chain.\n"
+      +"Each comma must separate two non-empty chains.\nRemove the stray comma: for example write \"{.a,.b}\" instead of \"{.a,,.b}\" or \"{,.a}\".")
       .addSpan(at);
   }
   public FearlessException badBound(T.X name, Span at){
     var x= name.name();
     return Code.UnexpectedToken.of("Invalid bound for generic type parameter "+disp(x)+".\n"
-      +"Only \"*\" or \"**\" are allowed here.\n"
-      +"Write: ["+x+": *]   meaning mut,read,imm\n"
-      +"   or: ["+x+": **]  meaning everything.\n").addSpan(at);
+      +bounds(x)).addSpan(at);
   }
   public FearlessException missingBound(T.X name, Span at){
     var x= name.name();
     return Code.UnexpectedToken.of("Missing bound for generic type parameter "+disp(x)+" after \":\".\n"
-      +"Write: ["+x+"] alone (note, no colon) as a shortcut for ["+x+": imm]\n"
-      +"   or: ["+x+": *]   meaning mut,read,imm\n"
-      +"   or: ["+x+": **]  meaning everything\n"
-      +"   or something like: ["+x+": imm, read]  meaning imm or read.\n").addSpan(at);
+      +bounds(x)).addSpan(at);
+  }
+  private static String bounds(String x){
+    return disp(x)+" with no \":\" allows only the capability \"imm\".\n"
+      +disp(x+":*")+" allows the capabilities \"imm\", \"mut\" and \"read\".\n"
+      +disp(x+":**")+" allows every capability.\n"
+      +"A list, as in "+disp(x+":imm,read")+", allows the capabilities in the list.\n";
   }
   public FearlessException genericNotInScope(Token X, Span at, Collection<String> Xs){
     return Code.UnexpectedToken.of(() ->
