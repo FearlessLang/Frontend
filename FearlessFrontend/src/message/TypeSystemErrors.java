@@ -112,7 +112,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   private static String caps(EnumSet<RC> rcs){ return (rcs.size() == 1 ? "capability " : "capabilities ")+Join.of(rcs.stream().map(Err::disp).sorted(), "", " or ", ""); }
   private Err typeNotWellKindedSig(T.C t, E.Call c, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     var d= decs.apply(t.name());
-    var s= Sources.findCanonical(d, c.name(), c.rc());
+    var s= Sources.findCanonical(d, c.name(), c.rc()).get();
     var decName= err().methodSig(c.rc().toStrSpace(), d, c.name()); // p.A.m(...)
     return typeArgBounds(err().pCallCantBeSatisfied(d, c), decName, s.bs().get(index), c.targs().get(index), index, bounds, got);
   }
@@ -128,7 +128,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   private List<T> inferredInParam(Literal d, Call c, int argi){
     if (!targsInferred(c)){ return List.of(); }
-    var s= Sources.findCanonical(d, c.name(), c.rc());
+    var s= Sources.findCanonical(d, c.name(), c.rc()).get();
     var xs= TypeRename.tToIT(s.ts().get(argi)).ftv().toList();
     return IntStream.range(0, s.bs().size())
       .filter(i -> xs.contains(s.bs().get(i).x()))
@@ -186,8 +186,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   private List<TName> requiredBy(E at, Sig s){
     if (!(at instanceof Literal l) || !s.origin().equals(l.name())){ return List.of(s.origin()); }
-    return l.cs().stream().flatMap(c -> decs.apply(c.name()).ms().stream()).map(M::sig)
-      .filter(si -> si.abs() && si.m().equals(s.m()) && si.rc() == s.rc()).map(Sig::origin).distinct().toList();
+    return l.cs().stream().flatMap(c -> Sources.findCanonical(decs.apply(c.name()), s.m(), s.rc()).stream())
+      .filter(Sig::abs).map(Sig::origin).distinct().toList();
   }
   private boolean foreignSealed(TName name){
     return !name.pkgName().equals(pkg.name()) && LiteralDeclarations.has(decs.apply(name).cs(), LiteralDeclarations.sealed);

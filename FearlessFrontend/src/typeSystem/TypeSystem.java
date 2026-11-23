@@ -211,10 +211,10 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     return Kinding.intrinsicRCs(bs, t1).stream().allMatch(r1 -> rcs2.stream().allMatch(r1::isSubType));
   }
   private void methodTableOk(Literal l, Key k, List<Sig> group){
-    var chosen= Sources.findCanonical(l, k.m(), k.rc());
+    var chosen= Sources.findCanonical(l, k.m(), k.rc()).get();
     assert group.stream().allMatch(s -> s.m().equals(chosen.m()) && s.rc() == chosen.rc());
     assert mostSpecificByOrigin(l, group, chosen);
-    assert !Sources.findCanonical(decs().apply(chosen.origin()), chosen.m(), chosen.rc()).abs() || chosen.abs();//This assert and the one below do the same thing in working programs but may differ in buggy ones
+    assert !Sources.findCanonical(decs().apply(chosen.origin()), chosen.m(), chosen.rc()).get().abs() || chosen.abs();//This assert and the one below do the same thing in working programs but may differ in buggy ones
     assert group.stream().filter(s -> s.origin().equals(chosen.origin())).allMatch(s -> chosen.abs() == s.abs());
     for (var s : group){ sigSub(l, chosen, s); }
     assert group.stream().filter(s -> !s.abs()).allMatch(s -> isOriginSub(chosen.origin(), s.origin()) || overridden(group, s));

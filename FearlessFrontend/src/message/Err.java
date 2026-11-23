@@ -15,10 +15,10 @@ import core.E.*;
 import inject.TypeRename;
 import metaParser.Message;
 import metaParser.Span;
+import typeSystem.Sources;
 import typeSystem.TypeSystem.*;
 import utils.Bug;
 import utils.Join;
-import utils.OneOr;
 import utils.Pos;
 import utils.Push;
 import utils.Streams;
@@ -91,7 +91,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t), t.span()))); }
   static String count(int n, String noun){ return n+" "+noun+(n == 1 ? "" : "s"); }
   static String up(String s){ return s.substring(0, 1).toUpperCase(Locale.ROOT)+s.substring(1); }
-  private Optional<Sig> own(TName n, Sig s){ return OneOr.opt("Malformed methods", _decs.apply(n).ms().stream().map(M::sig).filter(o -> o.m().equals(s.m()) && o.rc() == s.rc())); }
+  private Optional<Sig> own(TName n, Sig s){ return Sources.findCanonical(_decs.apply(n), s.m(), s.rc()); }
   private List<T.C> direct(List<T.C> cs){ return cs.stream().filter(c -> cs.stream().noneMatch(o -> _decs.apply(o.name()).cs().stream().anyMatch(oc -> oc.name().equals(c.name())))).toList(); }
   private static List<T> asTs(List<B> bs){ return bs.stream().<T>map(b -> new T.X(b.x(), TSpan.fromPos(Pos.unknown))).toList(); }
   boolean sigs(Literal l, M m, boolean always){

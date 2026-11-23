@@ -15,6 +15,7 @@ import core.TSpan;
 import inference.Gamma;
 import inference.IT;
 import offensiveUtils.EqTransparent;
+import typeSystem.Sources;
 import typeSystem.TypeScope;
 import utils.Bug;
 import utils.OneOr;
@@ -82,7 +83,7 @@ public record ToCore(List<B> ctx, Methods meths, TypeScope scope){
   private IT targ(inference.E.Call e, List<IT> targs, int i){
     var t= targs.get(i);
     if (t.isTV()){ return t; }
-    var b= methodSig(e).bs().get(i);
+    var b= Sources.findCanonical(meths.from(((IT.RCC)e.e().t()).c().name()), e.name(), e.rc().get()).get().bs().get(i);
     var amb= ambs(t).findFirst();
     if (amb.isEmpty()){ return fillVoid(t, b); }
     var cs= amb.get().candidates().stream().map(c -> replace(t, amb.get(), c)).toList();
@@ -106,10 +107,6 @@ public record ToCore(List<B> ctx, Methods meths, TypeScope scope){
     case IT.Amb _ -> throw Bug.unreachable();
     default -> t;
   };}
-  private core.Sig methodSig(inference.E.Call e){
-    var d= meths.from(((IT.RCC)e.e().t()).c().name());
-    return OneOr.of("Method of a call with inferred type arguments", d.ms().stream().map(core.M::sig).filter(s -> s.m().equals(e.name()) && s.rc() == e.rc().get()));
-  }
   private void checkHead(inference.E.Literal e, IT.C c){
     var unknown= IntStream.range(0, c.ts().size()).filter(i -> !c.ts().get(i).isTV()).boxed().toList();
     if (unknown.isEmpty()){ return; }
