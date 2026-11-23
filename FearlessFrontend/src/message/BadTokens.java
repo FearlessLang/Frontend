@@ -84,11 +84,11 @@ This character can only appear inside comments and inside type names in quotes, 
     var line= s.startLine();
     var index= h.content().indexOf("/*");
     var primary= new Span(file, line, s.startCol()+index, base.endLine(), base.endCol());
-    var where= "inside a"+describeFree(h);
+    var where= describeFree(h);
     throw Code.UnexpectedToken.of(
       "Unopened block comment close \"*/\".\n"
-    +"Found a \"/*\" "+where+" before this point.\n"
-    +"The opener may belong outside the"+describeFree(h)+".")
+    +"Found a \"/*\" inside a"+where+" before this point.\n"
+    +"The opener may belong outside the"+where+".")
       .addFrame("comments", primary);
   }
   private static Stream<Token> squareAfterLiteral(int idx, Token t, Tokenizer tz){
@@ -151,16 +151,12 @@ This character can only appear inside comments and inside type names in quotes, 
     var j= idx - 1;
     while (j > 0 && !all.get(j).is(BlockComment)){ j -= 1; }
     var prev= all.get(j);
-    if (!prev.is(BlockComment)){ throw strErr(b, quoteChar, ""); }
-    var s= prev.span(file);
-    if (s.endLine() != t.line()){ throw strErr(b, quoteChar, ""); }
     var quote= prev.content().lastIndexOf(quoteChar);
-    var nl= prev.content().lastIndexOf('\n');
-    var swallowedByComment= quote != -1 && quote > nl;
+    var swallowedByComment= prev.is(BlockComment) && prev.span(file).endLine() == t.line() && quote > prev.content().lastIndexOf('\n');
     if (!swallowedByComment){ throw strErr(b, quoteChar, ""); }
     var line= b.endLine();
     var endCol= b.startCol()+1;//invert the caret
-    var startCol= s.endCol()-(prev.content().length()-quote);
+    var startCol= prev.span(file).endCol()-(prev.content().length()-quote);
     var before= new Span(file, line, startCol, line, endCol);
     throw strErr(before, quoteChar, "A preceding block comment \"/* ... */\" on this line contains that quote.\nThat block comment may hold the intended opening quote.");
   }
