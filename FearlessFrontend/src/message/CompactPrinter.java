@@ -35,7 +35,6 @@ public final class CompactPrinter{
     return render(root);
   }
   boolean omitted;
-  boolean spaced;
   private String render(PE root){
     sb.setLength(0);
     omitted= false;
@@ -146,8 +145,8 @@ public final class CompactPrinter{
   record PM(RC rc, String m, String bs, List<String> xs, List<PT> ts, PT ret, Optional<PE> body, Compactable k) implements PN{
     @Override public void accString(CompactPrinter sb){
       sb.append(rc.toStrSpace()).append(m).append(bs);
-      wrap(sb, "(", ")", Streams.zip(xs, ts).<Consumer<CompactPrinter>>map((x,t) -> b -> param(b, x, t)).toList(), sb.spaced ? ", " : ",", Consumer::accept);
-      sb.append(sb.spaced ? ": " : ":");
+      wrap(sb, "(", ")", Streams.zip(xs, ts).<Consumer<CompactPrinter>>map((x,t) -> b -> param(b, x, t)).toList(), ",", Consumer::accept);
+      sb.append(":");
       ret.accString(sb);
       body.ifPresent(e -> accBody(sb, e));
     }
@@ -157,7 +156,7 @@ public final class CompactPrinter{
       e.accString(sb);
     }
     private static void param(CompactPrinter b, String x, PT t){
-      if (!x.equals("_") && !x.equals("::")){ b.append(x).append(":"); }
+      if (!x.equals("_")){ b.append(x).append(":"); }
       t.accString(b);
     }
   }
@@ -179,7 +178,7 @@ public final class CompactPrinter{
     return new PCall(ofE(c.e()), c.name().s(), c.rc(), targs, args, k(Optional.of(c)));
   }
   private PE ofLit(Literal l){
-    var ms= l.ms().stream().filter(m -> m.sig().origin().equals(l.name())).map(m -> ofM(m.sig(), m.xs(), m.names(), m.e())).toList();
+    var ms= l.ms().stream().filter(m -> m.sig().origin().equals(l.name())).map(this::ofM).toList();
     var priv= l.infName();
     var name= priv ? ""
       : t.of(l.name())+bounds(l.bs())+":"; // name[bs]:
@@ -218,18 +217,16 @@ public final class CompactPrinter{
     var s= real.getOrDefault(n.s(), n.pkgName().isEmpty() ? t.mainPkg()+"."+n.s() : real.getOrDefault(n.pkgName(), n.pkgName())+"."+n.simpleName());
     return new TName(s, n.arity(), n.pos());
   }
-  private PM ofM(Sig s, List<String> xs, List<String> names, Optional<E> body){
-    var e= body.map(this::ofE);
-    var implicit= xs.stream().anyMatch(implicits::contains);
-    return new PM(s.rc(), s.m().s(), bounds(s.bs()), implicit ? List.of("::") : names, ofTs(s.ts()), ofT(s.ret()), e, k(body));
+  private PM ofM(M m){
+    var e= m.e().map(this::ofE);
+    var implicit= m.xs().stream().anyMatch(implicits::contains);
+    var s= m.sig();
+    return new PM(s.rc(), s.m().s(), bounds(s.bs()), implicit ? List.of("_") : m.names(), ofTs(s.ts()), ofT(s.ret()), e, k(m.e()));
   }
   String sig(Sig s){
-    var xs= Collections.nCopies(s.m().arity(), "_");
-    var pm= ofM(s, xs, xs, Optional.empty());
     assert sb.isEmpty();
-    spaced = true;
-    sb.append(" ".repeat(6-s.rc().toStrSpace().length()));//line up
-    pm.accString(this);
-    return sb.toString();
+    append(" ".repeat(6-s.rc().toStrSpace().length())).append(s.rc().toStrSpace()+s.m().s()+bounds(s.bs()));//line up
+    wrap(this, "(", ")", ofTs(s.ts()), ", ", PN::accString);
+    return append(": ").msgT(s.ret());
   }
 }
