@@ -142,7 +142,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     if (xpat.isPresent() && xpat.get() instanceof XPat.Destruct d && xs.size() > 31){ throw errFactory().eqSugarPatternTooManyNames(span(), d); }
     names = names.add(xs, List.of());//zero if xpat is empty
     if (xpat.isPresent() && end()){ throw errFactory().missingCallAfterEq(m, xpat.get(), atom.span().inner); }
-    if (xpat.isPresent()){ while (!end()){ atom = parsePost(atom); } }
+    while (xpat.isPresent() && !end()){ atom = parsePost(atom); }
     return new E.Call(receiver, m.withArity(xpat.isPresent() ? 2 : 1), sq, empty(), xpat, List.of(atom), pos);//note: arity 2 is special case for = sugar
   }
   boolean eqSugar(){
