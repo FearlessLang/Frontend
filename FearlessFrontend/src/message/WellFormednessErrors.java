@@ -221,11 +221,11 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       var simpleInPkg= sortedDistinct(TName::simpleName, scope.stream());
       NameSuggester.suggest(typedSimple, simpleInPkg, (_,cs,best) -> inScope(e, cs, best, simpleShown));
       var noBestLocal= NameSuggester.bestName(typedSimple, simpleInPkg).isEmpty();
-      if (noBestLocal){ addOtherPkgNotePkgImplicit(e); }
+      if (noBestLocal){ addOptionsFromOtherPkgs(e); }
       return typeName(e, tn);
     }
     private List<TName> typesInPkg(String pkg){ return all.stream().filter(t -> t.pkgName().equals(pkg)).toList(); }
-    private void addOtherPkgNotePkgImplicit(Err e){
+    private void addOptionsFromOtherPkgs(Err e){
       var other= all.stream().filter(t -> !t.pkgName().equals(contextPkg)).toList();
       if (other.isEmpty()){ return; }
       var simpleCandidates= sortedDistinct(TName::simpleName, other.stream());
