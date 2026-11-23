@@ -384,9 +384,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   /// - method exists with right arity, but different receiver RCs; list those other method signatures
   ///Raised when checking method calls.
   public FearlessException methodNotDeclared(TypeScope scope, Call c, Literal d, T.RCC recv){
-    var di= d.withRC(RC.imm);
-    var _on= err().onTypeOrAnon(di);
-    var subj= err().theTypeOrObjectLiteral(di);
+    var _on= err().onTypeOrAnon(d);
+    var subj= err().theTypeOrObjectLiteral(d);
     var on= c.e().equals(d) ? _on : subj;
     var e= err()
       .pCallCantBeSatisfied(c)

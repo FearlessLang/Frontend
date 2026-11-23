@@ -47,24 +47,16 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String tNameA(TName n){ return cp().t.of(n)+genArity(n.arity()); }     // "A[_]"
   String tNameADisp(TName n){ return disp(tNameA(n)); }                      // displayString("A[_]")
   private boolean showInstanceOf(Literal l){ return l.infName() && !l.cs().isEmpty(); }
-  private String bestLitName(boolean skipRc, boolean skipImm, Literal l){
-    var rc= skipRc ? RC.imm : l.rc();
-    if (showInstanceOf(l)){ return typeReprRaw(skipImm || skipRc, new T.RCC(rc, l.cs().getFirst(), l.span())); }
+  private String bestLitName(Literal l){
+    if (showInstanceOf(l)){ return typeReprRaw(true, new T.RCC(RC.imm, l.cs().getFirst(), l.span())); }
     if (anonLit(l)){ return anonRepr; }
-    return rc.toStrSpace(skipImm)+tNameA(l.name());
+    return tNameA(l.name());
   }
-  private String bestLitName(inference.E.Literal l){
-    if (!l.infName()){ return tNameA(l.name()); }
-    return tNameA(!l.cs().isEmpty() ? l.cs().getFirst().name() : l.t() instanceof inference.IT.RCC r ? r.c().name() : l.name());
-  }
-  private String bestNamePkg0(boolean instanceOf, String n){
-    return (instanceOf ? "instance of " : "")+disp(n);
-  }
+  private static TName bestName(inference.E.Literal l){ return !l.infName() ? l.name() : !l.cs().isEmpty() ? l.cs().getFirst().name() : l.t() instanceof inference.IT.RCC r ? r.c().name() : l.name(); }
   private boolean anonLit(Literal l){ return l.infName() && l.cs().isEmpty(); }
   private static final String anonRepr= "{...}";
-  String onTypeOrAnon(Literal l){ return anonLit(l) ? disp(anonRepr) : "object literal instance of "+disp(bestLitName(true, true, l)); }
-  String theTypeOrObjectLiteral(Literal l){ return anonLit(l) ? "object literal "+disp(anonRepr) : "type "+disp(bestLitName(false, true, l)); }
-  public String bestNameNoRc(Literal l){ return bestNamePkg0(showInstanceOf(l), bestLitName(true, true, l)); }
+  String onTypeOrAnon(Literal l){ return anonLit(l) ? disp(anonRepr) : "object literal instance of "+disp(bestLitName(l)); }
+  String theTypeOrObjectLiteral(Literal l){ return anonLit(l) ? "object literal "+disp(anonRepr) : "type "+disp(bestLitName(l)); }
   T.C preferredForFresh(T.C t){ return new T.C(preferredForFresh.apply(t.name()).withArity(t.ts().size()), t.ts()); }//Correct to not propagate here
   String typeRepr(inference.IT t){ return typeRepr(true, t); }
   String typeRepr(boolean skipImm, inference.IT t){ return t.isTV() ? typeRepr(skipImm, TypeRename.itToT(t)) : disp(typeReprRaw(t)); }
@@ -159,11 +151,11 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     case X x -> "parameter "+disp(x.src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : x.name());
     case Literal l -> l.thisName().equals("this")
       ? "type declaration "+tNameADisp(l.name())
-      : "object literal "+bestNameNoRc(l);
+      : "object literal "+(showInstanceOf(l) ? "instance of " : "")+disp(bestLitName(l));
     case Type(var t, _) -> "object literal instance of "+typeRepr(true, t.withRC(RC.imm));
     };}
   String expReprDirect(boolean skipImm, E toErr){ return switch (toErr){
-    case Literal l -> bestNamePkg0(false, bestLitName(false, skipImm, l));
+    case Literal l -> disp((anonLit(l) ? "" : l.rc().toStrSpace(skipImm))+bestLitName(l));
     case Type(var t, _) -> typeRepr(skipImm, t);
     default -> throw Bug.unreachable();
     };}
@@ -172,14 +164,14 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     case inference.E.X(var name, _, _, _) -> "parameter "+disp(name);
     case inference.E.Literal l -> l.thisName().equals("this")
       ? "type declaration "+tNameADisp(l.name())
-      : l.infName() && l.cs().isEmpty() && !(l.t() instanceof inference.IT.RCC r && !r.c().name().equals(l.name())) ? "object literal "+disp(anonRepr)
-      : "object literal "+bestNamePkg0(l.infName(), bestLitName(l));
+      : l.infName() && bestName(l).equals(l.name()) ? "object literal "+disp(anonRepr)
+      : "object literal "+(l.infName() ? "instance of " : "")+tNameADisp(bestName(l));
     case inference.E.Type t -> "object literal instance of "+tNameADisp(t.type().c().name());
     };}
   String methodSig(MName m){ return methodSig("", m); }
   String methodSig(String pre, TName t, MName m){ return methodSig(pre+tNameA(t), m); }
-  String methodSig(String pre, Literal l, MName m){ return methodSig(pre+bestLitName(true, true, l), m); }
-  String methodSig(String pre, inference.E.Literal l, MName m){ return methodSig(pre+bestLitName(l), m); }
+  String methodSig(String pre, Literal l, MName m){ return methodSig(pre+bestLitName(l), m); }
+  String methodSig(String pre, inference.E.Literal l, MName m){ return methodSig(pre+tNameA(bestName(l)), m); }
   static String methodSig(String pre, MName m){ return disp(Join.of(Collections.nCopies(m.arity(), "_"), pre+m.s()+"(", ",", ")", pre+m.s())); }
   String text(){ return sb.toString().stripTrailing(); }
   public Err pTypeArgBounds(String first, String kindingTarget, String paramName, int index, T bad, String allowedStr, String gotStr){
