@@ -173,11 +173,11 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     Function<TName,String> shown= t -> err().cp().t.of(t.withoutPkgName().withPkgName(map.getOrDefault(t.pkgName(), t.pkgName())));
     return new UndeclaredNameContext(
       () -> err(steps),
-      written, pkgName, scope, all, shown, this::aliasShown,
+      written, pkgName, scope, all, shown, this::noteAlias,
       pkg, resolved.simpleName()
     ).build();
   }
-  private String aliasShown(String s){
+  private String noteAlias(String s){
     Optional.ofNullable(map.get(s)).ifPresent(r -> err().cp().t.of(new TName(r, 0, Pos.unknown)));
     return s;
   }
@@ -355,7 +355,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private String spelling(T.C c){
     var pkg= c.name().pkgName();
     if (map.containsKey(pkg)){ printed.add(map.get(pkg)+"."+c.name().simpleName()); }
-    return aliasShown(c.name().s())+Join.of(c.ts().orElse(List.of()).stream().map(this::spelling), "[", ",", "]", "");
+    return noteAlias(c.name().s())+Join.of(c.ts().orElse(List.of()).stream().map(this::spelling), "[", ",", "]", "");
   }
   public FearlessException duplicatedName(TName name){
     return err()

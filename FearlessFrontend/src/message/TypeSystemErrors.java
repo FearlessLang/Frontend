@@ -268,8 +268,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var e= err().line(l.thisName().equals("this")
       ? "The body of method "+meth+" of "+err().expRepr(l)+" is an expression returning "+got0+"."
       : "Method "+meth+" inside the "+atLine(l)
-        +"\nis implemented with an expression returning "+got0+".")
-      .line(up(got.info(printed)));
+        +"\nis implemented with an expression returning "+got0+".");
+    printed.addAll(got.printed);
+    e.line(up(got.info));
     visible(s).forEach(it -> e.sigs(it.l(), it.m(), it == s));
     var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
     if (thisNotMut){ e.line(up(err().expRepr(l))+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+", so parameter "+disp(l.thisName())+" is \"imm\" in every method."); }
@@ -458,7 +459,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var e= err().pCallCantBeSatisfied(d, c).line("Argument "+(argi+1)+" has type "+err().typeRepr(wrongUnderlyingType, gotHdr)+".");
     if (wrongUnderlyingType){ e.line("That is not a subtype of "+err().typeRepr(true, declared)+(inferred.isEmpty() ? " (the type required by the method signature)." : ".")); }
     if (wrongUnderlyingType && lambdaFits(ts, bs, declared, gotHdr)){ e.line("Write the argument inside curly braces:\nthe curly braces make an object literal instance of "+err().typeRepr(true, declared.withRC(RC.imm))+",\nwhose single method returns the argument."); }
-    if (!wrongUnderlyingType){ e.line(up(r.get().info(printed))).blank().bullets("Type required by each promotion:", reqs.stream().map(q -> err().typeRepr(false, q.t())+" ("+q.reqName()+")").toList()); }
+    if (!wrongUnderlyingType){ printed.addAll(r.get().printed); e.line(up(r.get().info)).blank().bullets("Type required by each promotion:", reqs.stream().map(q -> err().typeRepr(false, q.t())+" ("+q.reqName()+")").toList()); }
     addNoPrecedenceHintIfOperator(e, ts.scope(), c);
     var arg= c.es().get(argi);
     return withCallSpans(e.ex(wrongUnderlyingType ? c : r.get().footerE.get(), arg, inferred), arg, c);
@@ -512,7 +513,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       var argi= IntStream.range(0, args).filter(a -> !mat.okByArg().get(a).contains(pi)).findFirst().getAsInt();
       var r= mat.resByArg().get(argi).get(pi);
       assert !r.isEmpty();
-      byArg.get(argi).computeIfAbsent(up(r.info(printed)), _ -> new ArrayList<>())
+      printed.addAll(r.printed);
+      byArg.get(argi).computeIfAbsent(up(r.info), _ -> new ArrayList<>())
         .add(mat.candidate(pi).promotion());
     }
     for (int argi : Range.of(0, args)){
