@@ -359,21 +359,17 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   /// - method exists with right arity, but different receiver RCs; list those other method signatures
   ///Raised when checking method calls.
   public FearlessException methodNotDeclared(TypeScope scope, Call c, Literal d, T.RCC recv){
-    var _on= err().onTypeOrAnon(d);
     var subj= err().theTypeOrObjectLiteral(d);
-    var on= c.e().equals(d) ? _on : subj;
-    var e= err()
-      .pCallCantBeSatisfied(c)
-      .line("Method "+err().methodSig(c.name())+" is not declared on "+on+".");
+    var on= c.e().equals(d) ? err().onTypeOrAnon(d) : subj;
     var name= c.name().s();
     var candidates= d.ms().stream().map(M::sig).toList();
-    var sameName= candidates.stream()
-      .filter(s -> s.m().s().equals(name)).toList();
+    var sameName= candidates.stream().filter(s -> s.m().s().equals(name)).toList();
     if (sameName.isEmpty()){
+      var e= err().pCallCantBeSatisfied(c).line("Method "+err().methodSig(c.name())+" is not declared on "+on+".");
       addEnclosingLiteralHintIfReceiverIsThis(e, scope, c, recv);
       if (candidates.isEmpty()){ return withCallSpans(e.line(up(subj)+" does not have any methods.").typeErr(), c); }
       var names= candidates.stream().map(s -> s.m().s()).distinct().sorted().toList();
-      NameSuggester.suggest(name, names, (_,cs,best) -> { bestNameMsg(e, on, candidates, cs, best); return null; } );
+      NameSuggester.suggest(name, names, (_,cs,best) -> bestNameMsg(e, on, candidates, cs, best));
       return withCallSpans(e.typeErr(), c);
     }
     var sameArity= sameName.stream().filter(s -> s.m().arity() == c.es().size()).toList();
@@ -419,10 +415,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       return;
     }
   }
-  void bestNameMsg(Err e, String onStr, List<Sig> candidates, List<String> cs, Optional<String> best){
+  private static Err bestNameMsg(Err e, String onStr, List<Sig> candidates, List<String> cs, Optional<String> best){
     best.ifPresent(b -> e.line("Did you mean "+disp(b)+" ?"));
     var sigs= cs.stream().flatMap(n -> candidates.stream().filter(s -> s.m().s().equals(n))).map(s -> e.cp().sig(s)).toList();
-    e.blank().bullets("Available methods on "+onStr+":", sigs);
+    return e.blank().bullets("Available methods on "+onStr+":", sigs);
   }
   ///A method matching c by name / arity / RC exists, but c supplies the wrong number of type arguments.
   ///Triggered only for explicitly written [Ts]; inference never reaches this error.
