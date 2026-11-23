@@ -109,7 +109,7 @@ public class FrontendLogicMain{
       var p= u.in().pkgName();
       var other= ranks.get(p);
       var allowed= p.equals(pkg) || other == null || c.compare(other, ranks.get(pkg)) < 0;
-      if (!allowed){ throw new WellFormednessErrors(pkg).useOfNotLowerRank(u.in(), p, ranks.get(pkg), other, c.compare(other, ranks.get(pkg)) == 0); }
+      if (!allowed){ throw new WellFormednessErrors(pkg).useOfNotLowerRank(u.in(), ranks.get(pkg), other, c.compare(other, ranks.get(pkg)) == 0); }
     }
   }
   Map<Ref,FileFull> parseFiles(List<Ref> files){

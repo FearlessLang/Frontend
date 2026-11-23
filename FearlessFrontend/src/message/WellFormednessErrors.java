@@ -317,8 +317,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return wfUse(err(pkgMapped(pkgName, tn.pkgName(), directives, mapSources))
       .line("\"use\" directive refers to type "+disp(tn.simpleName())+", which is not declared in package "+disp(tn.pkgName())+"."), tn);
   }
-  public FearlessException useOfNotLowerRank(TName tn, String pkg, Ref rank, Ref otherRank, boolean sameRank){
-    return wfUse(ranks(err().line("\"use\" directive refers to "+notLower(pkg, sameRank)+"."), pkg, rank, otherRank), tn);
+  public FearlessException useOfNotLowerRank(TName tn, Ref rank, Ref otherRank, boolean sameRank){
+    return wfUse(ranks(err().line("\"use\" directive refers to "+notLower(tn.pkgName(), sameRank)+"."), tn.pkgName(), rank, otherRank), tn);
   }
   private static String rankName(Ref rank){
     var name= Fs.fileNameWithoutExtension(rank.fearPath()).substring("_rank_".length());
