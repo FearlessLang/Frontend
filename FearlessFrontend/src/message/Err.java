@@ -95,11 +95,11 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
     return cs.stream().filter(c -> !indirect.contains(c.name())).toList();
   }
   private static List<T> asTs(List<B> bs){ return bs.stream().<T>map(b -> new T.X(b.x(), TSpan.fromPos(Pos.unknown))).toList(); }
-  boolean sigs(Literal l, M m, boolean always){
+  boolean sigs(Literal l, M m, boolean showUnrenamed){
     var fm= TypeSystemErrors.srcM(l, m.sig());
     var sources= direct(l.cs()).stream().filter(c -> own(c.name(), m.sig()).isPresent()).toList();
     if (fm.isEmpty() || sources.isEmpty() || TypeSystemErrors.wholeSig(fm.get(), m.sig())){ return false; }
-    return sigs(expRepr(l), sources, sources.stream().map(c -> inherited(c, m.sig())).toList(), always);
+    return sigs(expRepr(l), sources, sources.stream().map(c -> inherited(c, m.sig())).toList(), showUnrenamed);
   }
   private Sig inherited(T.C c, Sig s){
     var o= own(c.name(), s).get();
@@ -107,10 +107,10 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
     var ts= Push.of(c.ts(), asTs(s.bs()));
     return new Sig(o.rc(), o.m(), s.bs(), TypeRename.ofT(o.ts(), xs, ts), TypeRename.of(o.ret(), xs, ts), o.origin(), o.abs(), o.span());
   }
-  boolean sigs(String who, List<T.C> heads, List<Sig> ss, boolean always){
+  boolean sigs(String who, List<T.C> heads, List<Sig> ss, boolean showUnrenamed){
     var original= Streams.zip(heads, ss).map((h,s) -> originals(h.name(), s)).toList();
     var renamed= Streams.zip(original, ss).anyMatch((os,s) -> os.stream().anyMatch(o -> !B.xs(o.bs()).equals(B.xs(s.bs()))));
-    if (!renamed && !always){ return false; }
+    if (!renamed && !showUnrenamed){ return false; }
     var flat= original.stream().flatMap(List::stream).toList();
     if (renamed){ bulletsByCount("Original signature", "Original signatures", sigLines(flat.stream().map(o -> head(_decs.apply(o.origin()))).toList(), flat)); }
     bulletsByCount("Signature as inherited by "+who, "Signatures as inherited by "+who, sigLines(heads, ss));
