@@ -49,10 +49,10 @@ import utils.Push;
 public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<String,String> mapSources, LinkedHashSet<String> printed){
   public WellFormednessErrors(String pkgName){ this(pkgName, Map.of(), Map.of(), new LinkedHashSet<>()); }
   private Err err(){ return err(List.of()); }
-  private Err err(List<String> steps){ return err(y -> y, x -> x, _ -> null, steps); }
-  Err err(Function<core.T.C,core.T.C> publicHead, Function<TName,TName> preferredForFresh, Function<TName,core.E.Literal> decs, List<String> steps){
+  private Err err(List<String> steps){ return err(y -> y, _ -> null, steps); }
+  Err err(Function<core.T.C,core.T.C> publicHead, Function<TName,core.E.Literal> decs, List<String> steps){
     var written= written(map);
-    return new Err(publicHead, preferredForFresh, decs, quiet -> new CompactPrinter(pkgName, written, quiet ? _ -> {} : printed::add), () -> notes(written, steps), new StringBuilder());
+    return new Err(publicHead, decs, quiet -> new CompactPrinter(pkgName, written, quiet ? _ -> {} : printed::add), () -> notes(written, steps), new StringBuilder());
   }
   private List<String> notes(Map<String,String> written, List<String> steps){ return Stream.concat(steps.stream(), printed.stream().flatMap(n -> note(written, n))).distinct().sorted(nameFirst).toList(); }
   public static Map<String,String> written(Map<String,String> map){
@@ -478,7 +478,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   private Err sigBlock(Methods meths, Agreement at, List<M.Sig> ss){
     var rc= at.rc().map(r -> r.toStrSpace(false)).orElse("");
-    var e= err(y -> y, x -> x, meths::from, List.of()).line("Supertypes disagree on the signature of method "+methodSig(rc, at.mName())+".");
+    var e= err(y -> y, meths::from, List.of()).line("Supertypes disagree on the signature of method "+methodSig(rc, at.mName())+".");
     var sources= meths.sources(at.lit(), ss.getFirst());
     assert sources.size() == ss.size();
     e.sigs(err().expRepr(at.lit()), TypeRename.itcToTC(sources), ss.stream().map(WellFormednessErrors::coreSig).toList(), true);
@@ -535,7 +535,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   private String holed(List<IT> ts, int k){ return Join.of(IntStream.range(0, ts.size()).mapToObj(j -> j == k ? "_" : err().typeReprRaw(ts.get(j))), "[", ",", "]"); }
   private FearlessException typeArgAmbiguous(E at, String x, String of, List<IT> cands, List<IT.RCC> common, String example, Function<TName,core.E.Literal> decs){
-    var cs= cands.stream().map(err(h -> h, n -> n, decs, List.of())::typeRepr).distinct().toList();
+    var cs= cands.stream().map(err(h -> h, decs, List.of())::typeRepr).distinct().toList();
     var xs= Err.disp(x);
     var e= err().line("The generic type argument "+xs+" of "+of+" can not be inferred:\nit is needed "+Join.of(cs, "as ", ", as ", "")+".");
     if (!common.isEmpty()){ e.line(up(xs)+" could be "+Join.of(common.stream().map(err()::typeRepr), "", " or ", "")+":\neach is a supertype of "+Join.of(cs, "", " and ", "")+".\nThe choice is ambiguous."); }
@@ -562,7 +562,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException literalImplementsTypeParameter(E.Literal at, IT t, TypeScope s, Function<TName,core.E.Literal> decs){
     var x= OneOr.of("Type parameters", t.ftv());
-    var e= err(y -> y, n -> n, decs, List.of())
+    var e= err(y -> y, decs, List.of())
       .line(up(err().expRepr(at))+" cannot implement "+err().typeRepr(t)+".")
       .line(disp(x)+" is a generic type parameter; object literals can only implement nominal types.");
     TypeSystemErrors.declaring(s, x).ifPresent(m -> e.sigs(m.l(), m.m(), true));

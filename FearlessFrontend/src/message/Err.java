@@ -20,7 +20,7 @@ import utils.Pos;
 import utils.Push;
 import utils.Streams;
 
-public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<TName,Literal> _decs, Function<Boolean,CompactPrinter> _cp, Supplier<List<String>> notes, StringBuilder sb){
+public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, Function<Boolean,CompactPrinter> _cp, Supplier<List<String>> notes, StringBuilder sb){
   CompactPrinter cp(){ return _cp.apply(false); }
   public static String disp(Object o){ return Message.displayString(o.toString()); }
   static String funnel(String X, String owner, List<String> Xs){
@@ -54,7 +54,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   private static final String anonRepr= "{...}";
   String onTypeOrAnon(Literal l){ return anonLit(l) ? disp(anonRepr) : "object literal instance of "+disp(bestLitName(l)); }
   String theTypeOrObjectLiteral(Literal l){ return anonLit(l) ? "object literal "+disp(anonRepr) : "type "+disp(bestLitName(l)); }
-  private T.C preferredForFresh(T.C t){ return new T.C(preferredForFresh.apply(t.name()).withArity(t.ts().size()), t.ts()); }//Correct to not propagate here
   String typeRepr(inference.IT t){ return t.isTV() ? typeRepr(true, TypeRename.itToT(t)) : disp(typeReprRaw(t)); }
   String typeReprRaw(inference.IT t){ return typeReprRaw(t, Integer.MAX_VALUE); }
   String typeRepr(inference.IT t, int levels){ return disp(typeReprRaw(t, levels)); }
@@ -85,7 +84,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var p= publicHead.apply(c);
     return new T.RCC(rc, p.withTs(p.ts().stream().map(this::showPublic).toList()), span);
   }
-  String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t), t.span()))); }
+  String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, t, t.span()))); }
   static String count(int n, String noun){ return n+" "+noun+(n == 1 ? "" : "s"); }
   static String up(String s){ return s.substring(0, 1).toUpperCase(Locale.ROOT)+s.substring(1); }
   private Optional<Sig> own(TName n, Sig s){ return Sources.findCanonical(_decs.apply(n), s.m(), s.rc()); }
