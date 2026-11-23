@@ -202,6 +202,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   Err pCallCantBeSatisfied(Call c){
     return line("This call to method "+methodSig(c.name())+" cannot typecheck.");
   }
+  Err selfNameDeadCode(String self, String lit){
+    return line("The self name "+disp(self)+" is dead code.").line("No method of the "+lit+" uses it.").line("Remove "+disp("'"+self)+" from the object literal.");
+  }
   Err pReceiverRequiredByPromotion(List<MType> promos){
     var byRc= promos.stream().collect(Collectors.groupingBy(MType::rc, LinkedHashMap::new, Collectors.mapping(MType::promotion, Collectors.toList())));
     if (byRc.size() <= 1){ return this; }

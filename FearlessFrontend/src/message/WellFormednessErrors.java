@@ -741,12 +741,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("A type is standalone if it is declared at top level, or if it implements "+err().tNameADisp(LiteralDeclarations.captureFree)+".")
       .wf().addFrame("object literal "+disp("{...}")+" (line "+l.span().inner.startLine()+")", l.span().inner);
   }
-  public FearlessException selfNameDeadCode(E.Literal l){
-    return wf(err()
-      .line("The self name "+disp(l.thisName())+" is dead code.")
-      .line("No method of the "+err().expRepr(l)+" uses it.")
-      .line("Remove "+disp("'"+l.thisName())+" from the object literal."), l);
-  }
+  public FearlessException selfNameDeadCode(E.Literal l){ return wf(err().selfNameDeadCode(l.thisName(), err().expRepr(l)), l); }
   public FearlessException intLiteralOutOfRange(TName lit){
     return intOrNatLiteralOutOfRange(lit, LiteralDeclarations.baseInt, "signed", LiteralDeclarations.intMin, LiteralDeclarations.intMax);
   }
