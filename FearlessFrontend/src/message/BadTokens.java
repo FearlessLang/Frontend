@@ -81,9 +81,7 @@ This character can only appear inside comments and inside type names in quotes, 
     var h= hit.get();
     var s= h.span(file);
     assert s.isSingleLine();
-    var line= s.startLine();
-    var index= h.content().indexOf("/*");
-    var primary= new Span(file, line, s.startCol()+index, base.endLine(), base.endCol());
+    var primary= new Span(file, s.startLine(), s.startCol()+h.content().indexOf("/*"), base.endLine(), base.endCol());
     throw Code.UnexpectedToken.of("Unopened block comment close \"*/\".\n"+foundInside(h, "a \"/*\"", "before this point", "opener"))
       .addFrame("comments", primary);
   }
@@ -148,10 +146,9 @@ This character can only appear inside comments and inside type names in quotes, 
     var quote= prev.content().lastIndexOf(quoteChar);
     var swallowedByComment= prev.is(BlockComment) && prev.span(file).endLine() == t.line() && quote > prev.content().lastIndexOf('\n');
     if (!swallowedByComment){ throw strErr(b, quoteChar, ""); }
-    var line= b.endLine();
     var endCol= b.startCol()+1;//invert the caret
     var startCol= prev.span(file).endCol()-(prev.content().length()-quote);
-    var before= new Span(file, line, startCol, line, endCol);
+    var before= new Span(file, t.line(), startCol, t.line(), endCol);
     throw strErr(before, quoteChar, "A preceding block comment \"/* ... */\" on this line contains that quote.\nThat block comment may hold the intended opening quote.");
   }
 }
