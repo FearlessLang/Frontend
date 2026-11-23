@@ -57,7 +57,7 @@ public final class LayoutTest{
     @Override public Ex eatenOpenerBetween(Tok open, Tok stop, Collection<K> closers, Tok frag, Tok container, Tz tz){ return new Ex("eatenOpener", null); }
     @Override public Ex missing(Span at, String what, List<K> expected, Ps p){ return new Ex("missing", at); }
     @Override public Ex missingButFound(Span at, String what, Tok found, Collection<K> expected, Ps p){ return new Ex("missingButFound", at); }
-    @Override public Ex extraContent(Span from, String what, Collection<K> expected, Ps p){ return new Ex("extraContent", from); }
+    @Override public Ex extraContent(Span from, Collection<K> expected, Ps p){ return new Ex("extraContent", from); }
     @Override public Ex probeStalledIn(String label, Span at, int s, int e, Ps p){ return new Ex("probeStalled", at); }
     @Override public Ex badProbeDropIn(String label, Span at, int s, int e, int drop, Ps p){ return new Ex("badProbeDrop", at); }
   }

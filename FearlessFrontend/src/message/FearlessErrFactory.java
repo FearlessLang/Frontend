@@ -86,7 +86,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     return Code.UnexpectedToken.of(file+" cannot start with "+disp(name)+".\n"
       +file+" starts with "+(rank ? "the \"use\" and \"map\" directives, if any,\nand then " : "")+"the type declarations, like \"Point:{..}\".\n").addSpan(at);
   }
-  @Override public FearlessException extraContent(Span from, String what, Collection<TokenKind> expectedTerminatorTokens, Parser parser){
+  @Override public FearlessException extraContent(Span from, Collection<TokenKind> expectedTerminatorTokens, Parser parser){
     assert nonNull(from, parser, expectedTerminatorTokens);
     var msg= expectedTerminatorTokens.isEmpty() ? "Extra content in the current group.\n" : expected("Expected", expectedTerminatorTokens);
     var here= parser.peek().get().span(from.fileName());

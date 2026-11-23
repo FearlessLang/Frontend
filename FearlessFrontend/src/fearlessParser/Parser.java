@@ -252,7 +252,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   }
   M parseMethod(boolean top){
     var res= parseMethodAux(top);
-    expectEnd("semicolon or closing curly brace", SemiColon, CCurly);
+    expectEnd(SemiColon, CCurly);
     return res;
   }
   M parseMethodWithSig(Sig sig){
@@ -328,7 +328,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   Parameter parseParameter(){
     var x= parseIf(peek(LowercaseId, Underscore, _CurlyGroup), this::parseXPat);
     var p= new Parameter(x, x.isPresent() ? parseOptT() : of(parseT()));
-    expectEnd("comma, colon or arrow", Comma, Colon, Arrow);
+    expectEnd(Comma, Colon, Arrow);
     return p;
   }
   List<B> parseBs(boolean mustNew, String owner){
@@ -440,7 +440,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   record HeadAcc(ArrayList<FileFull.Map> map, ArrayList<FileFull.Use> use){
     HeadAcc(){ this(new ArrayList<>(), new ArrayList<>()); }
   }
-  Void endHE(){ expectEnd("semicolon", SemiColon); return null; }
+  Void endHE(){ expectEnd(SemiColon); return null; }
   Void parseHeaderElement(HeadAcc acc){
     if (fwdIf(peekValidate(_map))){ parseMap(acc); return endHE(); }
     if (fwdIf(peekValidate(_use))){ parseUse(acc); return endHE(); }
