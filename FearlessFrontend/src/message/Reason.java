@@ -65,16 +65,12 @@ public final class Reason{
     var es= ts.reasonE();
     var got= cur.currentT();
     var show= onlyRC(ts, bs, got, req.t());
-    var base= es.err().gotMsg(!show, es.err().expRepr(x), List.of(got), req.t());
-    var noDeclaredNote= !show || declared.equals(got);
-    if (noDeclaredNote){ return new Reason(got, show, base, es.printed(), () -> baseFooterE(ts.scope(), got, req.t())); }
-    var e= es.err().line(base);
-    var self= TypeSystemErrors.isSelfName(ts.scope(), x.name());
-    if (!self){ e.line(declaredOkExpected
-      ? "Note: the declared type "+es.err().typeRepr(true, declared)+" would instead be a valid subtype."
-      : "Note: the declared type "+es.err().typeRepr(true, declared)+" also does not satisfy the requirement."
-    ); }
-    e.line(adaptation(es, self, x, cur));
+    var e= es.err().line(es.err().gotMsg(!show, es.err().expRepr(x), List.of(got), req.t()));
+    if (show && !declared.equals(got)){
+      var self= TypeSystemErrors.isSelfName(ts.scope(), x.name());
+      if (!self){ e.line("Note: the declared type "+es.err().typeRepr(true, declared)+(declaredOkExpected ? " would instead be a valid subtype." : " also does not satisfy the requirement.")); }
+      e.line(adaptation(es, self, x, cur));
+    }
     return new Reason(got, show, e.text(), es.printed(), () -> baseFooterE(ts.scope(), got, req.t()));
   }
   static String adaptation(TypeSystemErrors es, boolean self, X x, WithT cur){
