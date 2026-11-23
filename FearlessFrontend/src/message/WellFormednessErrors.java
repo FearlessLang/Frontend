@@ -209,11 +209,12 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       return Optional.of(typeName(e, tn));
     }
     private FearlessException undeclaredInPkg(){
-      var e= err.get()
-        .line("Type "+disp(typedSimple)+" is not declared in package "+relevantPkgMsg()+".");
+      var e= err.get().line("Type "+disp(typedSimple)+" is not declared in package "
+        +(typedPkg.isEmpty() ? disp(contextPkg)+" and is not made visible via \"use\"" : disp(typedPkg))+".");
       if (!typedPkg.isEmpty()){
-        NameSuggester.suggest(typedPkg+"."+typedSimple, userMap(TName::s, typesInPkg(typedPkg).stream()), (_,cs,best) -> inScope(e, cs, best, c -> display.apply(new TName(c, 0, Pos.unknown))));
-        addOtherPkgNotePkgExplicit(e);
+        NameSuggester.suggest(typedPkg+"."+typedSimple, userMap(TName::s, typesInPkg(typedPkg).stream()),
+          (_,cs,best) -> inScope(e, cs, best, c -> display.apply(new TName(c, 0, Pos.unknown))));
+        addOptionsList(shownInOrder(all.stream().filter(t -> !t.pkgName().equals(typedPkg) && t.simpleName().equals(typedSimple))), e);
         return typeName(e, tn);
       }
       var simpleInPkg= userMap(TName::simpleName, scope.stream());
@@ -222,17 +223,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       if (noBestLocal){ addOtherPkgNotePkgImplicit(e); }
       return typeName(e, tn);
     }
-    private String relevantPkgMsg(){
-      if (!typedPkg.isEmpty()){ return disp(typedPkg); }
-      return disp(contextPkg)+" and is not made visible via \"use\"";
-    }
     private List<TName> typesInPkg(String pkg){ return all.stream().filter(t -> t.pkgName().equals(pkg)).toList(); }
-    private void addOtherPkgNotePkgExplicit(Err e){
-      var sameSimpleOther= shownInOrder(all.stream()
-        .filter(t -> !t.pkgName().equals(typedPkg))
-        .filter(t -> t.simpleName().equals(typedSimple)));
-      addOptionsList(sameSimpleOther, e);
-    }
     private void addOtherPkgNotePkgImplicit(Err e){
       var other= all.stream().filter(t -> !t.pkgName().equals(contextPkg)).toList();
       if (other.isEmpty()){ return; }
