@@ -211,9 +211,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   public FearlessException literalImplementsTypeParameter(TypeScope scope, E at, T req){
     var x= err().typeRepr(true, req);
     var untyped= at instanceof Literal l && l.src().inner instanceof fearlessFullGrammar.E.Literal;
-    var e= untyped
-      ? err().line(up(err().expRepr(at))+" cannot implement "+x+".").line(x+" is a generic type parameter;\nobject literals can only implement nominal types.")
-      : err().line(up(err().expRepr(at))+" is required to be of type "+x+".").line(x+" is a generic type parameter;\nan object literal is always of a nominal type.");
+    var e= err().line(up(err().expRepr(at))+(untyped ? " cannot implement " : " is required to be of type ")+x+".")
+      .line(x+" is a generic type parameter;\n"+(untyped ? "object literals can only implement nominal types." : "an object literal is always of a nominal type."));
     declaring(scope, OneOr.of("Type parameters", TypeRename.tToIT(req).ftv())).ifPresent(m -> e.sigs(m.l(), m.m(), true));
     return addExpFrame(at, e.typeErr());
   }
