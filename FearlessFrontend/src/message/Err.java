@@ -44,7 +44,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       .findFirst().get();
   }
 
-  String tNameA(TName n){ return cp().t.of(n)+genArity(n.arity()); }     // "A[_]"
+  private String tNameA(TName n){ return cp().t.of(n)+genArity(n.arity()); }     // "A[_]"
   String tNameADisp(TName n){ return disp(tNameA(n)); }                      // displayString("A[_]")
   private boolean showInstanceOf(Literal l){ return l.infName() && !l.cs().isEmpty(); }
   private String bestLitName(Literal l){
@@ -57,7 +57,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   private static final String anonRepr= "{...}";
   String onTypeOrAnon(Literal l){ return anonLit(l) ? disp(anonRepr) : "object literal instance of "+disp(bestLitName(l)); }
   String theTypeOrObjectLiteral(Literal l){ return anonLit(l) ? "object literal "+disp(anonRepr) : "type "+disp(bestLitName(l)); }
-  T.C preferredForFresh(T.C t){ return new T.C(preferredForFresh.apply(t.name()).withArity(t.ts().size()), t.ts()); }//Correct to not propagate here
+  private T.C preferredForFresh(T.C t){ return new T.C(preferredForFresh.apply(t.name()).withArity(t.ts().size()), t.ts()); }//Correct to not propagate here
   String typeRepr(inference.IT t){ return t.isTV() ? typeRepr(true, TypeRename.itToT(t)) : disp(typeReprRaw(t)); }
   String typeReprRaw(inference.IT t){ return typeReprRaw(t, Integer.MAX_VALUE); }
   String typeRepr(inference.IT t, int levels){ return disp(typeReprRaw(t, levels)); }
@@ -213,7 +213,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       .sorted()
       .map(rc -> disp(rc)+" ("+Join.of(byRc.get(rc).stream().distinct(), "", ", ", "")+")").toList());
   }
-  public String gotMsg(boolean skipImm, String label, List<T> got, T expected){
+  String gotMsg(boolean skipImm, String label, List<T> got, T expected){
     return label+" has type "+Join.of(got.stream().map(t -> typeRepr(skipImm, t)), "", " or ", "")
       +" instead of a subtype of "+typeRepr(skipImm, expected)+".";
   }

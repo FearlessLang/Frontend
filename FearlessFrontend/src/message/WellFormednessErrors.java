@@ -48,7 +48,7 @@ import utils.Push;
 
 public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<String,String> mapSources, LinkedHashSet<String> printed){
   public WellFormednessErrors(String pkgName){ this(pkgName, Map.of(), Map.of(), new LinkedHashSet<>()); }
-  Err err(){ return err(List.of()); }
+  private Err err(){ return err(List.of()); }
   private Err err(List<String> steps){ return err(y -> y, x -> x, _ -> null, steps); }
   Err err(Function<core.T.C,core.T.C> publicHead, Function<TName,TName> preferredForFresh, Function<TName,core.E.Literal> decs, List<String> steps){
     var written= written(map);

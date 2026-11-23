@@ -20,7 +20,7 @@ public enum Code{
   WellFormedness,
   TypeError,
   ;
-  FearlessException of(BiFunction<SourceOracle,List<Frame>,String> f){ return new FearlessException(this, f); }
+  private FearlessException of(BiFunction<SourceOracle,List<Frame>,String> f){ return new FearlessException(this, f); }
   FearlessException of(String msg){ return of((o,fs) -> Message.of(o::loadString, fs, msg)); }
   FearlessException of(Supplier<String> msg){ return of((o,fs) -> Message.of(o::loadString, fs, msg.get())); }
 

@@ -161,24 +161,24 @@ public final class CompactPrinter{
       t.accString(b);
     }
   }
-  public PE ofE(E e){ return switch (e){
+  private PE ofE(E e){ return switch (e){
     case X(var name, var src) -> ofX(name, src);
     case Type(var type, _) -> new PTypeE(ofT(type));
     case Call c -> ofCall(c);
     case Literal l -> ofLit(l);
   };}
   private final Set<String> implicits= new HashSet<>();
-  PE ofX(String name, Src src){
+  private PE ofX(String name, Src src){
     if (!(src.inner instanceof fearlessFullGrammar.E.Implicit)){ return new PX(name); }
     implicits.add(name);
     return new PX("::");
   }
-  PE ofCall(Call c){
+  private PE ofCall(Call c){
     var targs= ofTs(c.targs());
     var args= ofEs(c.es());
     return new PCall(ofE(c.e()), c.name().s(), c.rc(), targs, args, k(Optional.of(c)));
   }
-  PE ofLit(Literal l){
+  private PE ofLit(Literal l){
     var ms= l.ms().stream().filter(m -> m.sig().origin().equals(l.name())).map(m -> ofM(m.sig(), m.xs(), m.names(), m.e())).toList();
     var priv= l.infName();
     var name= priv ? ""
@@ -189,18 +189,18 @@ public final class CompactPrinter{
     var rc= top ? RC.imm : l.rc();
     return new PLit(rc, priv, name, cs, l.thisName(), ms, k(Optional.of(l)));
   }
-  List<PE> ofEs(List<E> es){ return es.stream().map(this::ofE).toList(); }
-  List<PT> ofTs(List<T> ts){ return ts.stream().map(this::ofT).toList(); }
-  PT ofT(T t){ return switch (t){
+  private List<PE> ofEs(List<E> es){ return es.stream().map(this::ofE).toList(); }
+  private List<PT> ofTs(List<T> ts){ return ts.stream().map(this::ofT).toList(); }
+  private PT ofT(T t){ return switch (t){
     case T.X(var name, _) -> new PTX(name);
     case T.RCX(var rc, var x) -> new PTX(rc+" "+x.name());
     case T.ReadImmX(var x) -> new PTX("read/imm "+x.name());
     case T.RCC(var rc, var c, _) -> new PTRCC(rc, ofC(c));
   };}
-  PC ofC(T.C c){
+  private PC ofC(T.C c){
     return new PC(t.of(c.name()), ofTs(c.ts()), c.ts().isEmpty() ? Compactable.no : Compactable.of(false));
   }
-  List<PC> ofCs(Src src, List<T.C> cs){
+  private List<PC> ofCs(Src src, List<T.C> cs){
     List<fearlessFullGrammar.T.C> oCs= switch (src.inner){
       case fearlessFullGrammar.Declaration(_, _, var decCs, _) -> decCs;
       case fearlessFullGrammar.E.TypedLiteral(var rcc, _, _) -> List.of(rcc.c());
@@ -218,7 +218,7 @@ public final class CompactPrinter{
     var s= real.getOrDefault(n.s(), n.pkgName().isEmpty() ? t.mainPkg()+"."+n.s() : real.getOrDefault(n.pkgName(), n.pkgName())+"."+n.simpleName());
     return new TName(s, n.arity(), n.pos());
   }
-  PM ofM(Sig s, List<String> xs, List<String> names, Optional<E> body){
+  private PM ofM(Sig s, List<String> xs, List<String> names, Optional<E> body){
     var e= body.map(this::ofE);
     var implicit= xs.stream().anyMatch(implicits::contains);
     return new PM(s.rc(), s.m().s(), bounds(s.bs()), implicit ? List.of("::") : names, ofTs(s.ts()), ofT(s.ret()), e, k(body));

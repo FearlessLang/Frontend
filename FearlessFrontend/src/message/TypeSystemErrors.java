@@ -30,7 +30,7 @@ import core.*;
 import core.E.*;
 
 public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, LinkedHashSet<String> printed){
-  public Err err(){ return new WellFormednessErrors(pkg.name(), pkg.map(), pkg.mapSources(), printed).err(this::publicHead, this::preferredForFresh, decs, List.of()); }
+  Err err(){ return new WellFormednessErrors(pkg.name(), pkg.map(), pkg.mapSources(), printed).err(this::publicHead, this::preferredForFresh, decs, List.of()); }
   private TName preferredForFresh(TName n){
     var res= decs.apply(n);
     var showSuper= res.infName() && !res.cs().isEmpty();
