@@ -20,12 +20,11 @@ import utils.Streams;
 
 public final class CompactPrinter{
   public CompactPrinter(String mainPkg, Map<String,String> uses, Consumer<String> printed){ t= new TypeNamePrinter(mainPkg, uses, printed); }
-  public String limit(E e, E focus, int limit){
-    assert limit >= 0;
+  String limit(E e, E focus){
     onPath(e, focus);
     var root= ofE(e);
     var len= render(root).length();
-    while (len > limit){
+    while (len > 120){
       var k= new BestPicker().pick(root);
       if (!k.isCompactable()){ break; }
       k.compact();
