@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import inject.TypeRename;
 import metaParser.NameSuggester;
@@ -203,11 +202,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   static Optional<TypeScope.Method> declaring(TypeScope s, String x){ return OneOr.opt("Type parameter declared twice", visible(s).stream().filter(m -> B.xs(m.m().sig().bs()).contains(x))); }
   private static List<TypeScope.Method> visible(TypeScope scope){
-    var res= new ArrayList<TypeScope.Method>();
-    for (TypeScope it= scope; !it.isTop() && (res.isEmpty() || res.getLast().l().infName()); it = it.outer()){
-      if (it instanceof TypeScope.Method m){ res.add(m); }
-    }
-    return res;
+    var ms= scope.methods().toList();
+    var named= IntStream.range(0, ms.size()).filter(i -> !ms.get(i).l().infName()).findFirst().orElse(ms.size()-1);
+    return ms.subList(0, named+1);
   }
   public FearlessException typeDeclaredInMethod(E at, Literal l){
     return addExpFrame(at, err()
@@ -293,7 +290,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///Raised when checking parameters.
   public FearlessException parameterNotAvailableHere(TypeScope s, E.X x, Change.NoT why){
     var e= err().line(whyDrop(x, why));
-    var footer= Stream.iterate(s, si -> !si.isTop(), TypeScope::outer)
+    var footer= s.scopes()
       .filter(si -> why instanceof Change.DropMutInImm && inferredRcOf(si, why.l()))
       .<E>map(TypeScope::contextE).findFirst().orElse(x);
     return addExpFrame(x, e.ex(footer).addSpan(x.span().inner));
@@ -375,28 +372,24 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .typeErr(), c);
   }
   static boolean isSelfName(TypeScope s, String x){
-    return Stream.iterate(s, si -> !si.isTop(), TypeScope::outer).anyMatch(si -> si instanceof TypeScope.Method(var l, _, _) && l.thisName().equals(x));
+    return s.methods().anyMatch(m -> m.l().thisName().equals(x));
   }
   private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, T.RCC recv){
     var receiverIsThis= c.e() instanceof X(var xName, _) && xName.equals("this");
     if (!receiverIsThis){ return; }
-    for (var s= scope; !s.isTop(); s = s.outer()){
-      if (!(s instanceof TypeScope.Method(var l, _, _))){ continue; }
-      var has= l.ms().stream().anyMatch(m -> m.sig().m().equals(c.name()));
-      if (!has){ continue; }
-      var lit= "Method "+err().methodSig(c.name())+" is declared in the "+err().expRepr(l);
-      var selfName= l.thisName();
-      e.line("Parameter \"this\" has type "+err().typeRepr(true, recv)+".");
-      if (!selfName.equals("_")){ e.line(lit+", whose self name is "+disp(selfName)+"."); return; }
-      e.line(lit+", which has no self name.")
-       .line("A self name is declared with a single quote, as \"'rect\" in the example below:")
-       .line("  Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect")
-       .line("    .area: Nat -> width * height;")
-       .line("    .str: Str -> \"area: \"+(rect.area.str);")
-       .line("    .withWidth(width': Nat): Rectangle -> this#(width', height);")
-       .line("  }}");
-      return;
-    }
+    var declaredIn= scope.methods().map(TypeScope.Method::l).filter(l -> l.ms().stream().anyMatch(m -> m.sig().m().equals(c.name()))).findFirst();
+    if (declaredIn.isEmpty()){ return; }
+    var lit= "Method "+err().methodSig(c.name())+" is declared in the "+err().expRepr(declaredIn.get());
+    var selfName= declaredIn.get().thisName();
+    e.line("Parameter \"this\" has type "+err().typeRepr(true, recv)+".");
+    if (!selfName.equals("_")){ e.line(lit+", whose self name is "+disp(selfName)+"."); return; }
+    e.line(lit+", which has no self name.")
+     .line("A self name is declared with a single quote, as \"'rect\" in the example below:")
+     .line("  Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect")
+     .line("    .area: Nat -> width * height;")
+     .line("    .str: Str -> \"area: \"+(rect.area.str);")
+     .line("    .withWidth(width': Nat): Rectangle -> this#(width', height);")
+     .line("  }}");
   }
   private static Err bestNameMsg(Err e, String onStr, List<Sig> candidates, List<String> cs, Optional<String> best){
     best.ifPresent(b -> e.line("Did you mean "+disp(b)+" ?"));

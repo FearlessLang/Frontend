@@ -2,6 +2,8 @@ package typeSystem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import core.*;
 import core.E.*;
@@ -12,6 +14,8 @@ public sealed interface TypeScope{
   static TypeScope top(){ return Top.Instance; }
   TypeScope outer();
   default boolean isTop(){ return this instanceof Top; }
+  default Stream<TypeScope> scopes(){ return Stream.iterate(this, s -> !s.isTop(), TypeScope::outer); }
+  default Stream<Method> methods(){ return scopes().filter(Method.class::isInstance).map(Method.class::cast); }
   E contextE();
   List<T> mentionedTs();
   enum Top implements TypeScope{
@@ -46,13 +50,8 @@ public sealed interface TypeScope{
     Streams.zip(declC.ts(), reqC.ts()).forEach((d,r) -> walk(d, r, out));
   }
   static TypeScope bestInterestingScope(TypeScope start, List<T> interest){
-    var min= 4;
-    var best= start;
-    for (var it= start; !it.isTop(); it = it.outer()){
-      var interesting= min-- > 0 || mentionsAny(it, interest);
-      if (interesting){ best = it; }
-    }
-    return best;
+    var ss= start.scopes().toList();
+    return IntStream.range(0, ss.size()).filter(i -> i < 4 || mentionsAny(ss.get(i), interest)).mapToObj(ss::get).reduce(start, (_,s) -> s);
   }
   static boolean mentionsAny(TypeScope s, List<T> interest){
     return s.mentionedTs().stream().anyMatch(mt ->
