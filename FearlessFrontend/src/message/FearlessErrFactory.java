@@ -211,10 +211,10 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     return Code.UnexpectedToken.of("Missing expression after \"=\" in the equals sugar.\n"
       +eqSugarUse(m)).addSpan(at);
   }
-  public FearlessException missingCallAfterEq(MName m, XPat p, List<String> xs, Span at){
-    var written= p instanceof XPat.Destruct d ? patternRepr(d) : xs.getFirst();
+  public FearlessException missingCallAfterEq(MName m, XPat p, Span at){
+    var written= switch (p){ case XPat.Destruct d -> patternRepr(d); case XPat.Name(var x) -> x.name(); };
     return Code.UnexpectedToken.of("Missing method call after the equals sugar "+disp(m.s()+" "+written+" = ...")+".\n"
-      +"The equals sugar is followed by the rest of the chain,\nwhich can use "+Join.of(xs.stream().map(Err::disp), "", " and ", "")+", as in \"Block#.let x = {5}.return {x}\".\n").addSpan(at);
+      +"The equals sugar is followed by the rest of the chain,\nwhich can use "+Join.of(p.parameterNames().map(Err::disp), "", " and ", "")+", as in \"Block#.let x = {5}.return {x}\".\n").addSpan(at);
   }
   private static String eqSugarUse(MName m){
     return "Use: \""+m.s()+" x = expression\" or \""+m.s()+" {.a,.b} = expression\".\n";
