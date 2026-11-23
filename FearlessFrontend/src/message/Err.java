@@ -194,7 +194,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   Err bullet(String s){
     assert !s.isBlank();
-    return line("- "+s.stripTrailing().replace("\n", "\n  "));
+    return line("- "+s.replace("\n", "\n  "));
   }
   Err pCallCantBeSatisfied(Literal d, Call c){
     return line("This call to method "+methodSig(c.rc().toStrSpace(), d, c.name())+" cannot typecheck.");
@@ -224,7 +224,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var ts= Push.of(inferred, inferredTargs(focus)).stream().map(t -> typeRepr(true, t)).distinct().toList();
     if (footerE instanceof X || footerE instanceof Type || ts.isEmpty()){ return typeErr(); }
     var cp= _cp.apply(true);
-    var footer= cp.limit(footerE, focus).stripTrailing();
+    var footer= cp.limit(footerE, focus);
     var header= "See inferred typing context below for how "+and(ts)+(ts.size() == 1 ? " was" : " were")+" introduced"+(cp.omitted ? " (\"...\" marks omitted code):\n" : ":\n");
     return withNotes(Code.TypeError, "\n\n"+header+footer);
   }
