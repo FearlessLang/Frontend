@@ -154,7 +154,7 @@ public class FrontendLogicMain{
   private void accUses(WellFormednessErrors err, HashMap<String,String> map, List<FileFull.Use> uses, OtherPackages other){
     var otherDom= other.dom();
     for (var u : uses){
-      if (u.in().pkgName().isEmpty()){ throw err.useNotFullyQualified(u, otherDom.stream().filter(e -> e.simpleName().equals(u.in().s())).map(e -> Package.writtenPkg(map, e.pkgName())).distinct().sorted().toList()); }
+      if (u.in().pkgName().isEmpty()){ throw err.useNotFullyQualified(u, Package.visible(map, otherDom.stream().filter(e -> e.simpleName().equals(u.in().s())).toList())); }
       if (map.containsValue(u.in().pkgName())){ throw err.useOfAMapTarget(u.in(), WellFormednessErrors.written(map).get(u.in().pkgName()), Package.visible(map, otherDom)); }
       var p= map.getOrDefault(u.in().pkgName(), u.in().pkgName());
       if (p.equals(err.pkgName())){ throw err.useOfTheCurrentPackage(u.in()); }
