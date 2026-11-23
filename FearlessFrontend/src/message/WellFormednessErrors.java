@@ -242,11 +242,10 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       if (cs.size() <= 12){ e.list("In scope", cs.stream().map(c -> disp(shown.apply(c))).distinct().toList()); }
       return null;
     }
-    private static final String addUse= "Add a \"use\" or write the full type name.";
     void addOptionsList(List<String> ss, Err e){
       if (ss.isEmpty()){ return; }
       e.didYouMean(ss.stream().map(Err::disp).toList());
-      if (ss.stream().anyMatch(s -> s.contains("."))){ e.line(addUse); }
+      if (ss.stream().anyMatch(s -> s.contains("."))){ e.line("Add a \"use\" or write the full type name."); }
     }
   }
   public FearlessException useNotFullyQualified(FileFull.Use u, List<String> pkgs){
