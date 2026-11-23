@@ -64,7 +64,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var out= n.substring(0, dot);
     var in= aliases.get(out);
     var w= in+n.substring(dot);
-    return Stream.concat(Optional.ofNullable(aliases.get(n)).map(a -> standsFor(a, w, "use "+w+" as "+a)).stream(), Stream.of(refersTo(pkgName, in, out, mapSources)));
+    return Stream.concat(Stream.ofNullable(aliases.get(n)).map(a -> standsFor(a, w, "use "+w+" as "+a)), Stream.of(refersTo(pkgName, in, out, mapSources)));
   }
   public static List<String> resolution(Package p, String written){
     var dot= TName.pkgDot(written);
