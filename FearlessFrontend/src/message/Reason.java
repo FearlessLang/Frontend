@@ -78,22 +78,15 @@ public final class Reason{
     return (self ? "The capability of the methods changes the type of " : "Capturing changes the type of ")+es.err().expRepr(x)+":"+steps(es, cur)
       +"\nCapture adaptation trace:\n"+vpaTrace(es, cur)+".";
   }
-  private static String steps(TypeSystemErrors es, WithT cur){ return switch (cur){
-    case Same _ -> "";
-    case KeepStrengthenToImm(_, var m, var to, var tail) -> step(es, tail, to, m);
-    case KeepSetToReadImm(_, var m, var to, var tail) -> step(es, tail, to, m);
-  };}
-  private static String step(TypeSystemErrors es, WithT tail, T to, M m){
-    var s= m.sig();
-    return steps(es, tail)+"\n- "+es.err().typeRepr(false, tail.currentT())+" becomes "+es.err().typeRepr(false, to)
+  private static String steps(TypeSystemErrors es, WithT cur){
+    if (!(cur instanceof Keep k)){ return ""; }
+    var s= k.m().sig();
+    return steps(es, k.tail())+"\n- "+es.err().typeRepr(false, k.tail().currentT())+" becomes "+es.err().typeRepr(false, k.currentT())
       +" inside the "+disp(s.rc())+" method "+es.err().methodSig(s.m())+" (line "+s.span().inner.startLine()+").";
   }
-  private static String vpaTrace(TypeSystemErrors es, WithT cur){ return switch (cur){
-    case Same(var t) -> es.err().typeRepr(false, t);
-    case KeepStrengthenToImm(_, var m, var to, var tail) -> traceKeep(es, tail, "strengthenToImm", to, m);
-    case KeepSetToReadImm(_, var m, var to, var tail) -> traceKeep(es, tail, to.explicitRC().isPresent() ? "setToRead" : "setToReadImm", to, m);
-  };}
-  private static String traceKeep(TypeSystemErrors es, WithT tail, String op, T to, M m){
-    return vpaTrace(es, tail)+" --"+op+"(line "+m.sig().span().inner.startLine()+")--> "+es.err().typeRepr(false, to);
+  private static String vpaTrace(TypeSystemErrors es, WithT cur){
+    if (!(cur instanceof Keep k)){ return es.err().typeRepr(false, cur.currentT()); }
+    var op= k instanceof KeepStrengthenToImm ? "strengthenToImm" : k.currentT().explicitRC().isPresent() ? "setToRead" : "setToReadImm";
+    return vpaTrace(es, k.tail())+" --"+op+"(line "+k.m().sig().span().inner.startLine()+")--> "+es.err().typeRepr(false, k.currentT());
   }
 }
