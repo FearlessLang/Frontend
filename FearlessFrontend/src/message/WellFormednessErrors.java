@@ -173,8 +173,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return new UndeclaredNameContext(
       () -> err(steps),
       written, pkgName, scope, all, shown, this::aliasShown,
-      all.stream().map(TName::pkgName).filter(p -> !p.isEmpty()).distinct().sorted().toList(),
-      resolved.pkgName(), resolved.simpleName()
+      pkg, resolved.simpleName()
     ).build();
   }
   private String aliasShown(String s){
@@ -184,7 +183,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private record UndeclaredNameContext(
     Supplier<Err> err,
     TName tn, String contextPkg, List<TName> scope, List<TName> all, Function<TName,String> display, Function<String,String> simpleShown,
-    List<String> allPkgs, String typedPkg, String typedSimple
+    String typedPkg, String typedSimple
   ){
     FearlessException build(){
       return pkgDoesNotExist()
@@ -192,9 +191,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
         .orElseGet(this::undeclaredInPkg);
     }
     private Optional<FearlessException> pkgDoesNotExist(){
-      if (typedPkg.isEmpty()){ return Optional.empty(); }
-      if (allPkgs.contains(typedPkg)){ return Optional.empty(); }
-      return Optional.of(typeName(missingPkg(err.get(), contextPkg, typedPkg, allPkgs, Optional.empty()), tn));
+      if (typedPkg.isEmpty() || !typesInPkg(typedPkg).isEmpty()){ return Optional.empty(); }
+      return Optional.of(typeName(missingPkg(err.get(), contextPkg, typedPkg, userMap(TName::pkgName, all.stream().filter(t -> !t.pkgName().isEmpty())), Optional.empty()), tn));
     }
     private <A,R> List<R> userMap(Function<A,R> f, Stream<A> s){ return s.map(f).distinct().sorted().toList(); }
     private List<String> shownInOrder(Stream<TName> s){ return s.sorted(Comparator.comparing(TName::s)).map(display).distinct().toList(); }
