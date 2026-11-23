@@ -617,30 +617,24 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .bullets("Found the following "+w+" supertypes:", widen.stream().map(c -> headRepr(owner, c)).toList()), owner);
   }
   public FearlessException duplicatedNamedLiteral(E.Literal owner, M m, E.Literal in){
-    var ctx= up(err().expRepr(owner));
     return wf(err()
-      .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
+      .line(up(err().expRepr(owner))+" implements method "+err().methodSig(m.sig().m().get())+".")
       .line("The body of method "+err().methodSig("", owner, m.sig().m().get())+" needs to be duplicated\nto satisfy multiple reference capability overloads from the supertypes.")
       .line("However, the body declares type "+err().tNameADisp(in.name())+".")
       .line("Object literals with their own unique explicit type cannot be duplicated."), owner);
   }
   public FearlessException baseIdNotOnlyHash(E.Literal owner){
-    var ctx= up(err().expRepr(owner));
-    return wf(err()
-      .line(ctx+" implements "+err().tNameADisp(LiteralDeclarations.baseId)+".")
+    return wf(implementing(owner, LiteralDeclarations.baseId)
       .line("Only the method "+err().methodSig(new MName("#", 1))+" can be declared or inherited here."), owner);
   }
   public FearlessException baseIdInheritedHash(E.Literal owner, TName origin){
-    var ctx= up(err().expRepr(owner));
-    return wf(err()
-      .line(ctx+" implements "+err().tNameADisp(LiteralDeclarations.baseId)+".")
+    return wf(implementing(owner, LiteralDeclarations.baseId)
       .line("It inherits the implementation of "+err().methodSig(new MName("#", 1))+" from "+err().tNameADisp(origin)+", which does not implement "+err().tNameADisp(LiteralDeclarations.baseId)+".")
       .line("Method "+err().methodSig(new MName("#", 1))+" must be implemented here, or inherited from a type implementing "+err().tNameADisp(LiteralDeclarations.baseId)+"."), owner);
   }
   public FearlessException fileLogNameNotAllowed(E.Literal owner){
     var fileLog= err().tNameADisp(LiteralDeclarations.fileLog);
-    return wf(err()
-      .line(up(err().expRepr(owner))+" implements "+fileLog+".")
+    return wf(implementing(owner, LiteralDeclarations.fileLog)
       .line("A type can only implement "+fileLog+" when its type name corresponds to a valid log file name.")
       .line("This means that the type name:")
       .line("- does not end with \"'\";")
@@ -649,9 +643,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("- does not start with \"_Rank\"."), owner);
   }
   public FearlessException fileLogPathTooLong(E.Literal owner, String path){
-    var ctx= up(err().expRepr(owner));
     return wf(err()
-      .line(ctx+" implements "+err().tNameADisp(LiteralDeclarations.fileLog)+", so it writes to the log file "+disp(path)+".")
+      .line(up(err().expRepr(owner))+" implements "+err().tNameADisp(LiteralDeclarations.fileLog)+", so it writes to the log file "+disp(path)+".")
       .line("The path is longer than 200 characters.")
       .line("Rename "+disp(owner.name().simpleName())+", so that its log file has a name allowed in a Fearless project."), owner);
   }
@@ -665,17 +658,15 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("The generic type argument of "+err().tNameADisp(LiteralDeclarations.finalMethods)+" is a type name in quotes holding a method name,\nlike "+disp("\".name\"")+" or "+disp("\"+\"")+"."), owner);
   }
   public FearlessException finalImplemented(E.Literal owner, M m, TName origin, IT.C claim){
-    var ctx= up(err().expRepr(owner));
     return wf(err()
-      .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
+      .line(up(err().expRepr(owner))+" implements method "+err().methodSig(m.sig().m().get())+".")
       .line(err().tNameADisp(origin)+" implements "+headRepr(owner, claim)+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
       .line("thus "+err().expRepr(owner)+" cannot override any method named "+disp(m.sig().m().get().s())+"."), owner);
   }
   public FearlessException claimNotMain(E.Literal owner, TName claim){
     var ctx= err().expRepr(owner);
     var c= err().tNameADisp(claim);
-    return wf(err()
-      .line(up(ctx)+" implements "+c+".")
+    return wf(implementing(owner, claim)
       .line("Only a main can implement "+c+":\n"+ctx+" must also implement "+err().tNameADisp(LiteralDeclarations.main)+",\ndirectly or through one of its supertypes."), owner);
   }
   public FearlessException claimIconNotConcrete(E.Literal owner, IT.C c){
@@ -711,6 +702,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("A main can claim each extension at most once,\nacross all its "+err().tNameADisp(LiteralDeclarations.claims.get(1))+" and "+err().tNameADisp(LiteralDeclarations.claims.get(3))+",\nsince one extension has one icon."), owner);
   }
   private String chooseOne(IT.C c){ return "or implement "+err().tNameADisp(LiteralDeclarations.claims.get(LiteralDeclarations.claims.indexOf(c.name())-1))+" to let the Fearless manager choose one"; }
+  private Err implementing(E.Literal owner, TName t){ return err().line(up(err().expRepr(owner))+" implements "+err().tNameADisp(t)+"."); }
   private Err implementing(E.Literal owner, IT.C c){ return err().line(up(err().expRepr(owner))+" implements "+headRepr(owner, c)+"."); }
   private String headRepr(E.Literal owner, IT.C c){ return disp(err().typeReprRaw(new IT.RCC(Optional.empty(), c, owner.span()))); }
   public FearlessException extendedForeign(E owner, TName target, String kind){
