@@ -572,10 +572,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   };}
   private String src(E recv, MName m, String targs, List<E> es){ return src(recv)+m.s()+targs+Join.of(es.stream().map(this::src), "(", ", ", ")", ""); }
   public FearlessException literalHeadNotInferred(E.Literal at, IT.C c, List<Integer> unknown, List<String> xs){
-    var head= err().cp().t.of(c.name())+Join.of(c.ts().stream().map(err()::typeReprRaw), "[", ",", "]", "");
     var s= unknown.size() == 1 ? "" : "s";
     return wf(err()
-      .line("Type inference concluded that this object literal implements "+disp(head)+",")
+      .line("Type inference concluded that this object literal implements "+headRepr(at, c)+",")
       .line("but it could not infer generic type argument"+s+" "+Join.of(unknown.stream().map(i -> i+1), "", " and ", "", "")
         +" for generic type parameter"+s+" "+Join.of(unknown.stream().map(i -> disp(xs.get(i))), "", " and ", "", "")
         +" of "+err().tNameADisp(c.name())+"."), at);
@@ -615,7 +614,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line(up(err().expRepr(owner))+" implements "+w+" more than once.")
       .line("At most one "+w+" supertype is allowed, because it defines the preferred widened type.")
       .blank()
-      .bullets("Found the following "+w+" supertypes:", widen.stream().map(c -> claimRepr(owner, c)).toList()), owner);
+      .bullets("Found the following "+w+" supertypes:", widen.stream().map(c -> headRepr(owner, c)).toList()), owner);
   }
   public FearlessException duplicatedNamedLiteral(E.Literal owner, M m, E.Literal in){
     var ctx= up(err().expRepr(owner));
@@ -662,15 +661,14 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line(what+" implementing "+err().tNameADisp(t)+" must have zero generic type parameters."), owner);
   }
   public FearlessException finalNotMethodName(E.Literal owner, IT.C c){
-    return wf(err()
-      .line(up(err().expRepr(owner))+" implements "+claimRepr(owner, c)+".")
+    return wf(implementing(owner, c)
       .line("The generic type argument of "+err().tNameADisp(LiteralDeclarations.finalMethods)+" is a type name in quotes holding a method name,\nlike "+disp("\".name\"")+" or "+disp("\"+\"")+"."), owner);
   }
   public FearlessException finalImplemented(E.Literal owner, M m, TName origin, IT.C claim){
     var ctx= up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
-      .line(err().tNameADisp(origin)+" implements "+claimRepr(owner, claim)+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
+      .line(err().tNameADisp(origin)+" implements "+headRepr(owner, claim)+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
       .line("thus "+err().expRepr(owner)+" cannot override any method named "+disp(m.sig().m().get().s())+"."), owner);
   }
   public FearlessException claimNotMain(E.Literal owner, TName claim){
@@ -681,40 +679,40 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("Only a main can implement "+c+":\n"+ctx+" must also implement "+err().tNameADisp(LiteralDeclarations.main)+",\ndirectly or through one of its supertypes."), owner);
   }
   public FearlessException claimIconNotConcrete(E.Literal owner, IT.C c){
-    return wf(claim(owner, c)
+    return wf(implementing(owner, c)
       .line(err().typeRepr(c.ts().getFirst())+" is not a valid icon.")
       .line("Only concrete types with zero generic type arguments are valid icons."), owner);
   }
   public FearlessException claimExtNotStr(E.Literal owner, IT.C c){
     var examples= c.name().simpleName().equals("Shortcut") ? disp("\"fapp042\"") : disp("\"ffile347\"")+", "+disp("\"xml\"")+" or "+disp("\"txt\"");
-    return wf(claim(owner, c)
+    return wf(implementing(owner, c)
       .line("The extension "+err().typeRepr(c.ts().get(1))+" is not a type name in quotes.")
       .line("An extension is written as a type name in quotes, like "+examples+";\n"+chooseOne(c)+"."), owner);
   }
   public FearlessException claimExtInvalid(E.Literal owner, IT.C c, String ext){
-    return wf(claim(owner, c)
+    return wf(implementing(owner, c)
       .line(disp(ext)+" is not a valid extension.")
       .line((ext.equals("fearless") ? "The extension \"fearless\" is reserved" : "An extension is 1 to "+Fs.maxExtSeg+" characters,\neach a lowercase letter \"a\"-\"z\" or a digit \"0\"-\"9\", with no dot")+";\n"+chooseOne(c)+"."), owner);
   }
   public FearlessException claimShortcutNotFapp(E.Literal owner, IT.C c, String ext){
-    return wf(claim(owner, c)
+    return wf(implementing(owner, c)
       .line(disp(ext)+" is not a shortcut extension:\na shortcut file only starts its main,\nso it must not look like a document of another program or a file of the project.")
       .line("A shortcut extension is \"fapp\" followed by three digits, like \"fapp042\";\n"+chooseOne(c)+"."), owner);
   }
   public FearlessException claimOpenWithFapp(E.Literal owner, IT.C c, String ext){
-    return wf(claim(owner, c)
+    return wf(implementing(owner, c)
       .line(disp(ext)+" is a shortcut extension:\n\"fapp\" followed by three digits names the shortcut files of the Fearless manager.")
       .line("Use an extension of the form \"ffile\" followed by three digits, like \"ffile042\",\nor a system extension, like \"htm\";\n"+chooseOne(c)+"."), owner);
   }
   public FearlessException claimExtTwice(E.Literal owner, IT.C first, IT.C second, String ext){
     return wf(err()
       .line(up(err().expRepr(owner))+" claims the extension "+disp(ext)+" more than once:")
-      .line("both "+claimRepr(owner, first)+" and "+claimRepr(owner, second)+" claim it.")
+      .line("both "+headRepr(owner, first)+" and "+headRepr(owner, second)+" claim it.")
       .line("A main can claim each extension at most once,\nacross all its "+err().tNameADisp(LiteralDeclarations.claims.get(1))+" and "+err().tNameADisp(LiteralDeclarations.claims.get(3))+",\nsince one extension has one icon."), owner);
   }
   private String chooseOne(IT.C c){ return "or implement "+err().tNameADisp(LiteralDeclarations.claims.get(LiteralDeclarations.claims.indexOf(c.name())-1))+" to let the Fearless manager choose one"; }
-  private Err claim(E.Literal owner, IT.C c){ return err().line(up(err().expRepr(owner))+" implements "+claimRepr(owner, c)+"."); }
-  private String claimRepr(E.Literal owner, IT.C c){ return disp(err().typeReprRaw(new IT.RCC(Optional.empty(), c, owner.span()))); }
+  private Err implementing(E.Literal owner, IT.C c){ return err().line(up(err().expRepr(owner))+" implements "+headRepr(owner, c)+"."); }
+  private String headRepr(E.Literal owner, IT.C c){ return disp(err().typeReprRaw(new IT.RCC(Optional.empty(), c, owner.span()))); }
   public FearlessException extendedForeign(E owner, TName target, String kind){
     var targetPkg= target.pkgName();
     assert !pkgName.equals(targetPkg);
