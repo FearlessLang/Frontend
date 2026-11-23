@@ -91,13 +91,10 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     acc.resByArg().add(res);
   }
   private FearlessException argCannotMeetAnyPromotion(TypeSystem cts, Literal d, RC recv, MType base, ArgMatrix acc, int argi, List<TRequirement> reqs, List<Reason> resByReq){
-    var args= Stream.concat(acc.resByArg().stream().flatMap(List::stream), resByReq.stream());
-    var declared= base.ts().get(argi);
-    if (mayBeH(recv, base) || args.anyMatch(r -> mayBeH(r.best))){ return cts.tsE().methodArgumentCannotMeetAnyPromotion(cts, bs, d, c, argi, declared, reqs, resByReq); }
+    var withH= mayBeH(recv, base) || Stream.concat(acc.resByArg().stream().flatMap(List::stream), resByReq.stream()).anyMatch(r -> mayBeH(r.best));
+    var shown= withH ? reqs : argRequirements(MultiMeth.of(bs, base, false).stream().filter(m -> recv.isSubType(m.rc())).toList(), argi);
     var reqTs= reqs.stream().map(TRequirement::t).toList();
-    var shown= argRequirements(MultiMeth.of(bs, base, false).stream().filter(m -> recv.isSubType(m.rc())).toList(), argi);
-    var res= shown.stream().map(q -> resByReq.get(reqTs.indexOf(q.t()))).toList();
-    return cts.tsE().methodArgumentCannotMeetAnyPromotion(cts, bs, d, c, argi, declared, shown, res);
+    return cts.tsE().methodArgumentCannotMeetAnyPromotion(cts, bs, d, c, argi, base.ts().get(argi), shown, shown.stream().map(q -> resByReq.get(reqTs.indexOf(q.t()))).toList());
   }
   private Reason resForReq(Literal d, Sig sig, ArgMatrix mat, List<Integer> possible, TRequirement req){
     var okRet= possible.stream()
