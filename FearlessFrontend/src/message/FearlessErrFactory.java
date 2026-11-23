@@ -307,10 +307,8 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     return Join.of(labels.stream().map(l -> "\n- "+l), lead+" one of:", "", "\n", "");
   }
   @Override public FearlessException unrecognizedTextAt(Span at, String what, Tokenizer tokenizer){
-    var head= what.isBlank()
-      ? "Unrecognized text."
-      : "Unrecognized text "+disp(what)+".";
-    return Code.UnexpectedToken.of(head).addFrame(new Frame("", at));
+    assert what.isEmpty();
+    return Code.UnexpectedToken.of("Unrecognized text.").addFrame(new Frame("", at));
   }
   public FearlessException missingSemicolonOrMethodName(Span at, boolean arrow){
     return Code.MissingSeparator.of(
