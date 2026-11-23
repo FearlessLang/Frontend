@@ -323,7 +323,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var file= tokenizer.fileName();
     var sof= open.is(_SOF);
     var eof= stop.is(_EOF);
-    var isBarrier= !stop.is(CRound, CSquare, CCurly, CCurlyId);
+    var stopIsCloser= stop.is(CRound, CSquare, CCurly, CCurlyId);
     var openLabel= disp(open.content());
     var stopLabel= eof ? "end of group" : disp(stop.content());
     var base=
@@ -331,9 +331,9 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
         ? "Unopened "+stopLabel+".\n"
       : eof
         ? "File ended while parsing a "+openLabel+" group.\n"
-      : isBarrier
-        ? "Unclosed "+openLabel+" group before "+stopLabel+".\n"
-        : ("Wrong closer for "+openLabel+" group.\nFound instead: "+stopLabel+".\n");
+      : stopIsCloser
+        ? ("Wrong closer for "+openLabel+" group.\nFound instead: "+stopLabel+".\n")
+        : "Unclosed "+openLabel+" group before "+stopLabel+".\n";
     var hint= switch (likely){
       case StrayCloser   -> "This "+stopLabel+" may be unintended.\n";
       case StrayOpener   -> "This "+openLabel+" may be unintended.\n";
@@ -341,7 +341,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     };
     var expected= sof ? "" : expected(hint.isEmpty() ? "Expected" : "Otherwise expected", expectedClosers);
     var span= eof ? open.span(file) : metaParser.Token.makeSpan(file, open, stop);
-    var code= sof ? Code.Unopened : isBarrier ? Code.Unclosed : Code.UnexpectedToken;
+    var code= sof ? Code.Unopened : stopIsCloser ? Code.UnexpectedToken : Code.Unclosed;
     return code.of(base+hint+expected).addFrame("groups of parenthesis", span);
   }
   @Override public FearlessException eatenCloserBetween(
