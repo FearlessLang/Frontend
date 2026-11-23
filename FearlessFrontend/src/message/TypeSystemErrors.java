@@ -209,7 +209,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   public FearlessException typeDeclaredInMethod(E at, Literal l){
     return addExpFrame(at, err()
       .line("The type "+err().tNameADisp(l.name())+" is not standalone: it is declared inside a method body.")
-      .lineAndStandalone("Only a standalone type can be implemented or mentioned by name.")
+      .line("Only a standalone type can be implemented or mentioned by name.").standalone()
       .ex(at));
   }
   ///Implemented method can never be called for any receiver obtained from the literal.
