@@ -9,7 +9,7 @@ final class BestPicker{
   void visit(PN n, int depth){
     consider(n, depth+(n instanceof PM ? 10 : 1));
     switch (n){
-      case PX _, PTX _ -> {}
+      case PText _ -> {}
       case PTypeE(var t) -> visit(t, depth + 1);
       case PTRCC(_, var c) -> visit(c, depth + 1);
       case PC x -> visitPC(x, depth + 1);
@@ -23,8 +23,7 @@ final class BestPicker{
     for (var t : x.ts()){ visit(t, depth); }
   }
   void visitPCall(PCall x, int depth){
-    var targsVisible= CompactPrinter.showTargs(x.rc(), x.targs().size()) && !x.k().pinned;
-    if (targsVisible){ for (var t : x.targs()){ visit(t, depth); } }
+    if (!x.k().pinned){ for (var t : x.targs()){ visit(t, depth); } }
     if (x.k().compacted){ return; }
     visit(x.recv(), depth);
     for (var a : x.args()){ visit(a, depth); }

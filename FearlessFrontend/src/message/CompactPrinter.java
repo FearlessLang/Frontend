@@ -77,13 +77,6 @@ public final class CompactPrinter{
     }
     sb.append(close);
   }
-  static boolean showTargs(RC rc, int nt){ return rc != RC.imm || nt != 0; }
-  static void accTargs(CompactPrinter sb, RC rc, List<PT> targs){
-    if (!showTargs(rc, targs.size())){ return; }
-    sb.append("["+rc);
-    wrap(sb, ",", "", targs, ",", PN::accString);
-    sb.append("]");
-  }
   sealed interface PN{
     default Compactable k(){ return Compactable.no; }
     void accString(CompactPrinter sb);
@@ -91,8 +84,8 @@ public final class CompactPrinter{
   sealed interface PE extends PN{}
   sealed interface PT extends PN{}
 
-  record PX(String x) implements PE{
-    @Override public void accString(CompactPrinter sb){ sb.append(x); }
+  record PText(String s) implements PE, PT{
+    @Override public void accString(CompactPrinter sb){ sb.append(s); }
   }
   record PTypeE(PT t) implements PE{
     @Override public void accString(CompactPrinter sb){ t.accString(sb); }
@@ -103,7 +96,7 @@ public final class CompactPrinter{
       Acc<PE> acc= k.acc();
       accGrouped(sb, acc, recv, k.compacted ? !infix() : recv instanceof PCall c && c.infix());
       sb.append(infix() ? " "+m : m);
-      accTargs(sb, rc, targs);
+      if (rc != RC.imm || !targs.isEmpty()){ sb.append("["+rc); wrap(sb, ",", "", targs, ",", PN::accString); sb.append("]"); }
       if (!infix()){ wrap(sb, "(", ")", args, ",", acc); return; }
       sb.append(" ");
       accGrouped(sb, acc, args.getFirst(), !k.compacted && args.getFirst() instanceof PCall);
@@ -123,9 +116,6 @@ public final class CompactPrinter{
       var start= selfHidden ? "{" : "{'"+self+" ";
       wrap(sb, start, "}", ms, ";", PN::accString);
     }
-  }
-  record PTX(String x) implements PT{
-    @Override public void accString(CompactPrinter sb){ sb.append(x); }
   }
   record PTRCC(RC rc, PC c) implements PT{
     @Override public void accString(CompactPrinter sb){
@@ -160,9 +150,9 @@ public final class CompactPrinter{
   };}
   private final Set<String> implicits= new HashSet<>();
   private PE ofX(String name, Src src){
-    if (!(src.inner instanceof fearlessFullGrammar.E.Implicit)){ return new PX(name); }
+    if (!(src.inner instanceof fearlessFullGrammar.E.Implicit)){ return new PText(name); }
     implicits.add(name);
-    return new PX("::");
+    return new PText("::");
   }
   private PE ofCall(Call c){
     var targs= ofTs(c.targs());
@@ -183,9 +173,9 @@ public final class CompactPrinter{
   private List<PE> ofEs(List<E> es){ return es.stream().map(this::ofE).toList(); }
   private List<PT> ofTs(List<T> ts){ return ts.stream().map(this::ofT).toList(); }
   private PT ofT(T t){ return switch (t){
-    case T.X(var name, _) -> new PTX(name);
-    case T.RCX(var rc, var x) -> new PTX(rc+" "+x.name());
-    case T.ReadImmX(var x) -> new PTX("read/imm "+x.name());
+    case T.X(var name, _) -> new PText(name);
+    case T.RCX(var rc, var x) -> new PText(rc+" "+x.name());
+    case T.ReadImmX(var x) -> new PText("read/imm "+x.name());
     case T.RCC(var rc, var c, _) -> new PTRCC(rc, ofC(c));
   };}
   private PC ofC(T.C c){
