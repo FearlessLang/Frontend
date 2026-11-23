@@ -102,7 +102,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   public FearlessException typeNotWellKinded(E toErr, KindingTarget target, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     assert index >= 0;
     var err= switch (target){
-      case T.C c -> typeArgBounds("The type "+err().typeRepr(c)+" is invalid.", err().tNameADisp(c.name()), decs.apply(c.name()).bs().get(index), c.ts().get(index), index, bounds, got);
+      case T.C c -> typeArgBounds(err().line("The type "+err().typeRepr(c)+" is invalid."), err().tNameADisp(c.name()), decs.apply(c.name()).bs().get(index), c.ts().get(index), index, bounds, got);
       case KindingTarget.CallKinding(var t, var c) -> typeNotWellKindedSig(t, c, index, bounds, got);
     };
     var span= toErr.span().inner.contained(target.span().inner) ? target.span().inner : toErr.span().inner;
@@ -113,13 +113,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var d= decs.apply(t.name());
     var m= OneOr.of("Malformed methods", d.ms().stream().filter(mi -> mi.sig().m().equals(c.name()) && mi.sig().rc() == c.rc()));
     var decName= err().methodSig(c.rc().toStrSpace(), d, c.name()); // p.A.m(...)
-    return typeArgBounds("This call to method "+decName+" cannot typecheck.", decName, m.sig().bs().get(index), c.targs().get(index), index, bounds, got);
+    return typeArgBounds(err().pCallCantBeSatisfied(d, c), decName, m.sig().bs().get(index), c.targs().get(index), index, bounds, got);
   }
-  private Err typeArgBounds(String first, String kindingTarget, B param, T bad, int index, EnumSet<RC> bounds, EnumSet<RC> got){
+  private Err typeArgBounds(Err e, String kindingTarget, B param, T bad, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     var badStr= err().typeRepr(false, bad);
     var x= disp(param.x());
-    var e= err().line(first)
-      .line("Generic type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds")
+    e.line("Generic type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds")
       .line("for generic type parameter "+x+" in "+kindingTarget+".")
       .line("Here "+x+" can only use "+caps(bounds)+".");
     var capabilityHidden= bad instanceof T.X || bad instanceof T.ReadImmX;
