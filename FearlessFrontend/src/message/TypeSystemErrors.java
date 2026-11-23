@@ -286,7 +286,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var top= l.thisName().equals("this");
     e.line(top
       ? "The body of method "+meth+" of "+err().expRepr(l)+" is an expression returning "+got0+"."
-      : "Method "+meth+" inside the "+err().expRepr(l)+" (line "+l.span().inner.startLine()+")"
+      : "Method "+meth+" inside the "+atLine(l)
         +"\nis implemented with an expression returning "+got0+".");
     e.line(up(got.info(printed)));
     e.sigs(l, m, true);
@@ -320,46 +320,27 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   private String whyDrop(E.X x, Change.NoT why){
     var subject= err().expRepr(x);
-    return switch (why){
-      case Change.DropMutInImm _ -> whyDropMutInImm(subject, why);
-      case Change.DropReadHMutH _ -> whyDropReadHMutH(subject, why);
-      case Change.DropNotKinded _ -> whyDropNotKinded(subject, why);
-      case Change.DropFTV _ -> throw Bug.unreachable();
-      case Change.CapFree _ -> whyDropCapFree(subject, x.span().inner.startLine(), why);
+    var l= why.l();
+    if (why instanceof Change.CapFree){ return up(atLine(l))+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+".\n"
+      +"Thus "+subject+" (line "+x.span().inner.startLine()+") cannot be captured in that object literal.";
+    }
+    var bounds= disp(Join.of(l.bs(), "", ", ", "", ""));
+    return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"+switch (why){
+      case Change.DropMutInImm _ when why.atDrop() instanceof T.X && !l.infName() -> "The generic type parameters of "+atLine(l)+" are "+bounds+".\n"
+        +"Under those bounds, "+subject+" can observe mutation.\n"
+        +"Thus "+subject+" cannot be captured in that "+disp(l.rc())+" object literal.";
+      case Change.DropMutInImm _ -> up(subject)+" can observe mutation;\nthus it cannot be captured in the "+disp(l.rc())+" "+atLine(l)+".\n"
+        +"Capture an immutable copy instead, or move this use outside the object literal.";
+      case Change.DropNotKinded _ -> "That type is not well kinded under the generic type parameters "+bounds+"\n"
+        +"of "+atLine(l)+".\n"
+        +"The bounds declared by the object literal are all it knows about its generic type parameters,\n"
+        +"and thus "+subject+" cannot be captured.";
+      case Change.DropReadHMutH _ -> "The type of "+subject+(why.atDrop().explicitH() ? " is hygienic" : " can be instantiated with a hygienic capability")+" (\"readH\" or \"mutH\")\n"
+        +"and thus it cannot be captured in the "+atLine(l)+".";
+      case Change.DropFTV _, Change.CapFree _ -> throw Bug.unreachable();
     };
   }
-  private String whyDropMutInImm(String subject, Change.NoT why){
-    if (why.atDrop() instanceof T.X && !why.l().infName()){ return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
-      +"The generic type parameters of "+err().expRepr(why.l())+" (line "+why.l().span().inner.startLine()+") are "+disp(Join.of(why.l().bs(), "", ", ", "", ""))+".\n"
-      +"Under those bounds, "+subject+" can observe mutation.\n"
-      +"Thus "+subject+" cannot be captured in that "+disp(why.l().rc())+" object literal.";
-    }
-    return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
-    +up(subject)+" can observe mutation;\nthus it cannot be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l())
-    +" (line "+why.l().span().inner.startLine()+").\n"
-    +"Capture an immutable copy instead, or move this use outside the object literal.";
-  }
-  private String whyDropNotKinded(String subject, Change.NoT why){
-    var bounds= disp(Join.of(why.l().bs(), "", ", ", "", ""));
-    return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
-    +"That type is not well kinded under the generic type parameters "+bounds+"\n"
-    +"of "+err().expRepr(why.l())+" (line "+why.l().span().inner.startLine()+").\n"
-    +"The bounds declared by the object literal are all it knows about its generic type parameters,\n"
-    +"and thus "+subject+" cannot be captured.\n";
-  }
-  private String whyDropReadHMutH(String subject, Change.NoT why){
-    var explicitH= why.atDrop().explicitH()
-      ? "The type of "+subject+" is hygienic (\"readH\" or \"mutH\")\n"
-      : "The type of "+subject+" can be instantiated with a hygienic capability (\"readH\" or \"mutH\")\n";
-    return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
-    +explicitH+"and thus it cannot be captured in the "+err().expRepr(why.l())
-    +" (line "+why.l().span().inner.startLine()+").\n";
-  }
-  private String whyDropCapFree(String subject, int useLine, Change.NoT why){
-    return
-    up(err().expRepr(why.l()))+" (line "+why.l().span().inner.startLine()+") implements "+err().tNameADisp(LiteralDeclarations.captureFree)+".\n"
-    +"Thus "+subject+" (line "+useLine+") cannot be captured in that object literal.\n";
-  }
+  private String atLine(Literal l){ return err().expRepr(l)+" (line "+l.span().inner.startLine()+")"; }
   ///Receiver expression of call c is typed into a type parameter (X / RC X / read/imm X), not a concrete RC C.
   ///Methods cannot be called on type parameters, so this call can never resolve.
   ///Raised when checking method calls.
