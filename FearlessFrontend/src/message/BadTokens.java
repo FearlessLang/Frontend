@@ -89,13 +89,11 @@ This character can only appear inside comments and inside type names in quotes, 
     var lit= tz.allTokens().get(idx - 1);
     var afterLiteral= lit.is(SStr, UStr, SignedInt, UnsignedInt, SignedFloat, UnSignedFloat);
     if (!afterLiteral){ return Stream.of(t); }
-    var file= tz.fileName();
-    var s= lit.span(file);
     var name= disp(lit.content());
     throw Code.UnexpectedToken.of(
       "Type "+name+" takes no generic type arguments.\n"
     +"Remove the \"[...]\" after "+name+".")
-      .addFrame("a type name", new Span(file, s.startLine(), s.startCol(), t.line(), t.span(file).endCol()));
+      .addFrame("a type name", metaParser.Token.makeSpan(tz.fileName(), lit, t));
   }
   static String foundInside(Token hiddenContainer, String found, String position, String which){
     var container= switch (hiddenContainer.kind()){
