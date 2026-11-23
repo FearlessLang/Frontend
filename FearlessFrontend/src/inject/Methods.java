@@ -289,7 +289,7 @@ public record Methods(
   M pairWithSig(List<M.Sig> ss, M m, E.Literal origin){
     if (ss.isEmpty()){ return toCompleteM(m, origin); }
     var s= m.sig();
-    var at= new Agreement(origin, ss.getFirst().rc(), ss.getFirst().m().get(), m.sig().span().inner, Optional.of(s));
+    var at= new Agreement(origin, ss.getFirst().rc().get(), ss.getFirst().m().get(), m.sig().span().inner, Optional.of(s));
     var bs= agreementWithSize(ss, s, at);
     var ssAligned= alignMethodSigsTo(ss, bs);
     var name= ssAligned.getFirst().m().get();
@@ -318,7 +318,7 @@ public record Methods(
   M pairWithSig(List<M.Sig> ss, E.Literal origin){
     assert !ss.isEmpty();
     if (ss.size() == 1){ return unnamed(ss.getFirst()); }
-    var at= new Agreement(origin, ss.getFirst().rc(), ss.getFirst().m().get(), origin.span().inner, Optional.empty());
+    var at= new Agreement(origin, ss.getFirst().rc().get(), ss.getFirst().m().get(), origin.span().inner, Optional.empty());
     var bs= agreementBs(at, ss);
     var ssAligned= alignMethodSigsTo(ss, bs);
     var name= ssAligned.getFirst().m().get();
@@ -370,7 +370,7 @@ public record Methods(
     assert ssAligned.stream().allMatch(e -> e.rc().get() == rc);
     return rc;
   }
-  public record Agreement(E.Literal lit, Optional<RC> rc, MName mName, Span span, Optional<M.Sig> written){}
+  public record Agreement(E.Literal lit, RC rc, MName mName, Span span, Optional<M.Sig> written){}
 
   List<B> agreementBs(Agreement at, List<M.Sig> ss){
     var res= ss.stream().map(e -> e.bs().get()).distinct().toList();

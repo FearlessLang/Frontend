@@ -90,7 +90,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private FearlessException wf(Err e, Agreement at){ return e.wf().addFrame(err().expRepr(at.lit()), at.span()); }
   private FearlessException wf(Err e, M.Sig s, E.Literal origin){ return e.wf().addSpan(s.span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
   private FearlessException wfUse(Err e, TName tn){ return e.wf().addFrame("package header", TSpan.fromPos(tn.pos(), tn.s().length()).inner); }
-  private Err invalidMethImpl(Agreement at){ return err().line("Invalid method signature for "+err().methodSig(at.rc().get().toStrSpace(), at.lit(), at.mName())+"."); }
+  private Err invalidMethImpl(Agreement at){ return err().line("Invalid method signature for "+err().methodSig(at.rc().toStrSpace(), at.lit(), at.mName())+"."); }
   public FearlessException notClean(FileFull f){
     var e= err()
       .line("Package directives outside of rank file.")
@@ -433,7 +433,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     if (!impossible.isEmpty()){ impossible.forEach(e::line); return cannotImplement(e, at); }
     e.line(at.written().isPresent()
       ? err().methodSig("", at.lit(), at.mName())+" must declare "+and(ps.stream().map(i -> "the "+what(ss, i)).toList())+"."
-      : err().tNameADisp(at.lit().name())+" must declare method "+methodSig(at.rc().get().toStrSpace(), at.mName())+".");
+      : err().tNameADisp(at.lit().name())+" must declare method "+methodSig(at.rc().toStrSpace(), at.mName())+".");
     ps.forEach(i -> requirement(e, meths, at, bs, ss, i));
     return wf(e, at);
   }
@@ -477,7 +477,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return disp(rc.map(RC::toStrSpace).orElse("")+err().cp().t.of(c.name())+Join.of(ts, "[", ",", "]", ""));
   }
   private Err sigBlock(Methods meths, Agreement at, List<M.Sig> ss){
-    var e= err(y -> y, meths::from, List.of()).line("Supertypes disagree on the signature of method "+methodSig(at.rc().get().toStrSpace(false), at.mName())+".");
+    var e= err(y -> y, meths::from, List.of()).line("Supertypes disagree on the signature of method "+methodSig(at.rc().toStrSpace(false), at.mName())+".");
     var sources= meths.sources(at.lit(), ss.getFirst());
     assert sources.size() == ss.size();
     e.sigs(err().expRepr(at.lit()), TypeRename.itcToTC(sources), ss.stream().map(WellFormednessErrors::coreSig).toList(), true);
