@@ -385,17 +385,19 @@ final class AssociationsTest{
       MacAssociations.register = register;
       var probe= MacAssociations.home.resolve("fearlessAssociationsTestProbe.app");
       assertEquals(html, declared.apply("htm").getFirst());
-      reconcile("fearlessAssociationsTestProbe", List.of(), List.of(), ".fcommonsprobe");
-      assertEquals(List.of(new Declared("fearlessassociationstestprobe.fcommonsprobe", probe)), declared.apply("fcommonsprobe"));
-      var file= root.resolve("x.fcommonsprobe");
-      Fs.writeUtf8(file, "x");
-      assertEquals("Fearless Manager", launchServices("return ObjC.unwrap($.NSFileManager.defaultManager.displayNameAtPath(a[0]))", probe));
-      var kind= launchServices("var k= Ref(); $.NSURL.fileURLWithPath(a[0]).getResourceValueForKeyError(k, $.NSURLLocalizedTypeDescriptionKey, null); return ObjC.unwrap(k[0])", file);
-      assertFalse(kind.isEmpty() || kind.contains("fearlessAssociationsTestProbe"), kind);
-      FileAssociations.eradicateAll(family, IllegalStateException::new);
-      assertEquals(List.of(), declared.apply("fcommonsprobe"));
-      assertFalse(Files.exists(probe));
-      unregister(probe);
+      try{
+        reconcile("fearlessAssociationsTestProbe", List.of(), List.of(), ".fcommonsprobe");
+        assertEquals(List.of(new Declared("fearlessassociationstestprobe.fcommonsprobe", probe)), declared.apply("fcommonsprobe"));
+        var file= root.resolve("x.fcommonsprobe");
+        Fs.writeUtf8(file, "x");
+        assertEquals("Fearless Manager", launchServices("return ObjC.unwrap($.NSFileManager.defaultManager.displayNameAtPath(a[0]))", probe));
+        var kind= launchServices("var k= Ref(); $.NSURL.fileURLWithPath(a[0]).getResourceValueForKeyError(k, $.NSURLLocalizedTypeDescriptionKey, null); return ObjC.unwrap(k[0])", file);
+        assertFalse(kind.isEmpty() || kind.contains("fearlessAssociationsTestProbe"), kind);
+        FileAssociations.eradicateAll(family, IllegalStateException::new);
+        assertEquals(List.of(), declared.apply("fcommonsprobe"));
+        assertFalse(Files.exists(probe));
+      }
+      finally{ unregister(probe); }
       return;
     }
     LinuxAssociations.run = run;
@@ -1227,11 +1229,17 @@ Terminal=false
 </plist>
 """);
       assertEquals(0, register.applyAsInt(old));
-      assertEquals(List.of(new Declared("fearlessmanaged0-000.ffile997", old)), declared.apply("ffile997"));
-      reconcile(".ffile997");
-      assertEquals(List.of(identity), FileAssociations.identities(family));
-      FileAssociations.eradicateAll(family, IllegalStateException::new);
-      assertEquals(List.of(), declared.apply("ffile997"));
+      try{
+        assertEquals(List.of(new Declared("fearlessmanaged0-000.ffile997", old)), declared.apply("ffile997"));
+        reconcile(".ffile997");
+        assertEquals(List.of(identity), FileAssociations.identities(family));
+        FileAssociations.eradicateAll(family, IllegalStateException::new);
+        assertEquals(List.of(), declared.apply("ffile997"));
+      }
+      finally{
+        unregister(old);
+        unregister(MacAssociations.home.resolve(identity+".app"));
+      }
       return;
     }
     var old= "fearlessManaged0_000";
