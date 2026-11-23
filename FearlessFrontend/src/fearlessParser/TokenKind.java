@@ -35,23 +35,23 @@ public enum TokenKind implements metaParser.TokenKind{
   // Signed float: +12.34, -1.0e-3 ; requires at least one digit on each side of '.'
   SignedFloat(
     "[+-](?:[0-9](?:[0-9_]*[0-9])?)\\.(?:[0-9](?:[0-9_]*[0-9])?)"
-    +"(?:[eE][+-]?[0-9](?:[0-9_]*[0-9])?)?(?:soft)?", typeName()),
+    +"(?:[eE][+-]?[0-9](?:[0-9_]*[0-9])?)?(?:soft)?", typeNameLabel()),
   UnSignedFloat(
     "[0-9](?:[0-9_]*[0-9])?\\x2E(?:[0-9](?:[0-9_]*[0-9])?)"
-    +"(?:[eE][\\x2B\\x2D]?[0-9](?:[0-9_]*[0-9])?)?(?:soft)?", typeName()),
+    +"(?:[eE][\\x2B\\x2D]?[0-9](?:[0-9_]*[0-9])?)?(?:soft)?", typeNameLabel()),
   // Signed int: +45, -10, +1_000
-  SignedInt("[+-][0-9](?:[0-9_]*[0-9])?", typeName()),
+  SignedInt("[+-][0-9](?:[0-9_]*[0-9])?", typeNameLabel()),
   // Unsigned int: 0, 42, 1_000_000
-  UnsignedInt("[0-9](?:[0-9_]*[0-9])?", typeName()),
+  UnsignedInt("[0-9](?:[0-9_]*[0-9])?", typeNameLabel()),
   BadUStrUnclosed("\\x22[^\\x22\\x0A]*(?=\\x0A|\\z)"),
   BadSStrUnclosed("`[^`\\x0A]*(?=\\x0A|\\z)"),
-  UStr("\\x22[^\\x22\\x0A]*\\x22", typeName()),
-  SStr("`[^`\\x0A]*`", typeName()),
-  DotName("\\._*[a-z][A-Za-z0-9_]*'*", methodName()),
+  UStr("\\x22[^\\x22\\x0A]*\\x22", typeNameLabel()),
+  SStr("`[^`\\x0A]*`", typeNameLabel()),
+  DotName("\\._*[a-z][A-Za-z0-9_]*'*", methodNameLabel()),
   BadDotName("\\._*[A-Z][A-Za-z0-9_]*'*"),
   BadDot("\\.(?=\\s)"),
   BadChar("[@$]"),
-  UppercaseId("(?:"+core.TName.pkgNameRegex+"\\x2E)?_*[A-Z][A-Za-z0-9_]*'*", typeName()),//correctly allows only one '.' since packages are not nested inside each others
+  UppercaseId("(?:"+core.TName.pkgNameRegex+"\\x2E)?_*[A-Z][A-Za-z0-9_]*'*", typeNameLabel()),//correctly allows only one '.' since packages are not nested inside each others
   BadUppercaseId("(?:[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*'*"),
   LowercaseId("_*[a-z][A-Za-z0-9_]*'*", "parameter name"),
   BadSStrQuote("'(?:(?!//|/\\x2A)[^'\\x0A\\x22`])*'(?![_a-z])"),
@@ -59,7 +59,7 @@ public enum TokenKind implements metaParser.TokenKind{
   //[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F:\\x7C#]
   //forbid:  /*   */   //
   //(?!/\\x2A|\\x2A/|//)
-  Op        ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])+", methodName()),
+  Op        ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])+", methodNameLabel()),
   // tokens that are never considered for matching, but useful for asserts and for labelling special cases
   _XId("_*[A-Z][A-Za-z0-9_]*'*", "type name"),
   _pkgName(core.TName.pkgNameRegex,//"(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*"
@@ -86,8 +86,8 @@ public enum TokenKind implements metaParser.TokenKind{
     this.match= TokenMatch.fromRegex(regex);
     this.human= human;
   }
-  private static String typeName(){ return "type name (like \"Point\", \"base.Nat\", \"12\", \"-3.5\", `\"abc\"`)"; }
-  private static String methodName(){ return "method name (like \".foo\", \"+\", \"*\", \"-\")"; }
+  private static String typeNameLabel(){ return "type name (like \"Point\", \"base.Nat\", \"12\", \"-3.5\", `\"abc\"`)"; }
+  private static String methodNameLabel(){ return "method name (like \".foo\", \"+\", \"*\", \"-\")"; }
   @Override public TokenMatch matcher(){ return match; }
   public boolean synthetic(){ return name().startsWith("_"); }
   @Override public int priority(){ return ordinal(); }
