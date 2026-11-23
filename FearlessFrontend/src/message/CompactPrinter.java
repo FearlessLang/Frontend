@@ -198,9 +198,10 @@ public final class CompactPrinter{
     var s= m.sig();
     return new PM(s.rc(), s.m().s(), bounds(s.bs()), xs, ofTs(s.ts()), ofT(s.ret()), e, k);
   }
+  static final int rcWidth= 6;
   String sig(Sig s){
     assert sb.isEmpty();
-    append(" ".repeat(6-s.rc().toStrSpace().length())).append(s.rc().toStrSpace()+s.m().s()+bounds(s.bs()));//line up
+    append(" ".repeat(rcWidth-s.rc().toStrSpace().length())).append(s.rc().toStrSpace()+s.m().s()+bounds(s.bs()));//line up
     wrap(this, "(", ")", ofTs(s.ts()), ", ", PN::accString);
     return append(": ").msgT(s.ret());
   }

@@ -129,7 +129,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
   private List<String> sigLines(List<T.C> heads, List<Sig> ss){ return Streams.zip(heads, ss).map(this::sigLine).distinct().toList(); }
   private String sigLine(T.C h, Sig s){
     var sig= cp().sig(s);
-    return sig.substring(0, 6)+cp().msgT(new T.RCC(RC.imm, h, h.span()))+sig.substring(6);
+    return sig.substring(0, CompactPrinter.rcWidth)+cp().msgT(new T.RCC(RC.imm, h, h.span()))+sig.substring(CompactPrinter.rcWidth);
   }
   static String and(List<String> xs){
     if (xs.size() == 1){ return xs.getFirst(); }
