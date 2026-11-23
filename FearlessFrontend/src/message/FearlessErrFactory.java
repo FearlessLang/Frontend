@@ -325,8 +325,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var file= tokenizer.fileName();
     var sof= open.is(_SOF);
     var eof= stop.is(_EOF);
-    var isCloser= stop.is(CRound, CSquare, CCurly, CCurlyId);
-    var isBarrier= !eof && !isCloser;
+    var isBarrier= !stop.is(CRound, CSquare, CCurly, CCurlyId);
     var openLabel= disp(open.content());
     var stopLabel= eof ? "end of group" : disp(stop.content());
     var base=
@@ -342,10 +341,9 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       case StrayOpener   -> "This "+openLabel+" may be unintended.\n";
       case Unknown       -> "";
     };
-    var other= hint.isEmpty() ? "Expected" : "Otherwise expected";
-    var expected= sof ? "" : expected(other, expectedClosers);
+    var expected= sof ? "" : expected(hint.isEmpty() ? "Expected" : "Otherwise expected", expectedClosers);
     var span= eof ? open.span(file) : metaParser.Token.makeSpan(file, open, stop);
-    var code= sof ? Code.Unopened : (eof || isBarrier) ? Code.Unclosed : Code.UnexpectedToken;
+    var code= sof ? Code.Unopened : isBarrier ? Code.Unclosed : Code.UnexpectedToken;
     return code.of(base+hint+expected).addFrame("groups of parenthesis", span);
   }
   @Override public FearlessException eatenCloserBetween(
