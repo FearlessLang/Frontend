@@ -117,11 +117,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var decName= err().methodSig(c.rc().toStrSpace(), d, c.name()); // p.A.m(...)
     return typeArgBounds(err().pCallCantBeSatisfied(d, c), decName, s.bs().get(index), c.targs().get(index), index, bounds, got);
   }
-  private Err typeArgBounds(Err e, String kindingTarget, B param, T bad, int index, EnumSet<RC> bounds, EnumSet<RC> got){
+  private Err typeArgBounds(Err e, String targetRepr, B param, T bad, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     var badStr= err().typeRepr(false, bad);
     var x= disp(param.x());
     e.line("Generic type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds")
-      .line("for generic type parameter "+x+" in "+kindingTarget+".")
+      .line("for generic type parameter "+x+" in "+targetRepr+".")
       .line("Here "+x+" can only use "+caps(bounds)+".");
     var capabilityHidden= bad instanceof T.X || bad instanceof T.ReadImmX;
     if (!capabilityHidden){ return e; }
