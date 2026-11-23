@@ -569,14 +569,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .pCallCantBeSatisfied(d, c)
       .line("Each argument is compatible with at least one promotion,\nbut no single promotion fits all arguments.")
       .blank()
-      .line("Compatible promotions by argument:");
-    for (int argi : Range.of(0, args)){
-      var ok= mat.okByArg().get(argi);
-      assert !ok.isEmpty();
-      var promos= ok.stream().map(i -> mat.candidate(i).promotion()).distinct().sorted().toList();
-      var got= err().typeRepr(false, headerBest(mat.resByArg().get(argi)));
-      e.bullet("Argument "+(argi+1)+" has type "+got+" and is compatible with: "+Join.of(promos, "", ", ", "")+".");
-    }
+      .bullets("Compatible promotions by argument:", IntStream.range(0, args).mapToObj(argi -> compatible(mat, argi)).toList());
     e.blank().line("Promotion failures:");
     var byArg= IntStream.range(0, args)
       .mapToObj(_ -> new LinkedHashMap<String,ArrayList<String>>()).toList();
@@ -592,5 +585,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       byArg.get(argi).forEach((info,names) -> e.bullet("Argument "+(argi+1)+Join.of(names, " fails:    ", ", ", "\n")+info));
     }
     return withCallSpans(e.ex(c), c);
+  }
+  private String compatible(ArgMatrix mat, int argi){
+    var promos= Join.of(mat.okByArg().get(argi).stream().map(i -> mat.candidate(i).promotion()).distinct().sorted(), "", ", ", "");
+    return "Argument "+(argi+1)+" has type "+err().typeRepr(false, headerBest(mat.resByArg().get(argi)))+" and is compatible with: "+promos+".";
   }
 }
