@@ -51,20 +51,20 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private Err err(){ return err(List.of()); }
   private Err err(List<String> steps){ return err(y -> y, _ -> null, steps); }
   Err err(Function<core.T.C,core.T.C> publicHead, Function<TName,core.E.Literal> decs, List<String> steps){
-    var written= written(map);
-    return new Err(publicHead, decs, quiet -> new CompactPrinter(pkgName, written, quiet ? _ -> {} : printed::add), () -> notes(written, steps), new StringBuilder());
+    var aliases= inverse(map);
+    return new Err(publicHead, decs, quiet -> new CompactPrinter(pkgName, aliases, quiet ? _ -> {} : printed::add), () -> notes(aliases, steps), new StringBuilder());
   }
-  private List<String> notes(Map<String,String> written, List<String> steps){ return Stream.concat(steps.stream(), printed.stream().flatMap(n -> note(written, n))).distinct().sorted(nameFirst).toList(); }
-  public static Map<String,String> written(Map<String,String> map){
+  private List<String> notes(Map<String,String> aliases, List<String> steps){ return Stream.concat(steps.stream(), printed.stream().flatMap(n -> note(aliases, n))).distinct().sorted(nameFirst).toList(); }
+  public static Map<String,String> inverse(Map<String,String> map){
     return map.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey));
   }
   private static final Comparator<String> nameFirst= Comparator.comparing(s -> !s.startsWith("Name "));
-  private Stream<String> note(Map<String,String> written, String n){
+  private Stream<String> note(Map<String,String> aliases, String n){
     var dot= TName.pkgDot(n);
     var out= n.substring(0, dot);
-    var in= written.get(out);
+    var in= aliases.get(out);
     var w= in+n.substring(dot);
-    return Stream.concat(Optional.ofNullable(written.get(n)).map(a -> standsFor(a, w, "use "+w+" as "+a)).stream(), Stream.of(refersTo(pkgName, in, out, mapSources)));
+    return Stream.concat(Optional.ofNullable(aliases.get(n)).map(a -> standsFor(a, w, "use "+w+" as "+a)).stream(), Stream.of(refersTo(pkgName, in, out, mapSources)));
   }
   public static List<String> resolution(Package p, String written){
     var dot= TName.pkgDot(written);
@@ -298,7 +298,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException useOfMissingPackage(TName tn, List<String> visible){ return wfUse(missingPkg(err(), pkgName, tn.pkgName(), visible, Optional.empty()), tn); }
   public FearlessException useOfAMapTarget(TName tn, String in, List<String> visible){ return wfUse(mappedAway(tn.pkgName(), in, visible), tn); }
-  public FearlessException typeOfAMapTarget(TName tn, List<String> visible){ return typeName(mappedAway(tn.pkgName(), written(map).get(tn.pkgName()), visible), tn); }
+  public FearlessException typeOfAMapTarget(TName tn, List<String> visible){ return typeName(mappedAway(tn.pkgName(), inverse(map).get(tn.pkgName()), visible), tn); }
   private Err mappedAway(String out, String in, List<String> visible){ return missingPkg(err(), pkgName, out, visible, Optional.of(in)).line(refersTo(pkgName, in, out, mapSources)); }
   public FearlessException typeOfTheCurrentPackageQualified(TName tn, List<TName> options){
     var e= fullNameInvalid(err(), tn).line(inFolders(pkgName)+" uses the simple name "+disp(tn.simpleName())+" to refer to "+disp(tn.s())+".");

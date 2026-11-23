@@ -158,7 +158,7 @@ public class FrontendLogicMain{
         var sameName= otherDom.stream().filter(e -> e.simpleName().equals(u.in().s())).toList();
         throw err.useNotFullyQualified(u, Package.visible(map, sameName));
       }
-      if (map.containsValue(u.in().pkgName())){ throw err.useOfAMapTarget(u.in(), WellFormednessErrors.written(map).get(u.in().pkgName()), Package.visible(map, otherDom)); }
+      if (map.containsValue(u.in().pkgName())){ throw err.useOfAMapTarget(u.in(), WellFormednessErrors.inverse(map).get(u.in().pkgName()), Package.visible(map, otherDom)); }
       var p= map.getOrDefault(u.in().pkgName(), u.in().pkgName());
       if (p.equals(err.pkgName())){ throw err.useOfTheCurrentPackage(u.in()); }
       var in= p+"."+u.in().simpleName();

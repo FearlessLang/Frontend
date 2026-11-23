@@ -176,7 +176,7 @@ public final class CompactPrinter{
       case fearlessFullGrammar.E.Literal _ -> List.of();
       default -> throw Bug.of(src.inner.getClass().getSimpleName());
     };
-    var real= WellFormednessErrors.written(t.aliases());
+    var real= WellFormednessErrors.inverse(t.aliases());
     var original= oCs.stream().map(c -> resolved(real, c.name())).toList();
     return cs.stream()
       .filter(c -> original.isEmpty() || original.contains(c.name()))
