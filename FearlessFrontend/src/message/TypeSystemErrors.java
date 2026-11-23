@@ -127,7 +127,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     return e.line("But generic type argument "+badStr+" can only use "+caps(got)+".");
   }
   private List<T> inferredInParam(Literal d, Call c, int argi){
-    if (!Err.inferredTargs(c)){ return List.of(); }
+    if (!targsInferred(c)){ return List.of(); }
     var s= Sources.findCanonical(d, c.name(), c.rc());
     var param= s.ts().get(argi);
     return IntStream.range(0, s.bs().size())
@@ -316,7 +316,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   private static boolean inferredRcOf(TypeScope s, Literal l){
     var interest= l.cs().stream().<T>map(c -> new T.RCC(l.rc(), c, l.span())).toList();
-    return s instanceof TypeScope.CallSite(var c, _) && Err.inferredTargs(c) && TypeScope.mentionsAny(s, interest);
+    return s instanceof TypeScope.CallSite(var c, _) && targsInferred(c) && TypeScope.mentionsAny(s, interest);
   }
   private String whyDrop(E.X x, Change.NoT why){
     var subject= err().expRepr(x);
