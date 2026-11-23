@@ -171,7 +171,7 @@ public final class CompactPrinter{
     case T.RCC(var rc, var c, _) -> new PTRCC(rc, ofC(c));
   };}
   private PC ofC(T.C c){
-    return new PC(t.of(c.name()), ofTs(c.ts()), new Compactable(false));
+    return new PC(t.of(c.name()), ofTs(c.ts()), new Compactable(c.ts().isEmpty()));
   }
   private List<PC> ofCs(Src src, List<T.C> cs){
     List<fearlessFullGrammar.T.C> oCs= switch (src.inner){
