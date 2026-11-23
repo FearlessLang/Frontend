@@ -363,8 +363,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       addEnclosingLiteralHintIfReceiverIsThis(e, scope, c, recv);
       if (candidates.isEmpty()){ return withCallSpans(e.line(up(subj)+" does not have any methods.").typeErr(), c); }
       var names= candidates.stream().map(s -> s.m().s()).distinct().sorted().toList();
-      NameSuggester.suggest(name, names, (_,cs,best) -> bestNameMsg(e, on, candidates, cs, best));
-      return withCallSpans(e.typeErr(), c);
+      return withCallSpans(NameSuggester.suggest(name, names, (_,cs,best) -> bestNameMsg(e, on, candidates, cs, best)).typeErr(), c);
     }
     var sameArity= sameName.stream().filter(s -> s.m().arity() == c.es().size()).toList();
     if (sameArity.isEmpty()){
