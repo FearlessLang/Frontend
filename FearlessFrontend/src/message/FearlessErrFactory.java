@@ -238,21 +238,14 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +"Each comma must separate two non-empty chains.\nRemove the stray comma: for example write \"{.a,.b}\" instead of \"{.a,,.b}\" or \"{,.a}\".")
       .addSpan(at);
   }
-  public FearlessException badBound(T.X name, Span at){
-    var x= name.name();
-    return Code.UnexpectedToken.of("Invalid bound for generic type parameter "+disp(x)+".\n"
-      +bounds(x)).addSpan(at);
-  }
-  public FearlessException missingBound(T.X name, Span at){
-    var x= name.name();
-    return Code.UnexpectedToken.of("Missing bound for generic type parameter "+disp(x)+" after \":\".\n"
-      +bounds(x)).addSpan(at);
-  }
-  private static String bounds(String x){
-    return disp(x)+" with no \":\" allows only the capability \"imm\".\n"
+  public FearlessException badBound(T.X name, Span at){ return bound("Invalid", "", name.name(), at); }
+  public FearlessException missingBound(T.X name, Span at){ return bound("Missing", " after \":\"", name.name(), at); }
+  private static FearlessException bound(String head, String after, String x, Span at){
+    return Code.UnexpectedToken.of(head+" bound for generic type parameter "+disp(x)+after+".\n"
+      +disp(x)+" with no \":\" allows only the capability \"imm\".\n"
       +disp(x+":*")+" allows the capabilities \"imm\", \"mut\" and \"read\".\n"
       +disp(x+":**")+" allows every capability.\n"
-      +"A list, as in "+disp(x+":imm,read")+", allows the capabilities in the list.\n";
+      +"A list, as in "+disp(x+":imm,read")+", allows the capabilities in the list.\n").addSpan(at);
   }
   public FearlessException genericNotInScope(Token X, Span at, Collection<String> Xs){
     return Code.UnexpectedToken.of(() ->
