@@ -133,15 +133,12 @@ This character can only appear inside comments and inside type names in quotes, 
   }
   private static Stream<Token> frontOrBack(int idx, Token t, Tokenizer tz, int quoteChar){
     var file= tz.fileName();
-    var text= t.content();
     var b= t.span(file);
     assert b.isSingleLine();
     //If '//' or '/*' is inside the bad string, trim span to stop before it.
-    var openSL= text.indexOf("//");
-    var openML= text.indexOf("/*");
-    var idxComment= openSL == -1 ? openML : openML == -1 ? openSL : Math.min(openSL, openML);
-    if (idxComment != -1){
-      var after= new Span(file, b.startLine(), b.startCol(), b.endLine(), b.startCol() + idxComment);
+    var comment= Pattern.compile("//|/\\*").matcher(t.content());
+    if (comment.find()){
+      var after= new Span(file, b.startLine(), b.startCol(), b.endLine(), b.startCol() + comment.start());
       throw strErr(after, quoteChar, "A comment opening sign is present later on this line;\nthe quote may be meant to close before it.");
     }
     var all= tz.allTokens();
