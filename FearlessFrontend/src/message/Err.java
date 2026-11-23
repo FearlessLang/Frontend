@@ -205,7 +205,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   Err selfNameDeadCode(String self, String litRepr){
     return line("The self name "+disp(self)+" is dead code.").line("No method of the "+litRepr+" uses it.").line("Remove "+disp("'"+self)+" from the object literal.");
   }
-  Err standalone(String rule){ return line(rule).line("A type is standalone if it is declared at top level, or if it implements "+tNameADisp(LiteralDeclarations.captureFree)+"."); }
+  Err lineAndStandalone(String rule){ return line(rule).line("A type is standalone if it is declared at top level, or if it implements "+tNameADisp(LiteralDeclarations.captureFree)+"."); }
   Err pReceiverRequiredByPromotion(List<MType> promos){
     var byRc= promos.stream().collect(Collectors.groupingBy(MType::rc, LinkedHashMap::new, Collectors.mapping(MType::promotion, Collectors.toList())));
     if (byRc.size() <= 1){ return this; }
