@@ -10,12 +10,6 @@ import tools.SourceOracle;
 public final class DeclarationWellFormednessTest extends testUtils.FearlessTestBase{
   static void ok(List<String> input){ typeOk(input); }
   static void fail(String expected, List<String> input){ typeFail(expected, input); }
-  static void failWf(String expected, List<String> input){
-    typeFailRaw("In file: [###].fear\n\n"+expected+"Error 7 WellFormedness", input);
-  }
-  static void failParse(String expected, List<String> input){
-    typeFailRaw("In file: [###].fear\n\n"+expected+"Error 2 UnexpectedToken", input);
-  }
 
 @Test void unclosedLiteralAtEndOfFile(){typeFailRaw("""
 In file: [###].fear

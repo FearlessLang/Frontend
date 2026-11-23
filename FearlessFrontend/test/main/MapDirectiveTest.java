@@ -29,7 +29,7 @@ public final class MapDirectiveTest extends testUtils.FearlessTestBase{
   static void ok(Map<String,String> pkgs, Map<String,String> map, String bSrc){
     var o= oraclePkg(List.of(bSrc));
     var other= others(pkgs);
-    var res= okOrPrint(o, () -> new FrontendLogicMain().of("b", writtenIn(map), o.allFiles(), other));
+    var res= printError(() -> new FrontendLogicMain().of("b", writtenIn(map), o.allFiles(), other), o);
     if (!checkCompact){ return; }
     coreCmp(lines(res), compact.Print.lines(compactB(pkgs, map, o)));
   }
@@ -490,7 +490,7 @@ B:{ .m({.x, .y}:P):P -> x }
     var b= tools.SourceOracle.debugBuilder();
     DbgBlock.dbgMiniBase().allFiles().forEach(r -> b.putURI(r.fearURI(), r.loadString()));
     var o= b.put("baseExtra.fear", "Pq:{ .x:Pq->this; .y:Pq->this; }\nUsesDestruct:{ .m({.x, .y}:Pq):Pq -> y }\n").build();
-    var res= okOrPrint(o, () -> new FrontendLogicMain().of("base", Map.of(), o.allFiles(), OtherPackages.empty()));
+    var res= printError(() -> new FrontendLogicMain().of("base", Map.of(), o.allFiles(), OtherPackages.empty()), o);
     if (!checkCompact){ return; }
     coreCmp(lines(res), compact.Print.lines(compactAll("base", o, List.of())));
   }

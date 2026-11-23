@@ -19,7 +19,7 @@ public final class TypeInMethodTest extends testUtils.FearlessTestBase{
 
   static void okTwoPkgs(String aSrc, String bSrc){
     var oB= oraclePkg(List.of(bSrc));
-    var res= okOrPrint(oB, () -> compileB(aSrc, oB));
+    var res= printError(() -> compileB(aSrc, oB), oB);
     if (!checkCompact){ return; }
     coreCmp(lines(res), compact.Print.lines(compactB(aSrc, oB)));
   }
@@ -41,7 +41,7 @@ public final class TypeInMethodTest extends testUtils.FearlessTestBase{
   private static List<core.E.Literal> compileB(String aSrc, tools.SourceOracle oB){
     var base= otherFrom(DbgBlock.all());
     var oA= oraclePkg(List.of(aSrc));
-    var aLits= okOrPrint(oA, () -> compileAll("a", oA, base));
+    var aLits= printError(() -> compileAll("a", oA, base), oA);
     var other= base.mergeWith(AllLs.of(aLits), -1);
     return new FrontendLogicMain().of("b", Map.of(), oB.allFiles(), other);
   }

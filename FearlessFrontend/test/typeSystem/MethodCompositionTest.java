@@ -7,9 +7,6 @@ import org.junit.jupiter.api.Test;
 public final class MethodCompositionTest extends testUtils.FearlessTestBase{
   static void ok(List<String> input){ typeOk(input); }
   static void fail(String expected, List<String> input){ typeFail(expected, input); }
-  static void failWf(String expected, List<String> input){
-    typeFailRaw("In file: [###].fear\n\n"+expected+"Error 7 WellFormedness", input);
-  }
 
 @Test void noMeths(){ok(List.of("""
 A:{}
