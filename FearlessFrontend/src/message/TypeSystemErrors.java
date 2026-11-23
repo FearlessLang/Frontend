@@ -269,8 +269,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       : "Method "+meth+" inside the "+atLine(l)
         +"\nis implemented with an expression returning "+got0+".")
       .line(up(got.info(printed)));
-    e.sigs(l, m, true);
-    visible(s).stream().skip(1).forEach(it -> e.sigs(it.l(), it.m(), false));
+    visible(s).forEach(it -> e.sigs(it.l(), it.m(), it == s));
     var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
     if (thisNotMut){ e.line(up(err().expRepr(l))+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+", so parameter "+disp(l.thisName())+" is \"imm\" in every method."); }
     overloadHint(e, l, m);
