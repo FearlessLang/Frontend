@@ -271,9 +271,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line(inFolders(pkgName)+" uses the simple names of its own types."), tn);
   }
   public FearlessException mapToATargetOfAnotherMap(String out, List<String> directives){
-    var e= err().line(inFolders(pkgName)+" can use only one package name\nto refer to the code inside folders named "+disp("_"+out)+":");
-    directives.forEach(e::bullet);
-    return e.wf();
+    return err().bullets(inFolders(pkgName)+" can use only one package name\nto refer to the code inside folders named "+disp("_"+out)+":", directives).wf();
   }
   public FearlessException mapInBase(String directive){
     return mapErr("A map cannot apply to source code inside folders named "+disp("_base"), directive).wf();
@@ -293,10 +291,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return ranks(mapErr("The map refers to "+notLower(out, sameRank), directive), out, rank, otherRank).wf();
   }
   public FearlessException insteadOfMismatch(String directive, List<String> overridden, FileFull.Map expected){
-    var e= mapErr("The \"instead of\" list of a map must name exactly\nthe folders chosen by the maps of lower rank that the map overrides", directive);
-    e.line(overridden.isEmpty() ? "No map of lower rank chooses another folder." : "These maps of lower rank choose other folders:");
-    overridden.forEach(e::bullet);
-    return e.line("Expected: "+disp(expected+";")+".").wf();
+    return mapErr("The \"instead of\" list of a map must name exactly\nthe folders chosen by the maps of lower rank that the map overrides", directive)
+      .bullets(overridden.isEmpty() ? "No map of lower rank chooses another folder." : "These maps of lower rank choose other folders:", overridden)
+      .line("Expected: "+disp(expected+";")+".").wf();
   }
   private static Err missingPkg(Err e, String ctx, String pkg, List<String> visible, Optional<String> known){
     e.line(inFolders(ctx)+" cannot use package name "+disp(pkg)+".");
