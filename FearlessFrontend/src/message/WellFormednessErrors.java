@@ -128,8 +128,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var limit= 12;
     var e= err()
       .line("Maps of the same rank give package name "+disp(in)+" different folders,\nfor source code inside folders named "+disp("_"+pkgName)+":");
-    bests.stream().limit(limit).forEach(e::line);
-    if (bests.size() > limit){ e.line("- ... ("+(bests.size()-limit)+" more)"); }
+    bests.stream().limit(limit).forEach(e::bullet);
+    if (bests.size() > limit){ e.bullet("... ("+(bests.size()-limit)+" more)"); }
     e.blank()
      .line("How maps work:")
      .bullet("A rank file can have lines like \"map name as _folder in _target;\".")
@@ -143,7 +143,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return e.wf();
   }
   public FearlessException mapToMissingFolder(String role, String folder, String directive, List<String> pkgs){
-    var e= err().line("The map "+role+" folders named "+disp("_"+folder)+", but no folder is named "+disp("_"+folder)+":").line(directive);
+    var e= mapErr("The map "+role+" folders named "+disp("_"+folder)+", but no folder is named "+disp("_"+folder), directive);
     NameSuggester.suggest(folder, pkgs, (_,_,best) -> best).ifPresent(b -> e.line("Did you mean "+disp("_"+b)+" ?"));
     return e.list("Existing folders", pkgs.stream().map(p -> disp("_"+p)).toList()).wf();
   }
@@ -272,13 +272,13 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException mapToATargetOfAnotherMap(String out, List<String> directives){
     var e= err().line(inFolders(pkgName)+" can use only one package name\nto refer to the code inside folders named "+disp("_"+out)+":");
-    directives.forEach(e::line);
+    directives.forEach(e::bullet);
     return e.wf();
   }
   public FearlessException mapInBase(String directive){
     return mapErr("A map cannot apply to source code inside folders named "+disp("_base"), directive).wf();
   }
-  private Err mapErr(String head, String directive){ return err().line(head+":").line(directive); }
+  private Err mapErr(String head, String directive){ return err().line(head+":").bullet(directive); }
   public FearlessException mapOfAnExistingPackage(String in, String directive){
     return mapErr("A map cannot give package name "+disp(in)+", because folders named "+disp("_"+in)+" exist", directive)
       .line("With no map, package name "+disp(in)+" refers to the code inside folders named "+disp("_"+in)+".").wf();
@@ -295,7 +295,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException insteadOfMismatch(String directive, List<String> overridden, FileFull.Map expected){
     var e= mapErr("The \"instead of\" list of a map must name exactly\nthe folders chosen by the maps of lower rank that the map overrides", directive);
     e.line(overridden.isEmpty() ? "No map of lower rank chooses another folder." : "These maps of lower rank choose other folders:");
-    overridden.forEach(e::line);
+    overridden.forEach(e::bullet);
     return e.line("Expected: "+disp(expected+";")+".").wf();
   }
   private static Err missingPkg(Err e, String ctx, String pkg, List<String> visible, Optional<String> known){

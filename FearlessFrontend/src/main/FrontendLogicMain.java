@@ -70,7 +70,7 @@ public class FrontendLogicMain{
     var pkgs= Push.of(List.copyOf(ranks.keySet()), "base");
     var parsed= parseFiles(List.copyOf(ranks.values()));
     record Cand(Ref uri, FileFull.Map m){
-      @Override public String toString(){ return "- \""+m+";\"; written in "+writtenIn(uri); }
+      @Override public String toString(){ return "\""+m+";\"; written in "+writtenIn(uri); }
     }
     var byKey= parsed.entrySet().stream()
       .flatMap(e -> e.getValue().maps().stream().map(m -> new Cand(e.getKey(), m)))
