@@ -32,7 +32,6 @@ public sealed interface TypeScope{
     @Override public E contextE(){ return c; }
     @Override public List<T> mentionedTs(){ return c.targs(); }
   }
-  static List<T> interestFromDeclVsReq(T declRet, T reqRet){ return walk(declRet, reqRet).toList(); }
   static Stream<T> walk(T decl, T req){
     if (!(decl instanceof T.RCC(var declRc, var declC, _))){ return Stream.of(req); }
     //If the types do not match, just skip the rest here (user error too hard to grasp)

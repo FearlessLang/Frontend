@@ -40,7 +40,7 @@ public final class Reason{
     if (explRC){ e.line("Write "+es.err().expReprDirect(false, blame, rc)+" if you need "+(rc == RC.iso ? "an " : "a ")+disp(rc)+" object literal"+why); }
     return new Reason(got, show, e.text(), es.printed(), () -> baseFooterE(ts.scope(), got, expected));
   }
-  private static E baseFooterE(TypeScope s, T actual, T req){ return TypeScope.bestInterestingScope(s, TypeScope.interestFromDeclVsReq(actual, req)).contextE(); }
+  private static E baseFooterE(TypeScope s, T actual, T req){ return TypeScope.bestInterestingScope(s, TypeScope.walk(actual, req).toList()).contextE(); }
   public static Reason callResultCannotHaveRequiredType(TypeSystem ts, List<B> bs, Literal d, Call call, TRequirement req, List<T> got, Sig sig){
     var es= ts.reasonE();
     var show= got.stream().anyMatch(g -> onlyRC(ts, bs, g, req.t()));
