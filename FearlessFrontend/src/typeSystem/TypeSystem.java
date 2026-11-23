@@ -98,7 +98,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private static boolean uses(E e, String x){ return e instanceof E.X(var n, _) ? n.equals(x) : e.children().anyMatch(ei -> uses(ei, x)); }
   private static boolean hasAbstractMut(Literal l){ return l.ms().stream().anyMatch(m -> m.sig().abs() && m.sig().rc() == mut); }
-  private List<Reason> reqs(E blame, List<B> bs, T got, List<TRequirement> rs){
+  private List<Reason> reqs(E blame, List<B> bs, T.RCC got, List<TRequirement> rs){
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
     for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(scope, blame, r.t()); } }
     return rs.stream().map(r -> isSub(bs, got, r.t())

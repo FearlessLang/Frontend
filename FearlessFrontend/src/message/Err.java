@@ -143,9 +143,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       : "object literal "+(showInstanceOf(l) ? "instance of " : "")+disp(bestLitName(l));
     case Type(var t, _) -> "object literal instance of "+typeRepr(true, t.withRC(RC.imm));
     };}
-  String expReprDirect(boolean skipImm, E toErr){ return switch (toErr){
-    case Literal l -> disp((anonLit(l) ? "" : l.rc().toStrSpace(skipImm))+bestLitName(l));
-    case Type(var t, _) -> typeRepr(skipImm, t);
+  String expReprDirect(boolean skipImm, E toErr, RC rc){ return switch (toErr){
+    case Literal l -> disp((anonLit(l) ? "" : rc.toStrSpace(skipImm))+bestLitName(l));
+    case Type(var t, _) -> typeRepr(skipImm, t.withRC(rc));
     default -> throw Bug.unreachable();
     };}
   String expRepr(inference.E toErr){ return switch (toErr){
