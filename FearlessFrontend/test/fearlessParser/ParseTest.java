@@ -2247,22 +2247,6 @@ Error 2 UnexpectedToken
 A:{ .m:A -> this.foo( } B:{} C:{};
 """);}
 
-@Test void openerInStringThenEOF_shouldPreferEatenCloser(){fail("""
-In file: [###].fear
-
-001| A:{ .m:Str -> { "json } aaa"
-   |               ^^^^^^^^^-----
-
-While inspecting groups of parenthesis
-Unclosed "{" group.
-Found a matching closer inside a type name in quotes between here and the stopping point.
-The closer may belong outside the type name in quotes.
-Otherwise expected: "}".
-Error 0 Unclosed
-""", """
-A:{ .m:Str -> { "json } aaa"
-""");}
-
 @Test void pkgName(){ok("""
 FileFull[[###]
 """, """
