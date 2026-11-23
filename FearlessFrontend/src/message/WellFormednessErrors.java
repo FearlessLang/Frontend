@@ -118,12 +118,11 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
         .line("in some folder inside the project folder."))
         .wf();
     }
-    var e= err()
+    return badRank(err()
       .line("Ambiguous rank file for package "+disp(pkgName)+".")
-      .bullets("Found "+heads.size()+" files that look like rank head candidates:", heads.stream().map(u -> PrettyFileName.displayFileName(u.fearURI())).toList());
-    e.line("There must be exactly one source file whose name represents this package rank.")
-     .line("Rename or remove the extra files so that only one file name is of form \"_rank_*.fear\".");
-    return badRank(e).wf();
+      .bullets("Found "+heads.size()+" files that look like rank head candidates:", heads.stream().map(u -> PrettyFileName.displayFileName(u.fearURI())).toList())
+      .line("There must be exactly one source file whose name represents this package rank.")
+      .line("Rename or remove the extra files so that only one file name is of form \"_rank_*.fear\".")).wf();
   }
   public FearlessException mapConflict(String in, List<String> bests){
     var limit= 12;
@@ -145,10 +144,10 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException mapToMissingFolder(String role, String folder, String directive, List<String> pkgs){
     var e= err().line("The map "+role+" folders named "+disp("_"+folder)+", but no folder is named "+disp("_"+folder)+":").line(directive);
-    NameSuggester.suggest(folder, pkgs, (_,_,best) -> { best.ifPresent(b -> e.line("Did you mean "+disp("_"+b)+" ?")); return null; });
+    NameSuggester.suggest(folder, pkgs, (_,_,best) -> best).ifPresent(b -> e.line("Did you mean "+disp("_"+b)+" ?"));
     return e.list("Existing folders", pkgs.stream().map(p -> disp("_"+p)).toList()).wf();
   }
-  public Err badRank(Err err){
+  private Err badRank(Err err){
     return err
       .line("Every package must declare its rank:\nbase, core, driver, worker, framework, accumulator, tool, or app.")
       .line("The rank file is the file whose name matches the rank name.")
@@ -345,10 +344,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .addFrame("generic type parameter "+disp(n.name()), n.span().inner);
   }
   public FearlessException duplicatedBound(List<RC> es, T.X n){
-    var dup= redeclaredElement(es);
     return err()
       .line("Duplicate reference capability in the generic type parameter "+disp(n.name())+".")
-      .line("Reference capability "+disp(dup.name())+" is repeated.")
+      .line("Reference capability "+disp(redeclaredElement(es).name())+" is repeated.")
       .wf()
       .addSpan(n.span().inner);
   }
@@ -527,13 +525,10 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException methodBsDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
     assert userBs.size() == superBs.size();
     var i= firstRcsDisagreementIndex(List.of(userBs, superBs));
-    var u= userBs.get(i);
-    var s= superBs.get(i);
-    var m= err().methodSig(at.mName());
     return wf(invalidMethImpl(at)
-      .line("The method "+m+" declares different capability bounds for generic type parameter "+(i+1)+"\nthan the supertypes.")
-      .line("Local declaration: "+disp(u)+".")
-      .line("Capability bounds in the supertypes: "+disp(Join.of(s.rcs().stream(), "", ",", ""))+".")
+      .line("The method "+err().methodSig(at.mName())+" declares different capability bounds for generic type parameter "+(i+1)+"\nthan the supertypes.")
+      .line("Local declaration: "+disp(userBs.get(i))+".")
+      .line("Capability bounds in the supertypes: "+disp(Join.of(superBs.get(i).rcs().stream(), "", ",", ""))+".")
       .line("Generic type parameter names may differ from the supertypes; only the position matters."), at);
   }
   private int firstRcsDisagreementIndex(List<List<B>> res){
