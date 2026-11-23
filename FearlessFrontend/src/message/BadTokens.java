@@ -84,11 +84,7 @@ This character can only appear inside comments and inside type names in quotes, 
     var line= s.startLine();
     var index= h.content().indexOf("/*");
     var primary= new Span(file, line, s.startCol()+index, base.endLine(), base.endCol());
-    var where= describeFree(h);
-    throw Code.UnexpectedToken.of(
-      "Unopened block comment close \"*/\".\n"
-    +"Found a \"/*\" inside a"+where+" before this point.\n"
-    +"The opener may belong outside the"+where+".")
+    throw Code.UnexpectedToken.of("Unopened block comment close \"*/\".\n"+foundInside(h, "a \"/*\"", "before this point", "opener"))
       .addFrame("comments", primary);
   }
   private static Stream<Token> squareAfterLiteral(int idx, Token t, Tokenizer tz){
@@ -103,13 +99,14 @@ This character can only appear inside comments and inside type names in quotes, 
     +"Remove the \"[...]\" after "+name+".")
       .addFrame("a type name", new Span(file, s.startLine(), s.startCol(), t.line(), t.span(file).endCol()));
   }
-  public static String describeFree(Token t){
-    return switch (t.kind()){
+  static String foundInside(Token hiddenContainer, String found, String position, String which){
+    var container= switch (hiddenContainer.kind()){
       case LineComment -> " line comment \"//\"";
       case BlockComment -> " block comment \"/* ... */\"";
       case UStr, SStr   -> " type name in quotes";
-      default -> throw Bug.of(t.toString());
+      default -> throw Bug.of(hiddenContainer.toString());
     };
+    return "Found "+found+" inside a"+container+" "+position+".\nThe "+which+" may belong outside the"+container+".";
   }
 
   private static Optional<Token> findPseudoOpenerBefore(int idx, Tokenizer tz){

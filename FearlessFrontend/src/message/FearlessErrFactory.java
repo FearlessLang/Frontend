@@ -361,11 +361,9 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       Token hiddenFragment, Token hiddenContainer, Tokenizer tokenizer){
     assert nonNull(open, stop, expectedClosers, hiddenFragment, hiddenContainer, tokenizer);
     var file= tokenizer.fileName();
-    var where= BadTokens.describeFree(hiddenContainer);
     var msg=
       "Unclosed "+disp(open.content())+" group.\n"
-    +"Found a matching closer inside a"+where+" between here and the stopping point.\n"
-    +"The closer may belong outside the"+where+".\n"
+    +BadTokens.foundInside(hiddenContainer, "a matching closer", "between here and the stopping point", "closer")+"\n"
     +expected("Otherwise expected", expectedClosers);
     var primary= metaParser.Token.makeSpan(file, open, hiddenFragment);
     var secondary= metaParser.Token.makeSpan(file, open, hiddenContainer);
@@ -376,11 +374,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       Token hiddenFragment, Token hiddenContainer, Tokenizer tokenizer){
     assert nonNull(open, stop, expectedClosers, hiddenFragment, hiddenContainer, tokenizer);
     var file= tokenizer.fileName();
-    var where= BadTokens.describeFree(hiddenContainer);
-    var msg=
-      "Unopened "+disp(stop.content())+".\n"
-    +"Found a matching opener hidden inside a"+where+" before this point.\n"
-    +"The opener may belong outside the"+where+".";
+    var msg= "Unopened "+disp(stop.content())+".\n"+BadTokens.foundInside(hiddenContainer, "a matching opener hidden", "before this point", "opener");
     var primary= metaParser.Token.makeSpan(file, hiddenFragment, stop);
     var secondary= metaParser.Token.makeSpan(file, hiddenContainer, stop);
     return Code.Unopened.of(msg).addSpan(primary).addFrame("groups of parenthesis", secondary);
