@@ -925,7 +925,7 @@ User:{
 }
 """));}
 
-@Test void methodBodyWrongType_inferredContextShowsInferredGenericInstantiation(){fail("""
+@Test void methodBodyWrongType_inheritedSignatureShowsInferredGenericInstantiation(){fail("""
 007|   imm .m():Car->Apply#(Person,{_->Foo});
    |   -----------------------------~~~^^^--
 
@@ -1864,7 +1864,7 @@ A:{
 }
 """));}
 
-@Test void argFromGenericCall_boundForcesRead_inferenceHint(){fail("""
+@Test void argFromGenericCall_boundForcesRead_noInferenceHint(){fail("""
 005|   .f(aaaa:mut A):B->
 006|     Need#(IdRO#[read A](aaaa));
    |     ------^^^^^^^^^^^^^^^^^^^-
@@ -5975,7 +5975,7 @@ A:base.CaptureFree{ mut .foo: A -> base.Block#.let[A] x= {this} .return {x} }
 @Test void captureFreeTopLevelThisInImmMethodInfersLetType(){ok(List.of("""
 A:base.CaptureFree{ imm .foo: A -> base.Block#.let x= {this} .return {x} }
 """));}
-@Test void typingContextShowsSupertypeWrittenByFullName(){fail("""
+@Test void inheritedSignatureShowsSupertypeWrittenByFullName(){fail("""
 001| A:base.ToStr{ .str -> base.Void }
    |               --------^^^^^^^^^
 
@@ -5987,7 +5987,7 @@ Signature as inherited by type declaration "A":
 """, List.of("""
 A:base.ToStr{ .str -> base.Void }
 """));}
-@Test void typingContextShowsSupertypeWrittenByUseAlias(){fail("""
+@Test void inheritedSignatureShowsSupertypeWrittenByUseAlias(){fail("""
 002| A:Show{ .str -> base.Void }
    |         --------^^^^^^^^^
 

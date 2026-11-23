@@ -2655,7 +2655,7 @@ Error 7 WellFormedness
 """, Map.of("c", "P:{} Cu:{} Forge:{ #(x:Cu):P -> P }"), mapABb, """
 MyId:bb.BaseId[a.Cu,a.P], a.Forge{}
 """); }
-  @Test void sweepFileLogWithoutFileNameThroughAMap(){ fail("""
+  @Test void sweepFileLogWithAnUnderscoreBeforeALowercaseLetterThroughAMap(){ fail("""
 In file: [###].fear
 
 001| Foo_bar:bb.FileLog{ .name -> bb.Nope! }
