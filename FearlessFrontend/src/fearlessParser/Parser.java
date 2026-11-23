@@ -372,8 +372,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
       LowercaseId, Underscore,          // x->e, e, patterns
       ColonColon                       // :: / ::.foo
     );
-    if (!probablyNonDecl){ return; }
-    throw errFactory().topLevelNotATypeDeclaration(span(t).get(), t);
+    if (probablyNonDecl){ throw errFactory().topLevelNotATypeDeclaration(span(t).get(), t); }
   }
   Declaration parseDeclaration(boolean top){
     if (top){ checkCommonTopLevelIssues(); }
