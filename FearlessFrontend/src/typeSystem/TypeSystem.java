@@ -80,10 +80,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     k().check(t, bs, t.type());
     var ll= decs().apply(t.type().c().name());
     if (!hasInstance(ll)){ throw tsE().typeDeclaredInMethod(t, ll); }
-    var rc= t.type().rc();
-    var getIso= (rc.isReadOrImm() && !hasAbstractMut(ll)) || rc == mut;
-    var l= ll.withRC(getIso ? iso : rc);
-    var tt= getIso ? new Type(t.type().withRC(iso), t.src()) : t;
+    var tt= canBeIso(t.type().rc(), ll) ? new Type(t.type().withRC(iso), t.src()) : t;
+    var l= ll.withRC(tt.type().rc());
     l.ms().forEach(m -> checkImplemented(l, m, tt));
     return reqs(tt, bs, tt.type(), rs);//reqs correctly used for two similar things
   }
@@ -91,7 +89,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     return l.thisName().equals("this") || captureFree(l);
   }
   private static boolean uses(E e, String x){ return e instanceof E.X(var n, _) ? n.equals(x) : e.children().anyMatch(ei -> uses(ei, x)); }
-  private static boolean hasAbstractMut(Literal l){ return l.ms().stream().anyMatch(m -> m.sig().abs() && m.sig().rc() == mut); }
+  private static boolean canBeIso(RC rc, Literal l){ return (rc.isReadOrImm() && l.ms().stream().noneMatch(m -> m.sig().abs() && m.sig().rc() == mut)) || rc == mut; }
   private List<Reason> reqs(E blame, List<B> bs, T.RCC got, List<TRequirement> rs){
     for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(scope, blame, r.t()); } }
     return reasons(bs, got, rs, r -> Reason.literalDoesNotHaveRequiredType(this, blame, bs, got, r.t()));
@@ -99,8 +97,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private List<Reason> checkLiteral(List<B> bs1, Gamma g, Literal _l, List<TRequirement> rs){
     var span= _l.name().approxSpan();
     var selfNamed= !_l.thisName().equals("_");
-    var getIso= ((_l.rc().isReadOrImm() && !hasAbstractMut(_l)) || _l.rc() == mut)
-      && new CaptureWalk(_l.bs(), g.filterFTV(_l), RC::isIsoOrImm).isFree(_l);
+    var getIso= canBeIso(_l.rc(), _l) && new CaptureWalk(_l.bs(), g.filterFTV(_l), RC::isIsoOrImm).isFree(_l);
     _l.onlyImmCapture().inner = new CaptureWalk(bs1, g, rc -> rc == imm).isFree(_l);
     var l= getIso ? _l.withRC(iso) : _l;
     var thisType= new T.RCC(l.rc(), new T.C(l.name(), dom(l.bs(), span)), span);
