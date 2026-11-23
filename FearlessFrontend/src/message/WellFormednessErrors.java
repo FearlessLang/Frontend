@@ -545,7 +545,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException typeArgAmbiguous(E.Call at, String x, List<IT> targs, int k, List<IT> cands, List<IT.RCC> common, Function<TName,core.E.Literal> decs){
     return typeArgAmbiguous(at, x, disp(at.name().s()), cands, common, src(at.e(), at.name(), holed(targs, k), at.es()), decs);
   }
-  public FearlessException literalHeadAmbiguous(E.Literal at, IT.C c, int i, String x, List<IT> cands, List<IT.RCC> common, Function<TName,core.E.Literal> decs){
+  public FearlessException literalHeadAmbiguous(E.Literal at, String x, IT.C c, int i, List<IT> cands, List<IT.RCC> common, Function<TName,core.E.Literal> decs){
     var ts= holed(c.ts(), i);
     return typeArgAmbiguous(at, x, err().tNameADisp(c.name()), cands, common, err().cp().t.of(c.name())+ts+"{...}", decs);
   }

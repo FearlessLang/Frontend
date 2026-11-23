@@ -117,7 +117,7 @@ public record ToCore(List<B> ctx, Methods meths, TypeScope scope){
     var bs= meths.from(c.name()).bs();
     var xs= B.xs(bs);
     var head= e.t() instanceof IT.RCC t && t.c().name().equals(c.name()) ? t.c() : c;
-    for (int i : unknown){ if (head.ts().get(i) instanceof IT.Amb(var cs)){ throw meths.p().err().literalHeadAmbiguous(e, head, i, xs.get(i), cs, withinBound(meths.commonSupertypes(cs), bs.get(i)), meths::_from); } }
+    for (int i : unknown){ if (head.ts().get(i) instanceof IT.Amb(var cs)){ throw meths.p().err().literalHeadAmbiguous(e, xs.get(i), head, i, cs, withinBound(meths.commonSupertypes(cs), bs.get(i)), meths::_from); } }
     throw meths.p().err().literalHeadNotInferred(e, c, unknown, xs);
   }
   private static List<IT.RCC> withinBound(List<IT.RCC> ts, B b){ return ts.stream().filter(t -> t.rc().map(b.rcs()::contains).orElse(true)).toList(); }
