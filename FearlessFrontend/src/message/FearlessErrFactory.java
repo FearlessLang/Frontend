@@ -139,23 +139,21 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   public FearlessException nameRedeclared(Token c, Span at){
     return Code.UnexpectedToken.of("Name "+disp(c.content())+" is already in scope.").addSpan(at);
   }
-  private Span redeclaredMethSpan(List<M> ms, Predicate<M> p){ return ms.reversed().stream().filter(p).findFirst().get().span().inner; }
+  private static FearlessException redeclared(List<M> ms, Predicate<M> p, Span at, String msg){
+    return Code.WellFormedness.of(msg).addSpan(ms.reversed().stream().filter(p).findFirst().get().span().inner).addSpan(at);
+  }
   public FearlessException methodNameRedeclared(List<M> ms, List<Parser.RCMName> names, Span at){
     var name= redeclaredElement(names);
     Predicate<M> p= mi -> mi.sig().filter(sig -> sig.m().equals(Optional.of(name.name())) && sig.rc().equals(name.rc())).isPresent();
-    var s= redeclaredMethSpan(ms, p);
-    return Code.WellFormedness.of(
+    return redeclared(ms, p, at,
       "Method "+methodSig(name.name())+" with "+count(name.name().arity(), "parameter")+" redeclared.\n"
-    +"A method with the same name, number of parameters and reference capability is already present.\n")
-      .addSpan(s).addSpan(at);
+    +"A method with the same name, number of parameters and reference capability is already present.\n");
   }
   public FearlessException methodMixedExplicitRC(List<M> ms, MName name, Span at){
     Predicate<M> p= mi -> mi.sig().filter(s -> s.m().equals(Optional.of(name)) && s.rc().isEmpty()).isPresent();
-    var s= redeclaredMethSpan(ms, p);
-    return Code.WellFormedness.of(
+    return redeclared(ms, p, at,
       "Method "+methodSig(name)+" with "+count(name.arity(), "parameter")+" mixes an explicit and an inferred reference capability.\n"
-    +"Once one overload of "+methodSig(name)+" declares a reference capability, every overload of that method must.\n"
-    ).addSpan(s).addSpan(at);
+    +"Once one overload of "+methodSig(name)+" declares a reference capability, every overload of that method must.\n");
   }
   public int parCount(M m){//-1 == explicitly named method
     if (m.sig().flatMap(Sig::m).isPresent()){ return -1; }
@@ -173,23 +171,19 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException methodNoNameRedeclared(List<M> ms, List<Integer> noNames, Span at){
     var count= redeclaredElement(noNames);
-    var s= redeclaredMethSpan(ms, mi -> parCount(mi) == count);
-    var hints= ms.stream()
-      .filter(m -> parCount(m) == count)
-      .flatMap(this::potentialMethodNames)
-      .distinct().toList();
+    Predicate<M> p= mi -> parCount(mi) == count;
+    var hints= ms.stream().filter(p).flatMap(this::potentialMethodNames).distinct().toList();
     var base= "Method with inferred name and "+count(count, "parameter")+" redeclared.\n"
     +"A method with inferred name and the same number of parameters is already present.\n";
-    if (hints.isEmpty()){ return Code.WellFormedness.of(base).addSpan(s).addSpan(at); }
+    if (hints.isEmpty()){ return redeclared(ms, p, at, base); }
     var ex= hints.getFirst();
-    return Code.WellFormedness.of(
+    return redeclared(ms, p, at,
       base
     +"A method declaration may be missing \".\" before its name.\n"
     +Join.of(hints.stream().map(Err::disp),
       "Parameters that may be method names written without \".\": ", ", ", ".\n")
     +dotName(ex)
-    +"Without the dot, "+disp(ex)+" is the only parameter of a method with inferred name.\n"
-    ).addSpan(s).addSpan(at);
+    +"Without the dot, "+disp(ex)+" is the only parameter of a method with inferred name.\n");
   }
   public FearlessException typeNameConflictsGeneric(Token name, Span at){
     var x= disp(name.content());
