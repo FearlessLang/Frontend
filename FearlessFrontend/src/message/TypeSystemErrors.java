@@ -129,18 +129,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   private List<T> inferredInParam(Literal d, Call c, int argi){
     if (!targsInferred(c)){ return List.of(); }
     var s= Sources.findCanonical(d, c.name(), c.rc());
-    var param= s.ts().get(argi);
+    var xs= TypeRename.tToIT(s.ts().get(argi)).ftv().toList();
     return IntStream.range(0, s.bs().size())
-      .filter(i -> mentions(param, s.bs().get(i).x()))
+      .filter(i -> xs.contains(s.bs().get(i).x()))
       .mapToObj(c.targs()::get)
       .toList();
   }
-  private static boolean mentions(T t, String x){ return switch (t){
-    case T.X(var n, _) -> n.equals(x);
-    case T.RCX(_, var tx) -> tx.name().equals(x);
-    case T.ReadImmX(var tx) -> tx.name().equals(x);
-    case T.RCC(_, var c, _) -> c.ts().stream().anyMatch(ti -> mentions(ti, x));
-  };}
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
   public FearlessException methodOverrideSignatureMismatchContravariance(TypeSystem ts, List<B> ctx, Literal l, Sig current, Sig parent, int index){
