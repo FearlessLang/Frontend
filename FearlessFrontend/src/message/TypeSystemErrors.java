@@ -107,7 +107,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   public FearlessException typeNotWellKinded(E toErr, KindingTarget target, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     assert index >= 0;
     var e= switch (target){
-      case T.C c -> typeArgBounds(err().line("The type "+kindedTypeRepr(c)+" is invalid."), err().tNameADisp(c.name()), decs.apply(c.name()).bs().get(index), c.ts().get(index), index, bounds, got);
+      case T.C c -> typeArgBounds(err().line("The type "+kindedTypeRepr(c)+" is invalid."), err().tNameADisp(c.name()),
+        decs.apply(c.name()).bs().get(index), c.ts().get(index), index, bounds, got);
       case KindingTarget.CallKinding(var t, var c) -> typeNotWellKindedSig(t, c, index, bounds, got);
     };
     var span= toErr.span().inner.contained(target.span().inner) ? target.span().inner : toErr.span().inner;
@@ -244,7 +245,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var e= err();
     if (!iso){ e.line("Parameter "+x+" of type "+err().typeRepr(false, t)+", which can be instantiated with "+disp(RC.iso)); }
     e.line("The iso parameter "+x+" violates the single-use rule in method "+ms+" (line "+m.sig().span().inner.startLine()+").");
-    if (earlyErrOnMoreThenOnceDirectly){ p.ifPresent(d -> e.line("The pattern "+x+" calls "+Join.of(d.extract().stream().map(ns -> disp(ns.getFirst().s())), "", " and ", "")+" on it.")); }
+    if (earlyErrOnMoreThenOnceDirectly){
+      var calls= p.map(d -> Join.of(d.extract().stream().map(ns -> disp(ns.getFirst().s())), "", " and ", ""));
+      calls.ifPresent(cs -> e.line("The pattern "+x+" calls "+cs+" on it."));
+    }
     var fe= e.line(earlyErrOnMoreThenOnceDirectly ? "It is used directly "+usages.size()+" times." : "It is used directly and also captured into object literals.")
       .line("An iso parameter can either be captured into object literals, or be used directly once.")
       .typeErr();
@@ -316,7 +320,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
         +"of "+atLine(l)+".\n"
         +"The bounds declared by the object literal are all it knows about its generic type parameters,\n"
         +"and thus "+subject+" cannot be captured.";
-      case Change.DropReadHMutH _ -> "The type of "+subject+(why.atDrop().explicitH() ? " is hygienic" : " can be instantiated with a hygienic capability")+" (\"readH\" or \"mutH\")\n"
+      case Change.DropReadHMutH _ -> "The type of "+subject
+        +(why.atDrop().explicitH() ? " is hygienic" : " can be instantiated with a hygienic capability")+" (\"readH\" or \"mutH\")\n"
         +"and thus it cannot be captured in the "+atLine(l)+".";
       case Change.DropFTV _, Change.CapFree _ -> throw Bug.unreachable();
     };

@@ -89,7 +89,9 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     return l.thisName().equals("this") || captureFree(l);
   }
   private static boolean uses(E e, String x){ return e instanceof E.X(var n, _) ? n.equals(x) : e.children().anyMatch(ei -> uses(ei, x)); }
-  private static boolean canBeIso(RC rc, Literal l){ return (rc.isReadOrImm() && l.ms().stream().noneMatch(m -> m.sig().abs() && m.sig().rc() == mut)) || rc == mut; }
+  private static boolean canBeIso(RC rc, Literal l){
+    return (rc.isReadOrImm() && l.ms().stream().noneMatch(m -> m.sig().abs() && m.sig().rc() == mut)) || rc == mut;
+  }
   private List<Reason> reqs(E blame, List<B> bs, T.RCC got, List<TRequirement> rs){
     for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(scope, blame, r.t()); } }
     return reasons(bs, got, rs, r -> Reason.literalDoesNotHaveRequiredType(this, blame, bs, got, r.t()));

@@ -118,9 +118,10 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
         .line("in some folder inside the project folder."))
         .wf();
     }
+    var names= heads.stream().map(u -> PrettyFileName.displayFileName(u.fearURI())).toList();
     return badRank(err()
       .line("Ambiguous rank file for package "+disp(pkgName)+".")
-      .bullets("Found "+heads.size()+" files that look like rank head candidates:", heads.stream().map(u -> PrettyFileName.displayFileName(u.fearURI())).toList())
+      .bullets("Found "+heads.size()+" files that look like rank head candidates:", names)
       .line("There must be exactly one source file whose name represents this package rank.")
       .line("Rename or remove the extra files so that only one file name is of form \"_rank_*.fear\".")).wf();
   }
@@ -193,7 +194,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     }
     private Optional<FearlessException> pkgDoesNotExist(){
       if (typedPkg.isEmpty() || !typesInPkg(typedPkg).isEmpty()){ return Optional.empty(); }
-      return Optional.of(typeName(missingPkg(err.get(), contextPkg, typedPkg, sortedDistinct(TName::pkgName, all.stream().filter(t -> !t.pkgName().isEmpty())), Optional.empty()), tn));
+      var pkgs= sortedDistinct(TName::pkgName, all.stream().filter(t -> !t.pkgName().isEmpty()));
+      return Optional.of(typeName(missingPkg(err.get(), contextPkg, typedPkg, pkgs, Optional.empty()), tn));
     }
     private <A,R> List<R> sortedDistinct(Function<A,R> f, Stream<A> s){ return s.map(f).distinct().sorted().toList(); }
     private List<String> shownInOrder(Stream<TName> s){ return s.sorted(Comparator.comparing(TName::s)).map(shown).distinct().toList(); }
@@ -480,7 +482,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return disp(rc.map(RC::toStrSpace).orElse("")+err().cp().t.of(c.name())+Join.of(ts, "[", ",", "]", ""));
   }
   private Err sigBlock(Methods meths, Agreement at, List<M.Sig> ss){
-    var e= err(y -> y, meths::from, List.of()).line("Supertypes disagree on the signature of method "+methodSig(at.rc().toStrSpace(false), at.mName())+".");
+    var sig= methodSig(at.rc().toStrSpace(false), at.mName());
+    var e= err(y -> y, meths::from, List.of()).line("Supertypes disagree on the signature of method "+sig+".");
     var sources= meths.sources(at.lit(), ss.getFirst());
     assert sources.size() == ss.size();
     e.sigs(err().expRepr(at.lit()), TypeRename.itcToTC(sources), ss.stream().map(WellFormednessErrors::coreSig).toList(), true);
@@ -535,7 +538,10 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var ts= holed(c.ts(), i);
     return typeArgAmbiguous(at, b, err().tNameADisp(c.name()), cands, common, err().cp().t.of(c.name())+ts+"{...}", decs);
   }
-  private String holed(List<IT> ts, int k){ return Join.of(IntStream.range(0, ts.size()).mapToObj(j -> j == k ? "_" : err().typeReprRaw(ts.get(j))), "[", ",", "]"); }
+  private String holed(List<IT> ts, int k){
+    var shown= IntStream.range(0, ts.size()).mapToObj(j -> j == k ? "_" : err().typeReprRaw(ts.get(j)));
+    return Join.of(shown, "[", ",", "]");
+  }
   private FearlessException typeArgAmbiguous(E at, B b, String of, List<IT> cands, List<IT.RCC> common, String example, Function<TName,core.E.Literal> decs){
     var cs= cands.stream().map(err(h -> h, decs, List.of())::typeRepr).distinct().toList();
     var xs= Err.disp(b.x());
