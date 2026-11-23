@@ -78,12 +78,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   public FearlessException mCallFrame(Literal l, M m, FearlessException fe){
     return fe.addFrame("method "+err().methodSig("", l, m.sig().m())+" (line "+m.sig().span().inner.startLine()+")", m.sig().span().inner);
   }
-  private FearlessException withCallSpans(FearlessException ex, Call c){
-    return ex.addSpan(TSpan.fromPos(c.pos(), c.name().s().length()).inner).addSpan(c.span().inner);
+  private FearlessException withCallSpans(FearlessException fe, Call c){
+    return fe.addSpan(TSpan.fromPos(c.pos(), c.name().s().length()).inner).addSpan(c.span().inner);
   }
-  private FearlessException withCallSpans(FearlessException ex, E at, Call c){
-    if (!at.span().inner.isSingleLine()){ return withCallSpans(ex, c); }
-    return ex.addSpan(at.span().inner).addSpan(c.span().inner);
+  private FearlessException withCallSpans(FearlessException fe, E at, Call c){
+    if (!at.span().inner.isSingleLine()){ return withCallSpans(fe, c); }
+    return fe.addSpan(at.span().inner).addSpan(c.span().inner);
   }
   private FearlessException addExpFrame(E toErr, FearlessException fe){
     return fe.addFrame(err().expRepr(toErr), toErr.span().inner);
@@ -242,11 +242,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     if (!iso){ e.line("Parameter "+x+" of type "+err().typeRepr(false, t)+", which can be instantiated with "+disp(RC.iso)); }
     e.line("The iso parameter "+x+" violates the single-use rule in method "+ms+" (line "+m.sig().span().inner.startLine()+").");
     if (earlyErrOnMoreThenOnceDirectly){ p.ifPresent(d -> e.line("The pattern "+x+" calls "+Join.of(d.extract().stream().map(ns -> disp(ns.getFirst().s())), "", " and ", "")+" on it.")); }
-    var ex= e.line(earlyErrOnMoreThenOnceDirectly ? "It is used directly "+usages.size()+" times." : "It is used directly and also captured into object literals.")
+    var fe= e.line(earlyErrOnMoreThenOnceDirectly ? "It is used directly "+usages.size()+" times." : "It is used directly and also captured into object literals.")
       .line("An iso parameter can either be captured into object literals, or be used directly once.")
       .typeErr();
-    for (var u : usages){ ex.addSpan(u.span().inner); }
-    return ex;
+    for (var u : usages){ fe.addSpan(u.span().inner); }
+    return fe;
   }
   private static Optional<fearlessFullGrammar.XPat.Destruct> pattern(Literal l, M m, String name, E.X usage){
     if (usage.src().inner instanceof fearlessFullGrammar.E.Implicit){ return Optional.empty(); }
