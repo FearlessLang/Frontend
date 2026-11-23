@@ -220,11 +220,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var s= got.sig();
     assert s.rc() == RC.mut;
     assert l.rc().isReadOrImm();
-    var m= methodSig(s.rc()+" ", s.m());
     var e= err()
       .line("The method "+err().methodSig(s.rc().toStrSpace(), l, s.m())+" is dead code.")
       .line("The "+err().expRepr(l)+" is "+disp(l.rc())+", so it will never be seen as "+disp(RC.mut)+".");
-    if (!e.sigs(l, got, true)){ e.line("But it implements method "+m+", which requires a "+disp(RC.mut)+" receiver."); }
+    if (!e.sigs(l, got, true)){ e.line("But it implements method "+methodSig(s.rc()+" ", s.m())+", which requires a "+disp(RC.mut)+" receiver."); }
     return addExpFrame(l, e.typeErr().addSpan(s.span().inner));
   }
   public FearlessException selfNameDeadCode(Literal l){ return addExpFrame(l, err().selfNameDeadCode(l.thisName(), err().expRepr(l)).typeErr()); }
@@ -234,15 +233,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///Raised when checking object literals
   public FearlessException notAffineIso(Literal l, M m, String name, boolean earlyErrOnMoreThenOnceDirectly, List<E.X> usages){
     assert !usages.isEmpty();
-    var line= m.sig().span().inner.startLine();
     var ms= err().methodSig(m.sig().rc().toStrSpace(), l, m.sig().m());
     var p= pattern(l, m, name, usages.getFirst());
     var x= disp(p.map(FearlessErrFactory::patternRepr).orElse(usages.getFirst().src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : name));
     var t= m.sig().ts().get(m.xs().indexOf(name));
-    var iso= t instanceof T.RCC r && r.rc() == RC.iso || t instanceof T.RCX rx && rx.rc() == RC.iso;
+    var iso= t.explicitRC().equals(Optional.of(RC.iso));
     var e= err();
     if (!iso){ e.line("Parameter "+x+" of type "+err().typeRepr(false, t)+", which can be instantiated with "+disp(RC.iso)); }
-    e.line("The iso parameter "+x+" violates the single-use rule in method "+ms+" (line "+line+").");
+    e.line("The iso parameter "+x+" violates the single-use rule in method "+ms+" (line "+m.sig().span().inner.startLine()+").");
     p.filter(_ -> earlyErrOnMoreThenOnceDirectly).ifPresent(d -> e.line("The pattern "+x+" calls "+Join.of(d.extract().stream().map(ns -> disp(ns.getFirst().s())), "", " and ", "")+" on it."));
     var ex= e.line(earlyErrOnMoreThenOnceDirectly ? "It is used directly "+usages.size()+" times." : "It is used directly and also captured into object literals.")
       .line("An iso parameter can either be captured into object literals, or be used directly once.")
