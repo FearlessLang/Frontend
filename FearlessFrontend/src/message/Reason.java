@@ -39,21 +39,14 @@ public final class Reason{
       default -> throw Bug.unreachable();
     };
     var show= onlyRC(ts, bs, got, expected);
-    var base= "Object literal has type "+es.err().expReprDirect(!show, blame)+" instead of a subtype of "+es.err().typeRepr(!show, expected)+".";
-    if (!explRC){ return new Reason(got, show, base, es.printed(), () -> baseFooterE(ts.scope(), got, expected)); }
-    return hintExplicitRC(es, ts, got, show, base, er, rc, blame);
-  }
-  private static Reason hintExplicitRC(TypeSystemErrors es, TypeSystem ts, T got, boolean show, String base, T.RCC expected, RC rc, E blame){
+    var e= es.err().line("Object literal has type "+es.err().expReprDirect(!show, blame)+" instead of a subtype of "+es.err().typeRepr(!show, expected)+".");
     E blameOk= switch (blame){
       case Literal l -> l.withRC(rc);
       case Type(var t, var src) -> new Type(t.withRC(rc), src);
       default -> throw Bug.unreachable();
     };
-    var why= rc == expected.rc() ? "." : " (needed to satisfy the "+disp(expected.rc())+" requirement).";
-    var e= es.err()
-      .line(base)
-      .line("Write "+es.err().expReprDirect(false, blameOk)
-      +" if you need "+(rc == RC.iso ? "an " : "a ")+disp(rc)+" object literal"+why);
+    var why= rc == er.rc() ? "." : " (needed to satisfy the "+disp(er.rc())+" requirement).";
+    if (explRC){ e.line("Write "+es.err().expReprDirect(false, blameOk)+" if you need "+(rc == RC.iso ? "an " : "a ")+disp(rc)+" object literal"+why); }
     return new Reason(got, show, e.text(), es.printed(), () -> baseFooterE(ts.scope(), got, expected));
   }
   private static E baseFooterE(TypeScope s, T actual, T req){ return TypeScope.bestInterestingScope(s, TypeScope.interestFromDeclVsReq(actual, req)).contextE(); }
