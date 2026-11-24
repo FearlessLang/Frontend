@@ -93,7 +93,7 @@ public record InjectionSteps(Methods meths, int cap){
     var xs= m.xs();
     var thisRc= LiteralDeclarations.has(di.cs(), LiteralDeclarations.captureFree) ? RC.imm : mCore.sig().rc();
     var thisType= new IT.RCC(Optional.of(thisRc), new IT.C(di.name(), MSigL.toXs(span, B.xs(di.bs()))), span);//no preferred on self names
-    var ei= meet(e, TypeRename.tToIT(mCore.sig().ret()));
+    var ei= meet(e, TypeRename.tToIT(mCore.sig().ret()), false);
     var g= Gamma.of(xs, TypeRename.tToIT(mCore.sig().ts()), di.thisName(), thisType);
     var bs= Push.of(di.bs(), m.sig().bs().get());
     var s= new InjectionSteps(meths, cap*size(ei));
@@ -102,11 +102,11 @@ public record InjectionSteps(Methods meths, int cap){
     ei = s.nextStar(bs, g, ei);
     return new core.M(mCore.sig(), xs, m.names(), Optional.of(new ToCore(bs, meths, TypeScope.top().pushM(di, mCore)).of(ei, e)));
   }
-  E meet(E e, IT t){
+  E meet(E e, IT t, boolean late){
     if (e instanceof E.Type tt){ return meetT(tt, t); }
     var typedLit= e instanceof E.Literal l && l.t().isTV();
     if (typedLit){ return e; }
-    e = prototypeAscribeRootReceiver(e, t);
+    e = prototypeAscribeRootReceiver(e, t, late);
     return e.withT(meet(e.t(), t));
   }
   private IT _below(RCC sub, RCC sup){
@@ -215,8 +215,8 @@ public record InjectionSteps(Methods meths, int cap){
   private List<E> nextStar(List<B> bs, Gamma g, List<E> es){
     return norm(es, es.stream().map(ei -> nextStar(bs, g, ei)).toList());
   }
-  private List<E> meetWithTargs(List<E> es, MSigL m, List<IT> all){
-    var res= norm(es, Streams.zip(es, m.ps0()).map((e,p) -> meet(e, TypeRename.of(p, m.xs(), all))).toList());
+  private List<E> meetWithTargs(List<E> es, MSigL m, List<IT> all, boolean late){
+    var res= norm(es, Streams.zip(es, m.ps0()).map((e,p) -> meet(e, TypeRename.of(p, m.xs(), all), late)).toList());
     assert notBackToOrigin(es, res);
     return res;
   }
@@ -307,10 +307,10 @@ public record InjectionSteps(Methods meths, int cap){
     if (om.isEmpty()){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     var m= om.get();
     assert m.ps0().size() == c.es().size();
-    var es= nextStar(bs, g, meetWithTargs(c.es(), m, decidedThen(g, c, c.es(), m)));
+    var es= nextStar(bs, g, meetWithTargs(c.es(), m, decidedThen(g, c, c.es(), m), g.late()));
     var all= decidedThen(g, c, es, m);
     assert all.size() == m.nCls()+m.bsArity();
-    if (direct.isPresent()){ e = meet(e, rcc.withTs(all.subList(0, m.nCls()))); }
+    if (direct.isPresent()){ e = meet(e, rcc.withTs(all.subList(0, m.nCls())), g.late()); }
     return c.withMore(e, c.rc().orElse(m.rc()), all.subList(m.nCls(), all.size()), es, meet(c.t(), TypeRename.of(m.ret0(), m.xs(), all)));
   }
   private static IT deFresh(Gamma g, IT t){
@@ -431,7 +431,7 @@ public record InjectionSteps(Methods meths, int cap){
     g.declare(l.thisName(), selfPrecise.<IT>map(s -> new IT.RCC(captureFree(l) ? Optional.of(RC.imm) : m.sig().rc(), s.c(), s.span())).orElse(IT.U.Instance));
     assert m.sig().m().get().arity() == m.xs().size();
     Streams.zip(m.xs(), m.sig().ts()).forEach((x,t) -> g.declare(x, t.get()));
-    var e= nextStar(Push.of(litBs, m.sig().bs().get()), g, meet(m.impl().get().e(), m.sig().ret().get()));
+    var e= nextStar(Push.of(litBs, m.sig().bs().get()), g, meet(m.impl().get().e(), m.sig().ret().get(), g.late()));
     var args= updateArgs(m, g);
     g.popScope();
   /*The meet below narrows a method's return type to the type of its body, so a literal only ever
@@ -526,14 +526,14 @@ public record InjectionSteps(Methods meths, int cap){
     if (headKnown){ return false; }
     return l.t().undecided();
   }
-  private E prototypeAscribeRootReceiver(E arg, IT expected){
-    if (!(arg instanceof E.Call c && expected instanceof IT.RCC exp)){ return arg; }
+  private E prototypeAscribeRootReceiver(E arg, IT expected, boolean late){
+    if (!(arg instanceof E.Call c) || expected.undecided() && !late){ return arg; }
     var receiver= switch (c.e()){
       case E.Literal l when !needsPrototypeAscription(l) -> l;
-      case E.Literal l when implementable(exp.c().name()) && !declares(l, c.name()) -> l.withT(prototypeHead(exp, l.span()));
+      case E.Literal l when expected instanceof IT.RCC exp && implementable(exp.c().name()) && !declares(l, c.name()) -> l.withT(prototypeHead(exp, l.span()));
       case E.Literal l when l.ms().isEmpty() -> l;
       case E.Literal l -> itself(l);
-      default -> prototypeAscribeRootReceiver(c.e(), expected);
+      default -> prototypeAscribeRootReceiver(c.e(), expected, late);
     };
     return c.withEEs(receiver, c.es());
   }
