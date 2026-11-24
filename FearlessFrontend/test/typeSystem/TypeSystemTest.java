@@ -5057,8 +5057,11 @@ User:{ .go: base.Void -> Block#(Mk#) }
 
 While inspecting method "App.m" (line 1)
 This call to method ".a" cannot typecheck.
-Method ".a" is not declared on "{...}".
-Object literal "{...}" does not have any methods.
+Method ".a" is not declared on type "base.Nat".
+
+Available methods on type "base.Nat":
+-       *(base.Nat): base.Nat
+-       +(base.Nat): base.Nat
 """, List.of("""
 App:{ .m: base.Nat -> {}.a }
 """));}
