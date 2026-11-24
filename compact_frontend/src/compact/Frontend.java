@@ -629,8 +629,8 @@ import java.util.stream.*;
       return zip(c.types,cc.c.types,(t,ti)->t instanceof R rr&&!(ti instanceof R ci&&ci.c.name.equals(rr.c.name))?qs(v.size()):refine(v,t,ti)).stream().reduce(qs(v.size()),this::meet);
     }
     E ascribe(E arg,T expected){
-      if(!(arg instanceof Call c&&expected instanceof R exp))return arg;
-      return c.children(!(c.e instanceof Literal l&&l.anon&&l.cs.size()==0&&l.t==u)?ascribe(c.e,expected):any(l.ms,m->c.name.equals(m.s.m)&&!m.s.all().contains(u))?new Literal(imm,l.name,l.b,l.cs,l.self,l.ms,l.self(imm),true,false):l.t(new R(exp.r,new C(exp.c.name,qs(exp.c.types.size())))),c.es);
+      if(!(arg instanceof Call c)||expected==u&&!late)return arg;
+      return c.children(!(c.e instanceof Literal l&&l.anon&&l.cs.size()==0&&l.t==u)?ascribe(c.e,expected):expected instanceof R exp&&!any(l.ms,m->c.name.equals(m.s.m)&&!m.s.all().contains(u))?l.t(new R(exp.r,new C(exp.c.name,qs(exp.c.types.size())))):l.ms.isEmpty()?l:new Literal(imm,l.name,l.b,l.cs,l.self,l.ms,l.self(imm),true,false),c.es);
     }
     E core(List<B>ctx,E exp,E orig){return switch(exp){
       case E.X x->x.t(u);
