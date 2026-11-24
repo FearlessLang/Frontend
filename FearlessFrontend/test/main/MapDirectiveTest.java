@@ -190,7 +190,7 @@ Source code inside folders named "_b" uses package name "a"
 to refer to the code inside folders named "_c",
 because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
-""", Map.of("c", "C:{}"), Map.of("a", "c"), """
+""", Map.of("a", aA, "c", "C:{}"), Map.of("a", "c"), """
 B:{.m(x:a.A):B->this}
 """); }
   @Test void noMapQualifiedNameIsLiteral(){ ok(Map.of("a", aA, "c", cA), Map.of(), """

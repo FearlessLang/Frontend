@@ -28,8 +28,12 @@ public final class ToInference{
         .map(t -> new TName(p.name()+"."+e.getKey(), t.arity(), t.pos()))
       ).toList();
     var scope= Stream.concat(declared.stream(), imported.stream()).toList();
-    var all= real.stream().map(t -> written(p, t)).toList();
+    var all= real.stream().filter(t -> reachable(p, t)).map(t -> written(p, t)).toList();
     return p.err().usedUndeclaredName(written, resolved, scope, all, meths.other().ranks(), WellFormednessErrors.resolution(p, written.s()));
+  }
+  private static boolean reachable(Package p, TName t){
+    var w= Package.writtenPkg(p.map(), t.pkgName());
+    return p.map().getOrDefault(w, w).equals(t.pkgName());
   }
   private static TName written(Package p, TName t){
     return t.withoutPkgName().withPkgName(Package.writtenPkg(p.map(), t.pkgName()));
