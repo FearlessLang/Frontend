@@ -174,7 +174,7 @@ Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".use(_)".
-No supertype has a method ".use(_)".
+No supertype has a method named ".use(_)" with 1 parameter.
 Error 7 WellFormedness
 """, List.of(
 "A:{ .id:A->A; .id[X](x:A):A->x; .use:A->A; .use(x:A)->x.id(); }"));}
@@ -187,7 +187,7 @@ In file: [###].fear
 
 While inspecting type declaration "A"
 Cannot infer signature of method ".use(_)".
-No supertype has a method ".use(_)".
+No supertype has a method named ".use(_)" with 1 parameter.
 Error 7 WellFormedness
 """, List.of(
 "A:{ .use:A->A; .use(x)->x; }"));}
@@ -945,7 +945,7 @@ In file: [###].fear
    |     ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "E"
-Invalid signature for method "E.m(_,_)".
+Invalid method signature for "E.m(_,_)".
 The method ".m(_,_)" declares 1 generic type parameter, but supertype "A" declares 2.
 Error 7 WellFormedness
 """, List.of("""

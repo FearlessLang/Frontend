@@ -90,7 +90,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private FearlessException wf(Err e, Agreement at){ return e.wf().addFrame(err().expRepr(at.lit()), at.span()); }
   private FearlessException wf(Err e, M.Sig s, E.Literal origin){ return e.wf().addSpan(s.span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
   private FearlessException wfUse(Err e, TName tn){ return e.wf().addFrame("package header", TSpan.fromPos(tn.pos(), tn.s().length()).inner); }
-  private Err invalidMethImpl(Agreement at){ return err().line("Invalid signature for "+method(at.rc(), err().methodSig("", at.lit(), at.mName()))+"."); }
+  private Err invalidMethImpl(Agreement at){ return err().line("Invalid method signature for "+sigOf(at.rc(), err().methodSig("", at.lit(), at.mName()))+"."); }
   public FearlessException notClean(FileFull f){
     var e= err()
       .line("Package directives outside of rank file.")
@@ -403,7 +403,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var s= m.sig();
     var sig= methodSig(s.m().get());
     var name= s.rc().map(r -> theMethod(r, sig)).orElse("method "+sig);
-    var aName= s.rc().map(r -> (r.isIsoOrImm() ? "an " : "a ")+disp(r)+" method "+sig).orElse("a method "+sig);
+    var aName= s.rc().map(r -> (r.isIsoOrImm() ? "an " : "a ")+disp(r)).orElse("a")+" method named "+sig+" with "+count(s.ts().size(), "parameter");
     var allParHasType= s.ts().stream().allMatch(Optional::isPresent);
     var e= err();
     if (allParHasType){ e.line("Missing return type for "+name+"."); }

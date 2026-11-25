@@ -234,7 +234,7 @@ Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".get".
-No supertype has a method ".get".
+No supertype has a method named ".get" with 0 parameters.
 """, """
 A[X:*]:{ .x: X; #: X -> {.get -> this.x}.get }
 """);}
@@ -248,7 +248,7 @@ Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".foo".
-No supertype has a method ".foo".
+No supertype has a method named ".foo" with 0 parameters.
 """, """
 A[X:*]:{ #: X -> {.foo -> this}* }
 """);}

@@ -1360,7 +1360,7 @@ In file: [###].fear
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Current"
-Invalid signature for method "Current.id(_)".
+Invalid method signature for "Current.id(_)".
 The method ".id(_)" declares different capability bounds for generic type parameter 1
 than the supertypes.
 Local declaration: "X:imm,read".
@@ -1380,7 +1380,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Sub"
-Invalid signature for method "Sub.f(_)".
+Invalid method signature for "Sub.f(_)".
 The method ".f(_)" declares 2 generic type parameters, but supertype "Sup" declares 1.
 Error 7 WellFormedness
 """, List.of("""
@@ -1394,7 +1394,7 @@ Sub:Sup{ imm .f[X:imm,Y:imm](x:imm X):base.Void; }
    | ----------------^^^^^^^^^^^^^^^^^^^^^^^^^---
 
 While inspecting type declaration "Current"
-Invalid signature for method "Current.g(_)".
+Invalid method signature for "Current.g(_)".
 The method ".g(_)" accepts parameter 1 of type "imm P".
 But method "Parent.g(_)" requires "read P".
 An overriding method can refine the types of its parameters and result,
@@ -1411,7 +1411,7 @@ Current:Parent{ imm .g(x:imm P):base.Void; }
    | ---------^^^^^^^^^^^^^^^---
 
 While inspecting type declaration "Sub"
-Invalid signature for method "Sub.h".
+Invalid method signature for "Sub.h".
 The method ".h" returns type "read P".
 But method "Sup.h" returns type "imm P".
 An overriding method can refine the types of its parameters and result,
@@ -2450,7 +2450,7 @@ Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".a".
-No supertype has a method ".a".
+No supertype has a method named ".a" with 0 parameters.
 """, List.of("""
 Outer:{ .m: base.Void -> { .a -> base.Void{} }.a }
 """));}
@@ -4601,7 +4601,7 @@ without binders and capturing "other" is then reported as a capture error.*/
    | -------^^^^^^^^^^^---------------
 
 While inspecting type declaration "B"
-Invalid signature for method "B.m1".
+Invalid method signature for "B.m1".
 The method ".m1" returns type "P".
 But method "A.m1" returns type "Q", which is not a supertype of "P".
 It is instead a subtype: you are weakening the result instead of strengthening it.
@@ -6213,7 +6213,7 @@ A:{ .m[X:*,Y:*](x:mut X):mut Y -> x }
    |     -------------~~~~~~~~^^^^^^^^^^^^^^^^~~
 
 While inspecting object literal instance of "Box[A]" > method "U.m" (line 4)
-Invalid signature for method "Box[A].get(_)".
+Invalid method signature for "Box[A].get(_)".
 The method ".get(_)" accepts parameter 1 of type "B".
 But method "Box[_].get(_)" requires "A", which is not a subtype of "B".
 The two types are unrelated.
@@ -6291,7 +6291,7 @@ U:{ .m: base.Void -> Ig#(F#({ .a -> this.b; .b -> base.Void })) }
 
 While inspecting object literal instance of "A"
 Cannot infer signature of method ".foo(_)".
-No supertype has a method ".foo(_)".
+No supertype has a method named ".foo(_)" with 1 parameter.
 """, List.of("""
 A:{}
 U:{ .m: A -> { .foo(x): A -> x }.foo(A) }

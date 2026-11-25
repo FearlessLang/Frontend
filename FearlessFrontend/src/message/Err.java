@@ -164,6 +164,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
   static String methodSig(String pre, MName m){ return disp(Join.of(Collections.nCopies(m.arity(), "_"), pre+m.s()+"(", ",", ")", pre+m.s())); }
   static String theMethod(RC rc, String sig){ return "the "+disp(rc)+" method "+sig; }
   static String method(RC rc, String sig){ return rc == RC.imm ? "method "+sig : theMethod(rc, sig); }
+  static String sigOf(RC rc, String sig){ return rc == RC.imm ? sig : theMethod(rc, sig); }
   String text(){ return sb.toString().stripTrailing(); }
   Err line(String s){
     assert !s.isEmpty();

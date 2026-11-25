@@ -40,7 +40,7 @@ B:A{ .foo(b:A):B }
    | -----^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid signature for method "B.foo(_)".
+Invalid method signature for "B.foo(_)".
 The method ".foo(_)" accepts parameter 1 of type "B".
 But method "A.foo(_)" requires "A", which is not a subtype of "B".
 It is instead a supertype: you are strengthening the parameter instead of weakening it.
@@ -54,7 +54,7 @@ B:A{ .foo(b:B):Int }
    | -------^^^^^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid signature for method "A.foo(_)".
+Invalid method signature for "A.foo(_)".
 The method ".foo(_)" accepts parameter 1 of type "A".
 But method "B.foo(_)" requires "B", which is not a subtype of "A".
 It is instead a supertype: you are strengthening the parameter instead of weakening it.
@@ -77,7 +77,7 @@ B:{ .m: Int }
    | -----^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid signature for method "A.m".
+Invalid method signature for "A.m".
 The method ".m" returns type "Str".
 But method "B.m" returns type "Int", which is not a supertype of "Str".
 The two types are unrelated.
@@ -176,7 +176,7 @@ D:{ .m: D }
    | ---------^^^^^--
 
 While inspecting type declaration "A"
-Invalid signature for method "A.m".
+Invalid method signature for "A.m".
 The method ".m" returns type "D".
 But method "B.m" returns type "B", which is not a supertype of "D".
 It is instead a subtype: you are weakening the result instead of strengthening it.
@@ -191,7 +191,7 @@ D:{ .m: B }
    | ---------------^^^^^^^^^--
 
 While inspecting type declaration "A[_]"
-Invalid signature for method "A[_].m(_)".
+Invalid method signature for "A[_].m(_)".
 The method ".m(_)" returns type "A".
 But method "A[_,_].m(_)" returns type "A[X,X]", which is not a supertype of "A".
 The two types are unrelated.
@@ -337,7 +337,7 @@ B:{ .m[X:*](x: X): Foo }
    |        ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Invalid signature for method "A.m".
+Invalid method signature for "A.m".
 The method ".m" declares 2 generic type parameters, but these supertypes declare 1:
 - "B"
 - "C"
@@ -353,7 +353,7 @@ C:{ .m[Z:*]: Foo }
 
 While inspecting type declaration "A"
 Cannot infer signature of method ".m(_)".
-No supertype has a method ".m(_)".
+No supertype has a method named ".m(_)" with 1 parameter.
 "::" in the body is the parameter of method ".m(_)".
 """, List.of("""
 A:{ .m -> ::.foo }
@@ -364,7 +364,7 @@ A:{ .m -> ::.foo }
 
 While inspecting type declaration "A"
 Cannot infer signature of method ".m(_)".
-No supertype has a method ".m(_)".
+No supertype has a method named ".m(_)" with 1 parameter.
 """, List.of("""
 A:{ .m(x) -> { .k -> ::.foo } }
 """));}
@@ -373,7 +373,7 @@ A:{ .m(x) -> { .k -> ::.foo } }
    |      ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Invalid signature for method "A.m".
+Invalid method signature for "A.m".
 The method ".m" declares 2 generic type parameters, but supertype "B" declares 1.
 """, List.of("""
 Foo:{}
@@ -385,7 +385,7 @@ B:{ .m[X:*]: Foo }
    |      ^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Invalid signature for method "A.m".
+Invalid method signature for "A.m".
 The method ".m" declares different capability bounds for generic type parameter 1
 than the supertypes.
 Local declaration: "X:imm".
@@ -410,7 +410,7 @@ Bi[AA:*,BB:*]:{}
    | -----^^^^^^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid signature for method "A.m".
+Invalid method signature for "A.m".
 The method ".m" returns type "Break[A]".
 But method "B.m" returns type "Break[B]", which is not a supertype of "Break[A]".
 The two types are unrelated.
@@ -424,7 +424,7 @@ Break[X:*]:{}
    | -----^^^^^^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid signature for method "A.m".
+Invalid method signature for "A.m".
 The method ".m" returns type "Break[B]".
 But method "B.m" returns type "Break[A]", which is not a supertype of "Break[B]".
 The two types are unrelated.
@@ -438,7 +438,7 @@ Break[X:*]:{}
    | -----^^^^^^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid signature for method "A.m".
+Invalid method signature for "A.m".
 The method ".m" returns type "Break[A]".
 But method "B.m" returns type "Break[B]", which is not a supertype of "Break[A]".
 The two types are unrelated.
@@ -452,7 +452,7 @@ Break[X:*]:{ .b: X }
    | -----^^^^^^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid signature for method "A.m".
+Invalid method signature for "A.m".
 The method ".m" returns type "Break[B]".
 But method "B.m" returns type "Break[A]", which is not a supertype of "Break[B]".
 The two types are unrelated.
@@ -466,7 +466,7 @@ Break[X:*]:{ .b: X }
    | -----^^^^^^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid signature for method "A.m".
+Invalid method signature for "A.m".
 The method ".m" returns type "Break[A]".
 But method "B.m" returns type "Break[B]", which is not a supertype of "Break[A]".
 The two types are unrelated.
@@ -480,7 +480,7 @@ Break[X:*]:{ .b: Break[X] }
    | -----^^^^^^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid signature for method "A.m".
+Invalid method signature for "A.m".
 The method ".m" returns type "Break[B]".
 But method "B.m" returns type "Break[A]", which is not a supertype of "Break[B]".
 The two types are unrelated.
@@ -819,7 +819,7 @@ User:{ .viaSup(s: Sup[Baz]): Baz -> s.h(Baz); .use: Baz -> this.viaSup(Sub[Baz])
    | ---------^^^^^^^^^^^^^--
 
 While inspecting type declaration "Sub"
-Invalid signature for the "mut" method "Sub.h".
+Invalid method signature for the "mut" method "Sub.h".
 The method ".h" returns type "iso P".
 But the "mut" method "Sup.h" returns type "mut P".
 An overriding method can refine the types of its parameters and result,
@@ -834,7 +834,7 @@ Sub:Sup{ mut .h: iso P }
    | ---------^^^^^^^^^^^^^^^^--
 
 While inspecting type declaration "Sub"
-Invalid signature for method "Sub.g(_)".
+Invalid method signature for "Sub.g(_)".
 The method ".g(_)" accepts parameter 1 of type "read P".
 But method "Sup.g(_)" requires "mut P".
 An overriding method can refine the types of its parameters and result,
@@ -849,7 +849,7 @@ Sub:Sup{ .g(x: read P): P }
    | ---------^^^^^^^^^^^^^^^^^--
 
 While inspecting type declaration "Sub"
-Invalid signature for method "Sub.g(_)".
+Invalid method signature for "Sub.g(_)".
 The method ".g(_)" accepts parameter 1 of type "readH P".
 But method "Sup.g(_)" requires "mutH P".
 An overriding method can refine the types of its parameters and result,
@@ -864,7 +864,7 @@ Sub:Sup{ .g(x: readH P): P }
    | -----------------^^^^^^^^^^^--
 
 While inspecting type declaration "Sub[_]"
-Invalid signature for method "Sub[_].h(_)".
+Invalid method signature for "Sub[_].h(_)".
 The method ".h(_)" returns type "X".
 But method "Sup[_].h(_)" returns type "read/imm X".
 An overriding method can refine the types of its parameters and result,
@@ -878,7 +878,7 @@ Sub[X:*]:Sup[X]{ .h(x: X): X }
    |        --------------~~~~~~~~~^^^^^^^^^^^^^^^^^^~~
 
 While inspecting object literal instance of "Sup" > method "User#" (line 3)
-Invalid signature for the "mut" method "Sup.h".
+Invalid method signature for the "mut" method "Sup.h".
 The method ".h" returns type "iso P".
 But the "mut" method "Sup.h" returns type "mut P".
 An overriding method can refine the types of its parameters and result,
@@ -906,7 +906,7 @@ A:Foo[Bar],Foo[Beer]{ .get: Both -> Both }
    | ------------------------------^^^^^^^^^^^^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid signature for method "A.get".
+Invalid method signature for "A.get".
 The method ".get" returns type "imm Both".
 But method "Foo[_].get" returns type "mut Beer".
 An overriding method can refine the types of its parameters and result,
@@ -941,7 +941,7 @@ A:Foo[imm Bar],Foo[mut Beer]{}
    | -----------------^^^^^^^^^^^--
 
 While inspecting type declaration "Sub[_]"
-Invalid signature for method "Sub[_].h(_)".
+Invalid method signature for "Sub[_].h(_)".
 The method ".h(_)" returns type "X".
 But method "Sup[_].h(_)" returns type "imm X".
 An overriding method can refine the types of its parameters and result,
@@ -1103,7 +1103,7 @@ A:Foo,Bar{}
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "C"
-Invalid signature for method "C.m(_,_)".
+Invalid method signature for "C.m(_,_)".
 The method ".m(_,_)" declares different capability bounds for generic type parameter 2
 than the supertypes.
 Local declaration: "X:imm".
@@ -1904,7 +1904,7 @@ While inspecting type declaration "A"
 Missing return type for method ".m".
 Add an explicit return type at the end of the signature.
 Cannot infer signature of method ".m".
-No supertype has a method ".m".
+No supertype has a method named ".m" with 0 parameters.
 """, List.of("""
 A:{ .m; }
 """));}
@@ -1916,7 +1916,7 @@ While inspecting type declaration "A"
 Missing return type for method ".use(_)".
 Add an explicit return type at the end of the signature.
 Cannot infer signature of method ".use(_)".
-No supertype has a method ".use(_)".
+No supertype has a method named ".use(_)" with 1 parameter.
 """, List.of("""
 A:{ .use(x: A); }
 """));}
@@ -1927,7 +1927,7 @@ A:{ .use(x: A); }
 While inspecting type declaration "B"
 Missing return type for the "imm" method ".m".
 Cannot infer signature of the "imm" method ".m".
-No supertype has an "imm" method ".m".
+No supertype has an "imm" method named ".m" with 0 parameters.
 Did you mean "mut .m" ?
 """, List.of("""
 A:{ mut .m: A }
@@ -1940,7 +1940,7 @@ B:A{ imm .m -> this }
 While inspecting object literal instance of "OM[_]"
 Missing return type for method ".some".
 Cannot infer signature of method ".some".
-No supertype has a method ".some".
+No supertype has a method named ".some" with 0 parameters.
 Did you mean ".some(_)" ?
 Other methods of the supertypes:
 - ".empty"
@@ -1957,7 +1957,7 @@ U:{ .u: A -> O.match{ .some -> A; .empty -> A } }
 While inspecting object literal instance of "IfM[_]"
 Missing return type for method ".els".
 Cannot infer signature of method ".els".
-No supertype has a method ".els".
+No supertype has a method named ".els" with 0 parameters.
 Did you mean ".else" ?
 Other methods of the supertypes:
 - ".then"
@@ -1974,7 +1974,7 @@ U:{ .u: A -> B.if{ .then -> A; .els -> A } }
 While inspecting object literal instance of "IfM[_]"
 Missing return type for method ".els".
 Cannot infer signature of method ".els".
-No supertype has a method ".els".
+No supertype has a method named ".els" with 0 parameters.
 Did you mean one of the following?
 - ".else(_)"
 - "read .else"

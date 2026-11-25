@@ -1373,7 +1373,7 @@ Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".k".
-No supertype has a method ".k".
+No supertype has a method named ".k" with 0 parameters.
 
 """+noteA+"""
 
@@ -1393,7 +1393,7 @@ Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".k".
-No supertype has a method ".k".
+No supertype has a method named ".k" with 0 parameters.
 
 Name "X" stands for "a.A" because of "use a.A as X".
 """+noteA+"""
@@ -1965,7 +1965,7 @@ In file: [###].fear
    | ------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid signature for method "B.g(_)".
+Invalid method signature for "B.g(_)".
 The method ".g(_)" accepts parameter 1 of type "a.Q".
 But method "a.Parent.g(_)" requires "a.P", which is not a subtype of "a.Q".
 It is instead a supertype: you are strengthening the parameter instead of weakening it.
@@ -1984,7 +1984,7 @@ In file: [###].fear
    | ------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid signature for method "B.g(_)".
+Invalid method signature for "B.g(_)".
 The method ".g(_)" accepts parameter 1 of type "read a.P".
 But method "a.Parent.g(_)" requires "imm a.P".
 An overriding method can refine the types of its parameters and result,
@@ -2004,7 +2004,7 @@ In file: [###].fear
    | ---------^^^^^^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid signature for method "B.h".
+Invalid method signature for "B.h".
 The method ".h" returns type "read a.Q".
 But method "a.Sup.h" returns type "imm a.Q".
 An overriding method can refine the types of its parameters and result,
@@ -2024,7 +2024,7 @@ In file: [###].fear
    | ---------^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid signature for method "B.h".
+Invalid method signature for "B.h".
 The method ".h" returns type "a.P".
 But method "a.Sup.h" returns type "a.Q", which is not a supertype of "a.P".
 It is instead a subtype: you are weakening the result instead of strengthening it.
@@ -2043,7 +2043,7 @@ In file: [###].fear
    | -----^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid signature for method "B.h".
+Invalid method signature for "B.h".
 The method ".h" returns type "a.P".
 But method "S.h" returns type "a.Q", which is not a supertype of "a.P".
 It is instead a subtype: you are weakening the result instead of strengthening it.
@@ -2473,7 +2473,7 @@ In file: [###].fear
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "a.Sup"
-Invalid signature for method "a.Sup.f(_)".
+Invalid method signature for "a.Sup.f(_)".
 The method ".f(_)" declares 2 generic type parameters, but supertype "a.Sup" declares 1.
 
 Source code inside folders named "_b" uses package name "a"
@@ -2490,7 +2490,7 @@ In file: [###].fear
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "a.Sup"
-Invalid signature for method "a.Sup.id(_)".
+Invalid method signature for "a.Sup.id(_)".
 The method ".id(_)" declares different capability bounds for generic type parameter 1
 than the supertypes.
 Local declaration: "X:imm,read".
@@ -3291,7 +3291,7 @@ Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".k".
-No supertype has a method ".k".
+No supertype has a method named ".k" with 0 parameters.
 
 """+noteA+"""
 

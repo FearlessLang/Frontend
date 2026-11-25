@@ -94,7 +94,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   private FearlessException overrideErr(Literal l, Sig current, Sig parent, String got, String want, String why){
     assert current.m().equals(parent.m());
     var e= err()
-      .line("Invalid signature for "+method(current.rc(), err().methodSig("", l, current.m()))+".")
+      .line("Invalid method signature for "+sigOf(current.rc(), err().methodSig("", l, current.m()))+".")
       .line("The method "+methodSig(current.m())+" "+got+".")
       .line("But "+method(current.rc(), methodSig(err().tNameA(parent.origin()), current.m()))+" "+want+".")
       .line(why);
