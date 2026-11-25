@@ -119,7 +119,7 @@ In file: [###].fear
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Name "X" is already used by a generic type parameter
 declared outside the type declaration "B".
-Generic type parameters declared inside "B" can not reuse the name "X",
+Generic type parameters declared inside "B" cannot reuse the name "X",
 even though "X" is not in scope there.
 Error 2 UnexpectedToken
 """, """
@@ -4166,7 +4166,7 @@ In file: [###].fear
 
 While inspecting the file
 Unrecognized text "$".
-This character can only appear inside comments and inside type names in quotes, like `"a@b"`.
+This character can only appear inside comments and inside type names in quotes, like `"a$b"`.
 Error 2 UnexpectedToken
 """, """
 A:{ .me: A -> $this }

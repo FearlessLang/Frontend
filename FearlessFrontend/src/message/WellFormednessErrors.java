@@ -121,7 +121,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var names= heads.stream().map(u -> PrettyFileName.displayFileName(u.fearURI())).toList();
     return badRank(err()
       .line("Ambiguous rank file for package "+disp(pkgName)+".")
-      .bullets("Found "+heads.size()+" files that look like rank head candidates:", names)
+      .bullets("Found "+heads.size()+" rank files:", names)
       .line("There must be exactly one source file whose name represents this package rank.")
       .line("Rename or remove the extra files so that only one file name is of form \"_rank_*.fear\".")).wf();
   }
@@ -153,7 +153,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .blank()
       .line("For example, for an application you would typically have a file named")
       .line("  \"_rank_app.fear\"")
-      .line("Other examples: \"_rank_driver.fear\", \"_rank_framework.fear\" or \"_rank_app175.fear\"; with explicit rank number.")
+      .line("Other examples: \"_rank_driver.fear\", \"_rank_framework.fear\" or \"_rank_app175.fear\",\nwhere 175 is an explicit rank number.")
       .line("As a rule of thumb: final applications use appNNN;\nshared libraries often use workerNNN or frameworkNNN.");
   }
   public FearlessException usedDeclaredNameClash(Set<TName> names, Set<String> keySet){
@@ -546,8 +546,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var cs= cands.stream().map(err(h -> h, decs, List.of())::typeRepr).distinct().toList();
     var xs= Err.disp(b.x());
     var within= common.stream().filter(t -> t.rc().map(b.rcs()::contains).orElse(true)).toList();
-    var e= err().line("The generic type argument "+xs+" of "+of+" can not be inferred:\nit is needed "+Join.of(cs, "as ", ", as ", "")+".");
-    if (!within.isEmpty()){ e.line(up(xs)+" could be "+Join.of(within.stream().map(err()::typeRepr), "", " or ", "")+":\neach is a supertype of "+Join.of(cs, "", " and ", "")+".\nThe choice is ambiguous."); }
+    var e= err().line("The generic type argument "+xs+" of "+of+" cannot be inferred:\nit is needed "+Join.of(cs, "as ", ", as ", "")+".");
+    if (!within.isEmpty()){ e.line(up(xs)+" could be "+Join.of(within.stream().map(err()::typeRepr), "", " or ", "")+":\neach is a supertype of "+and(cs)+".\nThe choice is ambiguous."); }
     return wf(e.line("Write the generic type argument explicitly, in place of \"_\" in "+disp(example)+"."), at);
   }
   private String example(E e){ return switch (e){
@@ -561,8 +561,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var s= unknown.size() == 1 ? "" : "s";
     return wf(err()
       .line("Type inference concluded that this object literal implements "+headRepr(c)+",")
-      .line("but it could not infer generic type argument"+s+" "+Join.of(unknown.stream().map(i -> i+1), "", " and ", "", "")
-        +" for generic type parameter"+s+" "+Join.of(unknown.stream().map(i -> disp(bs.get(i).x())), "", " and ", "", "")
+      .line("but it could not infer generic type argument"+s+" "+and(unknown.stream().map(i -> ""+(i+1)).toList())
+        +" for generic type parameter"+s+" "+and(unknown.stream().map(i -> disp(bs.get(i).x())).toList())
         +" of "+err().tNameADisp(c.name())+"."), at);
   }
   public FearlessException methodNotInferred(E.Literal at, M.Sig s){ return wf(unnamedNotInferred(at, s, List.of()), s, at); }
@@ -726,7 +726,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("Type "+disp(raw)+" is not exactly representable as "+t+".")
       .line(t+" must be representable exactly as a 64-bit IEEE 754 double.");
     var at= lit.approxSpan().inner;
-    if (!Double.isFinite(d)){ return e.line(disp(raw)+" overflows; the nearest representable value is "+disp(near)+".").wf().addSpan(at); }
+    if (!Double.isFinite(d)){ return e.line(disp(raw)+" overflows; the nearest representable value is "+disp(near)+".").line(numHint()).wf().addSpan(at); }
     return e.line("If rounded, the nearest representable value is "+disp(near)+".")
       .line("Write "+disp(raw+LiteralDeclarations.softSuffix)+" to accept that rounding.")
       .line(numHint())

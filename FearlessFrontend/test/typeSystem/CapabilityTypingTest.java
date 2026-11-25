@@ -450,7 +450,7 @@ A:{ .break(x1: iso Caps, x2: iso Caps): Void -> this.break(x1, x1) }
    |     -------------------------------------------------------^^~~~~-
 
 While inspecting method "A.break(_,_)" (line 2)
-Parameter "x1" of type "X", which can be instantiated with "iso"
+Parameter "x1" has type "X", which can be instantiated with "iso".
 The iso parameter "x1" violates the single-use rule in method "A.break(_,_)" (line 2).
 It is used directly 2 times.
 An iso parameter can either be captured into object literals, or be used directly once.

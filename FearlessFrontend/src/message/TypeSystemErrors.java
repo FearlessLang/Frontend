@@ -180,7 +180,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var e= err()
       .line("This object literal is missing a required method.")
       .line("Missing: "+theMethod(s.rc(), methodSig(s.m()))+".")
-      .line(Join.of(requiredBy(at, s).stream().map(err()::tNameADisp), "Required by: ", " and ", "."));
+      .line("Required by: "+and(requiredBy(at, s).stream().map(err()::tNameADisp).toList())+".");
     if (s.rc() == RC.mut){ e.line("This object literal is neither "+disp(RC.imm)+" nor "+disp(RC.read)+", so its "+disp(RC.mut)+" methods must be implemented."); }
     if (!(at instanceof Type t && foreignSealed(t.type().c().name()))){ return addExpFrame(at, e.line("Add an implementation for "+methodSig(s.m())+" inside the object literal.").ex(at)); }
     var name= t.type().c().name();
@@ -243,10 +243,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var t= m.sig().ts().get(m.xs().indexOf(name));
     var iso= t.explicitRC().equals(Optional.of(RC.iso));
     var e= err();
-    if (!iso){ e.line("Parameter "+x+" of type "+err().typeRepr(false, t)+", which can be instantiated with "+disp(RC.iso)); }
+    if (!iso){ e.line("Parameter "+x+" has type "+err().typeRepr(false, t)+", which can be instantiated with "+disp(RC.iso)+"."); }
     e.line("The iso parameter "+x+" violates the single-use rule in "+ms+" (line "+m.sig().span().inner.startLine()+").");
     if (earlyErrOnMoreThenOnceDirectly){
-      var calls= p.map(d -> Join.of(d.extract().stream().map(ns -> disp(ns.getFirst().s())), "", " and ", ""));
+      var calls= p.map(d -> and(d.extract().stream().map(ns -> disp(ns.getFirst().s())).toList()));
       calls.ifPresent(cs -> e.line("The pattern "+x+" calls "+cs+" on it."));
     }
     var fe= e.line(earlyErrOnMoreThenOnceDirectly ? "It is used directly "+usages.size()+" times." : "It is used directly and also captured into object literals.")
@@ -364,11 +364,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       var forms= sameName.stream().map(s -> methodSig(s.m())).distinct().sorted().toList();
       return withCallSpans(err()
         .callCannotTypecheck(c)
-        .line((forms.size() == 1 ? "There is a method " : "There are methods ")+Join.of(forms, "", " and ", "")+" on "+on+",\nbut with a different number of arguments.")
+        .line((forms.size() == 1 ? "There is a method " : "There are methods ")+and(forms)+" on "+on+",\nbut with a different number of arguments.")
         .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
         .typeErr(), c);
     }
-    var availRc= Join.of(sameArity.stream().map(Sig::rc).sorted().map(Err::disp), "", " and ", ".");
+    var availRc= and(sameArity.stream().map(Sig::rc).sorted().map(Err::disp).toList())+".";
     return withCallSpans(err()
       .callCannotTypecheck(c)
       .line("Method "+methodSig(c.name())+" exists on "+on+", but not with the requested capability.")

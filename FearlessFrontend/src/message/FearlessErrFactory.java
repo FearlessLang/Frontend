@@ -206,7 +206,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   public FearlessException missingCallAfterEq(MName m, XPat p, Span at){
     var written= switch (p){ case XPat.Destruct d -> patternRepr(d); case XPat.Name(var x) -> x.name(); };
     return Code.UnexpectedToken.of("Missing method call after the equals sugar "+disp(m.s()+" "+written+" = ...")+".\n"
-      +"The equals sugar is followed by the rest of the chain,\nwhich can use "+Join.of(p.parameterNames().map(Err::disp), "", " and ", "")+", as in \"Block#.let x = {5}.return {x}\".\n").addSpan(at);
+      +"The equals sugar is followed by the rest of the chain,\nwhich can use "+and(p.parameterNames().map(Err::disp).toList())+", as in \"Block#.let x = {5}.return {x}\".\n").addSpan(at);
   }
   private static String eqSugarUse(MName m){
     return "Use: \""+m.s()+" x = expression\" or \""+m.s()+" {.a,.b} = expression\".\n";
@@ -248,7 +248,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var x= disp(X.content());
     var dec= disp(owner);
     return Code.UnexpectedToken.of("Name "+x+" is already used by a generic type parameter\ndeclared outside the type declaration "+dec+".\n"
-      +"Generic type parameters declared inside "+dec+" can not reuse the name "+x+",\neven though "+x+" is not in scope there.\n").addSpan(at);
+      +"Generic type parameters declared inside "+dec+" cannot reuse the name "+x+",\neven though "+x+" is not in scope there.\n").addSpan(at);
   }
   public FearlessException genericNotFunnelled(Token X, Span at, String owner, List<String> Xs){
     return Code.UnexpectedToken.of(Err.funnel(X.content(), owner, Xs)).addSpan(at);
@@ -259,7 +259,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException patternsGetTooManyParameters(Span at, List<XPat.Destruct> ps, int n){
     return Code.UnexpectedToken.of("This method signature declares "+n+" names, using the nominal "+(ps.size() == 1 ? "pattern " : "patterns ")
-      +Join.of(ps.stream().map(p -> disp(patternRepr(p))), "", " and ", "")+".\n"
+      +and(ps.stream().map(p -> disp(patternRepr(p))).toList())+".\n"
       +"A method signature using nominal patterns cannot declare more than 32 names.\n").addSpan(at);
   }
   public FearlessException implicitWithParameters(Span at, int n){

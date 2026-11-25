@@ -1738,7 +1738,7 @@ User:{
     this.zap(a);
 }
 """)); }
-@Test void operatorArgMismatch_getsNoPrecedenceHint(){fail("""
+@Test void operatorArgMismatchFollowedByACallGetsThePrecedenceHint(){fail("""
 005|   .go:Plus->this + this.other;
    |   ----------~~~~~~~^^^^------
 
@@ -2532,6 +2532,7 @@ While inspecting the file
 Type "+1.0e309" is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
 "+1.0e309" overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
+If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Float -> +1.0e309 }
@@ -2546,6 +2547,7 @@ While inspecting the file
 Type "+1.0e99999999999" is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
 "+1.0e99999999999" overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
+If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Float -> +1.0e99999999999 }
@@ -2721,6 +2723,7 @@ While inspecting the file
 Type "+1.0e309soft" is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
 "+1.0e309soft" overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
+If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Float -> +1.0e309soft }
@@ -4932,7 +4935,7 @@ U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): B -> this.both(y, z) }
    |                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred:
+The generic type argument "T" of ".both" cannot be inferred:
 it is needed as "Y", as "Z".
 "T" could be "A" or "B":
 each is a supertype of "Y" and "Z".
@@ -4947,7 +4950,7 @@ U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
    |                                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred:
+The generic type argument "T" of ".both" cannot be inferred:
 it is needed as "mut Y[A]", as "mut Z[A]".
 "T" could be "mut G[A]" or "mut H[A]":
 each is a supertype of "mut Y[A]" and "mut Z[A]".
@@ -4962,7 +4965,7 @@ U:{ .both[T:*](a: T, b: T): A -> A; .use(y: mut Y[A], z: mut Z[A]): A -> this.bo
    |                                                                 ^^^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".three(_,_,_)"
-The generic type argument "T" of ".three" can not be inferred:
+The generic type argument "T" of ".three" cannot be inferred:
 it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "this.three[_](y, z, y)".
 """, List.of("""
@@ -4974,7 +4977,7 @@ U:{ .three[T](a: T, b: T, c: T): A -> A; .use(y: Y, z: Z): A -> this.three(y, z,
    |                                                                  ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred:
+The generic type argument "T" of ".both" cannot be inferred:
 it is needed as "mut Y", as "mut Z".
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
@@ -5007,7 +5010,7 @@ U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
    |                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred:
+The generic type argument "T" of ".both" cannot be inferred:
 it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
@@ -5019,7 +5022,7 @@ U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "base.ThenElse[_]"
-The generic type argument "R" of "base.ThenElse[_]" can not be inferred:
+The generic type argument "R" of "base.ThenElse[_]" cannot be inferred:
 it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "base.ThenElse[_]{...}".
 """, List.of("""
@@ -5032,7 +5035,7 @@ U:{ .use(c: base.Bool, y: Y, z: Z): A -> Sink#(c ? { .then -> y; .else -> z }) }
    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "base.ThenElse[_]"
-The generic type argument "R" of "base.ThenElse[_]" can not be inferred:
+The generic type argument "R" of "base.ThenElse[_]" cannot be inferred:
 it is needed as "Y", as "Z".
 "R" could be "S1" or "S2":
 each is a supertype of "Y" and "Z".
@@ -5087,7 +5090,7 @@ App:{ .m: base.Nat -> {.b:base.Void->base.Void;}.a }
    |                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred:
+The generic type argument "T" of ".both" cannot be inferred:
 it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
@@ -5099,7 +5102,7 @@ U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
    |                                                               ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred:
+The generic type argument "T" of ".both" cannot be inferred:
 it is needed as "Sup[A]", as "Z".
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
@@ -5881,7 +5884,7 @@ Use:{ .go: N -> Take#{ .m(x) -> Wrap#(x) } }
    |                                                                          ^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".two(_,_,_)"
-The generic type argument "T" of ".two" can not be inferred:
+The generic type argument "T" of ".two" cannot be inferred:
 it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "this.two[_](y, z, this.mk)".
 """, List.of("""
@@ -5893,7 +5896,7 @@ U:{ .mk[R]: R; .two[T](a: T, b: T, c: Box[T]): A; .use(y: Y, z: Z): A -> this.tw
    |                              ^^^^^^^^^^^^^^^^^
 
 While inspecting method call "#(_)"
-The generic type argument "T" of "#" can not be inferred:
+The generic type argument "T" of "#" cannot be inferred:
 it is needed as "Bar[A]", as "Bar[B]".
 Write the generic type argument explicitly, in place of "_" in "Ign#[_](Mk#.m(a, b))".
 """, List.of("""
@@ -5910,7 +5913,7 @@ User:{ .go(a: A, b: B): A -> Ign#(Mk#.m(a, b)) }
    |                                    ^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".choose(_,_)"
-The generic type argument "V" of ".choose" can not be inferred:
+The generic type argument "V" of ".choose" cannot be inferred:
 it is needed as "Y", as "Z".
 Write the generic type argument explicitly, in place of "_" in "Left.choose[_](y, z)".
 """, List.of("""
@@ -5926,7 +5929,7 @@ Use:{ .go(y: Y, z: Z): A -> Take#{ Left.choose(y, z) } }
    |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".choose(_,_)"
-The generic type argument "Val" of ".choose" can not be inferred:
+The generic type argument "Val" of ".choose" cannot be inferred:
 it is needed as "base.Str", as "TankNN".
 Write the generic type argument explicitly, in place of "_" in `Left.choose[_]("Hello", TankNN)`.
 """, List.of("""
@@ -6461,7 +6464,7 @@ U:{ .m: A -> Foo:A,base.CaptureFree{'s .k -> s; .v -> G#(s, {}) } }
    |                                           ^^^^^^^^
 
 While inspecting method call "#(_,_)"
-The generic type argument "X" of "#" can not be inferred:
+The generic type argument "X" of "#" cannot be inferred:
 it is needed as the anonymous type of the object literal at line 3, column 22, as "B".
 Write the generic type argument explicitly, in place of "_" in "G#[_](s, B)".
 """, List.of("""
@@ -6602,7 +6605,7 @@ A:{ .m[X](x: X, y: X): X -> y; .k: Box[A] -> this.m(C, D) }
    |                                                                          ^^^^^^^^^^^^
 
 While inspecting method call ".m(_,_)"
-The generic type argument "X" of ".m" can not be inferred:
+The generic type argument "X" of ".m" cannot be inferred:
 it is needed as "C", as "D".
 Write the generic type argument explicitly, in place of "_" in "this.m[_](C, D)".
 """, List.of("""
@@ -6616,7 +6619,7 @@ A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(
    |                                                                          ^^^^^^^^^^^^
 
 While inspecting method call ".m(_,_)"
-The generic type argument "X" of ".m" can not be inferred:
+The generic type argument "X" of ".m" cannot be inferred:
 it is needed as "C", as "D".
 Write the generic type argument explicitly, in place of "_" in "this.m[_](C, D)".
 """, List.of("""
@@ -6757,7 +6760,7 @@ U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
    |                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" can not be inferred:
+The generic type argument "T" of ".both" cannot be inferred:
 it is needed as "Y", as "Z".
 "T" could be "A" or "B":
 each is a supertype of "Y" and "Z".

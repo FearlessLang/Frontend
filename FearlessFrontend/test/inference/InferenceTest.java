@@ -69,7 +69,8 @@ The rank file is the file whose name matches the rank name.
 
 For example, for an application you would typically have a file named
   "_rank_app.fear"
-Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear"; with explicit rank number.
+Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear",
+where 175 is an explicit rank number.
 As a rule of thumb: final applications use appNNN;
 shared libraries often use workerNNN or frameworkNNN.
 Error 7 WellFormedness
@@ -84,7 +85,7 @@ Error 7 WellFormedness
   FearlessException fe= assertThrows(FearlessException.class, () -> parsePackage("p", o, false));
   strCmp("""
 Ambiguous rank file for package "p".
-Found 2 files that look like rank head candidates:
+Found 2 rank files:
 - fear:/p/_rank_app.fear
 - fear:/p/_rank_app2.fear
 There must be exactly one source file whose name represents this package rank.
@@ -95,7 +96,8 @@ The rank file is the file whose name matches the rank name.
 
 For example, for an application you would typically have a file named
   "_rank_app.fear"
-Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear"; with explicit rank number.
+Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear",
+where 175 is an explicit rank number.
 As a rule of thumb: final applications use appNNN;
 shared libraries often use workerNNN or frameworkNNN.
 Error 7 WellFormedness

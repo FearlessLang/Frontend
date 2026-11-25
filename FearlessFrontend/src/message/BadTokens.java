@@ -43,10 +43,14 @@ Names like "aux", "nul", "lpt2" are invalid on Windows.
       .putStr(BadDot, Code.UnexpectedToken::of, """
 No space is allowed after ".".
 """, "")
-      .putStr(BadChar, Code.UnexpectedToken::of, """
-This character can only appear inside comments and inside type names in quotes, like `"a@b"`.
-""", "")
+      .put(BadChar, (_, t, tz) -> badChar(t, tz))
 ;}
+  private static Stream<Token> badChar(Token t, Tokenizer tz){
+    var c= t.content();
+    throw Code.UnexpectedToken.of("Unrecognized text "+disp(c)+".\n"
+      +"This character can only appear inside comments and inside type names in quotes, like `\"a"+c+"b\"`.")
+      .addFrame("", t.span(tz.fileName()));
+  }
   private static Stream<Token> uppercaseMethodName(int idx, Token t, Tokenizer tz){
     var c= t.content();
     var r= tz.allTokens().get(idx - 1).content();
