@@ -80,6 +80,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     k().check(t, bs, t.type());
     var ll= decs().apply(t.type().c().name());
     if (!hasInstance(ll)){ throw tsE().typeDeclaredInMethod(t, ll); }
+    if (LiteralDeclarations.logs.contains(ll.name())){ throw tsE().logAsValue(t); }
     var tt= canBeIso(t.type().rc(), ll) ? new Type(t.type().withRC(iso), t.src()) : t;
     var l= ll.withRC(tt.type().rc());
     l.ms().forEach(m -> checkImplemented(l, m, tt));
