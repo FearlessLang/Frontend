@@ -198,11 +198,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     return !name.pkgName().equals(pkg.name()) && LiteralDeclarations.has(decs.apply(name).cs(), LiteralDeclarations.sealed);
   }
   public FearlessException literalImplementsTypeParameter(TypeScope scope, E at, T req){
-    var x= err().typeRepr(true, req);
+    var x= OneOr.of("Type parameters", TypeRename.tToIT(req).ftv());
     var untyped= at instanceof Literal l && l.src().inner instanceof fearlessFullGrammar.E.Literal;
-    var e= err().line(up(err().expRepr(at))+(untyped ? " cannot implement " : " is required to be of type ")+x+".")
-      .line(x+" is a generic type parameter;\n"+(untyped ? "object literals can only implement nominal types." : "an object literal is always of a nominal type."));
-    declaring(scope, OneOr.of("Type parameters", TypeRename.tToIT(req).ftv())).ifPresent(m -> e.sigs(m.l(), m.m(), true));
+    var e= err().line(up(err().expRepr(at))+(untyped ? " cannot implement " : " is required to be of type ")+err().typeRepr(true, req)+".")
+      .line(disp(x)+" is a generic type parameter;\n"+(untyped ? "object literals can only implement nominal types." : "an object literal is always of a nominal type."));
+    declaring(scope, x).ifPresent(m -> e.sigs(m.l(), m.m(), true));
     return addExpFrame(at, e.typeErr());
   }
   static Optional<TypeScope.Method> declaring(TypeScope s, String x){ return OneOr.opt("Type parameter declared twice", visible(s).stream().filter(m -> B.xs(m.m().sig().bs()).contains(x))); }
