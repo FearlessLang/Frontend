@@ -79,14 +79,14 @@ No space is allowed after ".".
     var base= t.span(file);
     if (hit.isEmpty()){
       throw Code.UnexpectedToken
-        .of("Unopened block comment close \"*/\".\nRemove it, or add a matching \"/*\" earlier on.")
+        .of("Unopened block comment closer \"*/\".\nRemove it, or add a matching \"/*\" earlier on.")
         .addFrame("comments", base);
     }
     var h= hit.get();
     var s= h.span(file);
     assert s.isSingleLine();
     var primary= new Span(file, s.startLine(), s.startCol()+h.content().indexOf("/*"), base.endLine(), base.endCol());
-    throw Code.UnexpectedToken.of("Unopened block comment close \"*/\".\n"+foundInside(h, "a \"/*\"", "before this point", "opener"))
+    throw Code.UnexpectedToken.of("Unopened block comment closer \"*/\".\n"+foundInside(h, "a \"/*\"", "before this point", "opener"))
       .addFrame("comments", primary);
   }
   private static Stream<Token> squareAfterLiteral(int idx, Token t, Tokenizer tz){

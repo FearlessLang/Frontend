@@ -1280,7 +1280,7 @@ Each package must have exactly one source file whose name is its rank,
 in some folder inside the project folder.
 Rename or remove the extra files so that only one file name is of form "_rank_*.fear".
 Every package must declare its rank:
-base, core, driver, worker, framework, accumulator, tool, or app.
+base, core, driver, worker, framework, accumulator, tool or app.
 The rank file is the file whose name matches the rank name.
 
 For example, for an application you would typically have a file named
@@ -1295,7 +1295,7 @@ No rank file found for package "p".
 Each package must have exactly one source file whose name is its rank,
 in some folder inside the project folder.
 Every package must declare its rank:
-base, core, driver, worker, framework, accumulator, tool, or app.
+base, core, driver, worker, framework, accumulator, tool or app.
 The rank file is the file whose name matches the rank name.
 
 For example, for an application you would typically have a file named

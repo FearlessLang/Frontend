@@ -3039,7 +3039,7 @@ In file: [###].fear
 
 While inspecting the file
 Type "+0.1" is not exactly representable as "bb.Float".
-"bb.Float" must be representable exactly as a 64-bit IEEE 754 double.
+"bb.Float" must be exactly representable as a 64-bit IEEE 754 double.
 If rounded, the nearest representable value is "+0.1000000000000000055511151231257827021181583404541015625".
 Write "+0.1soft" to accept that rounding.
 If you need arbitrary precision numbers, use "bb.Num".
