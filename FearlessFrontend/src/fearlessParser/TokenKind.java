@@ -61,6 +61,7 @@ public enum TokenKind implements metaParser.TokenKind{
   Op        ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])+", methodNameLabel()),
   // tokens that are never considered for matching, but useful for asserts and for labelling special cases
   _XId("_*[A-Z][A-Za-z0-9_]*'*", "type name"),
+  _X("_*[A-Z][A-Za-z0-9_]*'*", "generic type parameter (like \"T\", \"E\", \"Key\").\nOr: generic type parameter with bounds (like \"T:*\", \"E: **\", \"Key: imm,mut\")"),
   _pkgName(core.TName.pkgNameRegex,//"[a-z][a-z0-9_]*"
     "id starting with a-z followed by any amount of a-z0-9 or the _ symbol"),
   _folderName("_"+core.TName.pkgNameRegex, "folder name: the _ symbol followed by a package name"),

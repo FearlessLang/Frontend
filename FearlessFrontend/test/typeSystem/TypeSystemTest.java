@@ -2474,7 +2474,7 @@ A:{}
 
 While inspecting method "Main.m" (line 3)
 This call to method ".foo" cannot typecheck.
-Method ".foo" is not declared on object literal instance of "B".
+Method ".foo" is not declared on type "B".
 Type "B" does not have any methods.
 """, List.of("""
 A:{}

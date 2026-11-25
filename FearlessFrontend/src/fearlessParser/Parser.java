@@ -97,7 +97,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   }
   T.X parseDecTX(boolean mustNew){
     var startPos= index();
-    var c= expectValidate("generic type parameter name", UppercaseId, _XId);
+    var c= expectValidate("generic type parameter name", UppercaseId, _X);
     if (mustNew && names.XIn(c.content())){ throw errFactory().nameRedeclared(c, span(c).get()); }
     if (mustNew && names.XHidden(c.content())){ throw errFactory().hiddenGenericRedeclared(c, span(c).get(), names.funnelOwner()); }
     if (!mustNew){ checkXInScope(c); }
@@ -449,7 +449,6 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   }
   HeadAcc parseHeader(){
     var acc= new HeadAcc();
-    if (peek(SemiColon)){ throw errFactory().topLevelSemicolon(span(peek().get()).get()); }
     if (!peek(LowercaseId)){ return acc; }
     var directive= peekValidate(_map) || peekValidate(_use);
     if (!directive){ throw errFactory().notADirective(span(peek().get()).get(), peek().get().content()); }
@@ -486,7 +485,11 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
       || peek(_CurlyGroup, _RoundGroup, _SquareGroup)
       || peekOrder(Token::isTypeName, t -> t.is(_SquareGroup, _CurlyGroup, _RoundGroup))
   ;}
-  int headEnd(){ while (!guessHeadEnd()){ expectAny(""); } return 0; }
+  int headEnd(){
+    if (!peek(LowercaseId)){ return 0; }
+    while (!guessHeadEnd()){ expectAny(""); }
+    return 0;
+  }
   public void checkAbruptExprEnd(){
     var absurd= peek(Colon, Arrow, SQuote, Eq, Comma, SemiColon, Underscore, ReadImm);//will add more when we find other absurd cases
     if (absurd){ expect("expression", LowercaseId, UppercaseId, ORound, OCurly); }

@@ -88,9 +88,9 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   @Override public FearlessException extraContent(Span from, Collection<TokenKind> expectedTerminatorTokens, Parser parser){
     assert nonNull(from, parser, expectedTerminatorTokens);
-    var msg= expectedTerminatorTokens.isEmpty() ? "Extra content in the current group.\n" : expected("Expected", expectedTerminatorTokens);
-    var here= parser.peek().get().span(from.fileName());
-    return Code.ExtraTokenInGroup.of(msg).addSpan(here).addSpan(from);
+    var here= parser.peek().get();
+    var msg= "Unexpected "+found(here)+".\n"+(expectedTerminatorTokens.isEmpty() ? "" : expected("Expected", expectedTerminatorTokens));
+    return Code.ExtraTokenInGroup.of(msg).addSpan(here.span(from.fileName())).addSpan(from);
   }
   @Override public FearlessException probeStalledIn(String groupLabel, Span at, int startIdx, int endIdx, Parser parser){
     return Code.ProbeError.of("Probe stalled while scanning "+groupLabel).addSpan(at);
