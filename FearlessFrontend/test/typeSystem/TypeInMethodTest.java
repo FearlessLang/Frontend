@@ -259,7 +259,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "a.S" > method "B.m" (line 1)
 This object literal is missing a required method.
-Missing: "imm .foo".
+Missing: the "imm" method ".foo".
 Required by: "a.S".
 Sealed types can only be implemented in their own package.
 Type "a.S" is in package "a".
@@ -278,7 +278,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "a.S" > method "B.m" (line 1)
 This object literal is missing a required method.
-Missing: "imm .foo".
+Missing: the "imm" method ".foo".
 Required by: "a.S".
 Sealed types can only be implemented in their own package.
 Type "a.S" is in package "a".

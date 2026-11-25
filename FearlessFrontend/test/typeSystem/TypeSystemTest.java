@@ -450,7 +450,7 @@ Outer:{ #: G -> { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
 While inspecting method call ".foo" > method "G.bar" (line 2) > method "Outer#" (line 2)
 This call to method "G.foo" cannot typecheck.
 Generic type argument 1 ("mut Outer") does not satisfy the bounds
-for generic type parameter "X" in "G.foo".
+for generic type parameter "X" in method "G.foo".
 Here "X" can only use capability "imm".
 """, List.of("""
 G:{ .foo[X:imm]: base.Void; .bar: base.Void; }
@@ -584,7 +584,7 @@ User:{ imm .m(a:imm B):imm A[mut B]; }
 While inspecting method call ".id(_)" > method "User.m(_,_)" (line 3)
 This call to method "A.id(_)" cannot typecheck.
 Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "A.id(_)".
+for generic type parameter "X" in method "A.id(_)".
 Here "X" can only use capability "imm".
 """, List.of("""
 A:{ imm .id[X:imm](x:X):X->x }
@@ -599,7 +599,7 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 While inspecting method call ".pair(_,_)" > method "User.m(_,_,_)" (line 5)
 This call to method "A.pair(_,_)" cannot typecheck.
 Generic type argument 2 ("mut C") does not satisfy the bounds
-for generic type parameter "Y" in "A.pair(_,_)".
+for generic type parameter "Y" in method "A.pair(_,_)".
 Here "Y" can only use capability "read".
 """, List.of("""
 
@@ -663,7 +663,7 @@ User:{ imm .m(x:imm A[B[mut C]]):base.Void; }
 While inspecting method call ".id(_)" > method "User.m(_,_)" (line 3)
 This call to method "A.id(_)" cannot typecheck.
 Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "A.id(_)".
+for generic type parameter "X" in method "A.id(_)".
 Here "X" can only use capabilities "imm" or "read".
 """, List.of("""
 A:{ imm .id[X:imm,read](x:X):X->x }
@@ -679,7 +679,7 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 While inspecting method call ".id(_)" > method "User.m(_,_)" (line 3)
 This call to method "A.id(_)" cannot typecheck.
 Generic type argument 1 ("imm B") does not satisfy the bounds
-for generic type parameter "X" in "A.id(_)".
+for generic type parameter "X" in method "A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
 
 See inferred typing context below for how "B" was introduced:
@@ -697,7 +697,7 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
 While inspecting method call ".id(_)" > method "User.m(_,_)" (line 3)
 This call to method "A.id(_)" cannot typecheck.
 Generic type argument 1 ("imm B") does not satisfy the bounds
-for generic type parameter "X" in "A.id(_)".
+for generic type parameter "X" in method "A.id(_)".
 Here "X" can only use capabilities "iso" or "mut".
 
 See inferred typing context below for how "B" was introduced:
@@ -819,7 +819,7 @@ User:{
    |                                   ------^^~~~-
 
 While inspecting method "base.F[iso B,Unit]#(_)" (line 4) > method "User.bad" (line 4)
-The iso parameter "::" violates the single-use rule in method "read base.F[iso B,Unit]#(_)" (line 4).
+The iso parameter "::" violates the single-use rule in the "read" method "base.F[iso B,Unit]#(_)" (line 4).
 It is used directly 2 times.
 An iso parameter can either be captured into object literals, or be used directly once.
 """, List.of("""
@@ -1360,7 +1360,7 @@ In file: [###].fear
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Current"
-Invalid method signature for "Current.id(_)".
+Invalid signature for method "Current.id(_)".
 The method ".id(_)" declares different capability bounds for generic type parameter 1
 than the supertypes.
 Local declaration: "X:imm,read".
@@ -1380,7 +1380,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Sub"
-Invalid method signature for "Sub.f(_)".
+Invalid signature for method "Sub.f(_)".
 The method ".f(_)" declares 2 generic type parameters, but supertype "Sup" declares 1.
 Error 7 WellFormedness
 """, List.of("""
@@ -1394,9 +1394,9 @@ Sub:Sup{ imm .f[X:imm,Y:imm](x:imm X):base.Void; }
    | ----------------^^^^^^^^^^^^^^^^^^^^^^^^^---
 
 While inspecting type declaration "Current"
-Invalid method signature for "Current.g(_)".
+Invalid signature for method "Current.g(_)".
 The method ".g(_)" accepts parameter 1 of type "imm P".
-But "Parent.g(_)" requires "read P".
+But method "Parent.g(_)" requires "read P".
 An overriding method can refine the types of its parameters and result,
 but not their reference capabilities.
 """, List.of("""
@@ -1411,9 +1411,9 @@ Current:Parent{ imm .g(x:imm P):base.Void; }
    | ---------^^^^^^^^^^^^^^^---
 
 While inspecting type declaration "Sub"
-Invalid method signature for "Sub.h".
+Invalid signature for method "Sub.h".
 The method ".h" returns type "read P".
-But "Sup.h" returns type "imm P".
+But method "Sup.h" returns type "imm P".
 An overriding method can refine the types of its parameters and result,
 but not their reference capabilities.
 """, List.of("""
@@ -1428,7 +1428,7 @@ Sub:Sup{ imm .h():read P; }
 
 While inspecting object literal instance of "Sup" > method "User.m" (line 6)
 This object literal is missing a required method.
-Missing: "imm .k".
+Missing: the "imm" method ".k".
 Required by: "Sup".
 Add an implementation for ".k" inside the object literal.
 """, List.of("""
@@ -1447,7 +1447,7 @@ User:{
 
 While inspecting object literal "Bad" > method "User.m" (line 6)
 This object literal is missing a required method.
-Missing: "imm .k".
+Missing: the "imm" method ".k".
 Required by: "Sup".
 Add an implementation for ".k" inside the object literal.
 """, List.of("""
@@ -1649,7 +1649,7 @@ User:{ #(a:read A):A->a.m[read] }
    |     -^^^^^------------
 
 While inspecting method "User.m(_,_,_)" (line 7)
-This call to method "read Pairer.pair(_,_)" cannot typecheck.
+This call to the "read" method "Pairer.pair(_,_)" cannot typecheck.
 Wrong number of generic type arguments for ".pair(_,_)".
 Method ".pair(_,_)" declares 2 generic type parameters.
 Declared generic type parameters: "X", "Y".
@@ -1672,7 +1672,7 @@ User:{
    |     -^^^----------
 
 While inspecting method "User.m(_,_)" (line 7)
-This call to method "read Id.id(_)" cannot typecheck.
+This call to the "read" method "Id.id(_)" cannot typecheck.
 Wrong number of generic type arguments for ".id(_)".
 Method ".id(_)" declares no generic type parameters.
 This call provides 1 generic type argument.
@@ -1694,7 +1694,7 @@ User:{
    |     -^^^----------------------
 
 While inspecting method "User.m(_,_)" (line 9)
-This call to method "read Id.id(_)" cannot typecheck.
+This call to the "read" method "Id.id(_)" cannot typecheck.
 Wrong number of generic type arguments for ".id(_)".
 Method ".id(_)" declares 1 generic type parameter.
 Declared generic type parameters: "X".
@@ -1719,7 +1719,7 @@ User:{
    |     ^^^^-------
 
 While inspecting method "User.m(_)" (line 4)
-This call to method "mut User.zap(_)" cannot typecheck.
+This call to the "mut" method "User.zap(_)" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso".
 The capability of the methods changes the type of parameter "this":
@@ -1793,7 +1793,7 @@ A:{
    |   ------------------------~~^
 
 While inspecting method "User.f(_,_)" (line 5)
-This call to method "mut Need#(_)" cannot typecheck.
+This call to the "mut" method "Need#(_)" cannot typecheck.
 Argument 1 has type "B".
 That is not a subtype of "mut A" (the type required by the method signature).
 """, List.of("""
@@ -1848,7 +1848,7 @@ A:{
 While inspecting method call "#(_)" > method "A.f(_)" (line 6)
 This call to method "IdRO#(_)" cannot typecheck.
 Generic type argument 1 ("mut A") does not satisfy the bounds
-for generic type parameter "X" in "IdRO#(_)".
+for generic type parameter "X" in method "IdRO#(_)".
 Here "X" can only use capabilities "imm" or "read".
 
 See inferred typing context below for how "mut A" was introduced:
@@ -2090,7 +2090,7 @@ Make:{ #: mut Counter -> mut Counter{'self
    |                                ------------^^^^~~~~~~~
 
 While inspecting method "A.bar" (line 1)
-This call to method "mut A.foo123" cannot typecheck.
+This call to the "mut" method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "imm".
 This call requires a receiver with capability "mut" or "iso".
 The capability of the methods changes the type of parameter "this":
@@ -2129,7 +2129,7 @@ A:{mut .foo123:A->this.foo123; read .foo123:A->this.foo123; imm .bar:A->this.foo
    |     ^^^^------------
 
 While inspecting method "A.bar" (line 6)
-This call to method "mut A.foo123" cannot typecheck.
+This call to the "mut" method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso".
 The capability of the methods changes the type of parameter "this":
@@ -2170,7 +2170,7 @@ A:{ mut .baz(b: B):B->{}; }
    |     ----------------------------~~^^^^^^^~
 
 While inspecting object literal instance of "B" > method "A.baz(_)" (line 2)
-The method "mut B.bar" is dead code.
+The "mut" method "B.bar" is dead code.
 The object literal instance of "B" is "read", so it will never be seen as "mut".
 Signature as inherited by object literal instance of "B":
 -   mut B.bar: mut B
@@ -2450,7 +2450,7 @@ Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".a".
-No supertype has a method named ".a" with 0 parameters.
+No supertype has a method ".a".
 """, List.of("""
 Outer:{ .m: base.Void -> { .a -> base.Void{} }.a }
 """));}
@@ -2742,7 +2742,7 @@ Error 7 WellFormedness
 
 While inspecting object literal instance of "B" > method "Main.m" (line 3)
 This object literal is missing a required method.
-Missing: "imm .foo".
+Missing: the "imm" method ".foo".
 Required by: "A".
 Add an implementation for ".foo" inside the object literal.
 """, List.of("""
@@ -2756,7 +2756,7 @@ Add an implementation for ".foo" inside the object literal.
 
 While inspecting object literal instance of "B" > method "Main.m" (line 3)
 This object literal is missing a required method.
-Missing: "imm .foo".
+Missing: the "imm" method ".foo".
 Required by: "B".
 Add an implementation for ".foo" inside the object literal.
 """, List.of("""
@@ -2781,7 +2781,8 @@ Parameter "this" has type "imm B" instead of a subtype of "mut A".
 Signature as inherited by type declaration "B":
 -   mut A.get: mut A
 Type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
-Method ".get" is overloaded; to implement a specific overload only, write one of the following:
+Type declaration "B" has "read" and "mut" methods ".get";
+to implement only one of them, write one of the following:
 - "read .get"
 - "mut .get"
 """, List.of("""
@@ -2798,7 +2799,8 @@ Parameter "this" has type "imm B" instead of a subtype of "mut A".
 Signature as inherited by type declaration "B":
 -   mut A.get: mut A
 Type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
-Method ".get" is overloaded; to implement a specific overload only, write one of the following:
+Type declaration "B" has "imm" and "mut" methods ".get";
+to implement only one of them, write one of the following:
 - "imm .get"
 - "mut .get"
 """, List.of("""
@@ -2829,7 +2831,8 @@ Parameter "this" has type "imm B" instead of a subtype of "mut A".
 Signature as inherited by type declaration "B":
 -   mut A.get: mut A
 Type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
-Method ".get" is overloaded; to implement a specific overload only, write one of the following:
+Type declaration "B" has "read", "imm" and "mut" methods ".get";
+to implement only one of them, write one of the following:
 - "read .get"
 - "imm .get"
 - "mut .get"
@@ -2860,7 +2863,8 @@ The body of method ".get" of type declaration "B" is an expression returning "is
 Object literal has type "iso C" instead of a subtype of "read A".
 Signature as inherited by type declaration "B":
 -  read A.get: read A
-Method ".get" is overloaded; to implement a specific overload only, write one of the following:
+Type declaration "B" has "read" and "mut" methods ".get";
+to implement only one of them, write one of the following:
 - "read .get"
 - "mut .get"
 """, List.of("""
@@ -2899,7 +2903,7 @@ Signature as inherited by object literal instance of "A":
 
 While inspecting object literal instance of "B" > method "Main.m" (line 3)
 This object literal is missing a required method.
-Missing: "mut .foo".
+Missing: the "mut" method ".foo".
 Required by: "A".
 This object literal is neither "imm" nor "read", so its "mut" methods must be implemented.
 Add an implementation for ".foo" inside the object literal.
@@ -3545,7 +3549,7 @@ Box[E:*]: _Box[E]{
 While inspecting method call ".get" > method "Slot[_].opt" (line 5) > method "Slots#(_)" (line 3)
 Method ".opt" inside the object literal "Slot[_]" (line 3)
 is implemented with an expression returning "read Opt[E]".
-Method call "read Var[_].get" has type "read Opt[E]" instead of a subtype of "read Opt[read/imm E]".
+The call to the "read" method "Var[_].get" has type "read Opt[E]" instead of a subtype of "read Opt[read/imm E]".
 """, List.of("""
 Opt[E:*]:{}
 Var[E:imm,mut,read]:{ read .get: read/imm E; mut .get: E; }
@@ -4424,7 +4428,7 @@ User:{ .m: Need -> Need#{} }
 
 While inspecting object literal instance of "Closed[A]" > method "User.m" (line 4)
 This object literal is missing a required method.
-Missing: "read .close".
+Missing: the "read" method ".close".
 Required by: "Closed[_]".
 Add an implementation for ".close" inside the object literal.
 """, List.of("""
@@ -4439,7 +4443,7 @@ User:{ .m: Need -> Need#(Closed[A]{}) }
 
 While inspecting object literal instance of "Closed[B]" > method "User.m" (line 4)
 This object literal is missing a required method.
-Missing: "read .close".
+Missing: the "read" method ".close".
 Required by: "Closed[_]".
 Add an implementation for ".close" inside the object literal.
 """, List.of("""
@@ -4454,7 +4458,7 @@ User:{ .m: Need -> Need#{} }
 
 While inspecting object literal instance of "Closed[A,B]" > method "User.m" (line 5)
 This object literal is missing a required method.
-Missing: "read .close".
+Missing: the "read" method ".close".
 Required by: "Closed[_,_]".
 Add an implementation for ".close" inside the object literal.
 """, List.of("""
@@ -4470,7 +4474,7 @@ User:{ .m: Need -> Need#{} }
 
 While inspecting object literal instance of "A" > method "User.m" (line 4)
 This object literal is missing a required method.
-Missing: "imm .name".
+Missing: the "imm" method ".name".
 Required by: "A".
 Add an implementation for ".name" inside the object literal.
 """, List.of("""
@@ -4597,9 +4601,9 @@ without binders and capturing "other" is then reported as a capture error.*/
    | -------^^^^^^^^^^^---------------
 
 While inspecting type declaration "B"
-Invalid method signature for "B.m1".
+Invalid signature for method "B.m1".
 The method ".m1" returns type "P".
-But "A.m1" returns type "Q", which is not a supertype of "P".
+But method "A.m1" returns type "Q", which is not a supertype of "P".
 It is instead a subtype: you are weakening the result instead of strengthening it.
 """, List.of("""
 P:{}
@@ -4731,7 +4735,7 @@ Make:{ #(a:iso A): iso Box -> iso Box{ read .get: A -> a } }
 005|   } }
 
 While inspecting method "Counter.get" (line 4) > method "Make#" (line 2)
-This call to method "mut Counter.inc" cannot typecheck.
+This call to the "mut" method "Counter.inc" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso".
 The capability of the methods changes the type of parameter "self":
@@ -6054,7 +6058,7 @@ U:{ .m(a: iso A): H -> Mk#(a).match{ .k(v1) -> { .h -> v1 } } }
 
 While inspecting method call ".let(_,_)" > method "U.m" (line 2)
 The body of method ".m" of type declaration "U" is an expression returning "imm A".
-Method call "mut base.Block[_].let(_,_)" has type "imm A" instead of a subtype of "iso A".
+The call to the "mut" method "base.Block[_].let(_,_)" has type "imm A" instead of a subtype of "iso A".
 
 See inferred typing context below for how "A" was introduced ("..." marks omitted code):
 U:{.m:iso A->(...)#[imm,A].let[mut,A](mut base.ReturnStmt[A]{...},mut base.Continuation[...,...,...]{...})}
@@ -6209,9 +6213,9 @@ A:{ .m[X:*,Y:*](x:mut X):mut Y -> x }
    |     -------------~~~~~~~~^^^^^^^^^^^^^^^^~~
 
 While inspecting object literal instance of "Box[A]" > method "U.m" (line 4)
-Invalid method signature for "Box[A].get(_)".
+Invalid signature for method "Box[A].get(_)".
 The method ".get(_)" accepts parameter 1 of type "B".
-But "Box[_].get(_)" requires "A", which is not a subtype of "B".
+But method "Box[_].get(_)" requires "A", which is not a subtype of "B".
 The two types are unrelated.
 """, List.of("""
 A:{}
@@ -6287,7 +6291,7 @@ U:{ .m: base.Void -> Ig#(F#({ .a -> this.b; .b -> base.Void })) }
 
 While inspecting object literal instance of "A"
 Cannot infer signature of method ".foo(_)".
-No supertype has a method named ".foo(_)" with 1 parameter.
+No supertype has a method ".foo(_)".
 """, List.of("""
 A:{}
 U:{ .m: A -> { .foo(x): A -> x }.foo(A) }
@@ -6381,7 +6385,7 @@ U:{ .m: A -> {'s .k -> s; .v -> G#(s, { .k -> s; .v -> base.Void }) } }
 
 While inspecting object literal instance of "A" > method "A.v" (line 3) > method "U.m" (line 3)
 This object literal is missing a required method.
-Missing: "imm .k".
+Missing: the "imm" method ".k".
 Required by: "A".
 Add an implementation for ".k" inside the object literal.
 """, List.of("""
@@ -6395,7 +6399,7 @@ U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
 
 While inspecting object literal instance of "A" > method "A.v" (line 4) > method "U.m" (line 4)
 This object literal is missing a required method.
-Missing: "imm .k".
+Missing: the "imm" method ".k".
 Required by: "A".
 Add an implementation for ".k" inside the object literal.
 """, List.of("""
@@ -6499,7 +6503,7 @@ U:{ .m: base.Void -> {'s .j: base.Void -> H#({ .get -> s }, B) }.j }
    |        ------------------------------~^^^~~~~~
 
 While inspecting method "User.m(_,_)" (line 3)
-This call to method "read Id.id(_)" cannot typecheck.
+This call to the "read" method "Id.id(_)" cannot typecheck.
 Wrong number of generic type arguments for ".id(_)".
 Method ".id(_)" declares 1 generic type parameter.
 Declared generic type parameters: "X".
@@ -6530,7 +6534,7 @@ User:{ .go(x: Foo): mut K -> { read .a -> Id#[imm](x); .b -> Id#[imm](x) } }
    |        ------------------------------~^^^~~~~~~~~~
 
 While inspecting method "User.m(_,_)" (line 3)
-This call to method "read Id.id(_)" cannot typecheck.
+This call to the "read" method "Id.id(_)" cannot typecheck.
 Wrong number of generic type arguments for ".id(_)".
 Method ".id(_)" declares 1 generic type parameter.
 Declared generic type parameters: "X".
@@ -7011,7 +7015,7 @@ User:{ .u(a:A): B -> Use#({::.fooooooooooooooooooooooooooooooooooooooo}, G{ .m -
    |     ---------------------------^~~~~
 
 While inspecting method "U.m(_)" (line 2)
-This call to method "mut Counter.inc" cannot typecheck.
+This call to the "mut" method "Counter.inc" cannot typecheck.
 The receiver (the expression before the method name) has capability "imm".
 This call requires a receiver with capability "mut" or "iso".
 Parameter "c" has type "imm Counter": a type written without a capability, as "Counter", is "imm".
@@ -7028,7 +7032,7 @@ U:{ .m(c: Counter): Counter -> c.inc }
    |                          ----------~~~~~~~~~~~~~~~~~~~^
 
 While inspecting method "A#" (line 1)
-This call to method "mut base.Block[_].return(_)" cannot typecheck.
+This call to the "mut" method "base.Block[_].return(_)" cannot typecheck.
 Argument 1 has type "iso Nat".
 That is not a subtype of "mut base.ReturnStmt[Nat]" (the type required by the method signature).
 Write the argument inside curly braces:

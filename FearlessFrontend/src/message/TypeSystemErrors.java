@@ -94,9 +94,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   private FearlessException overrideErr(Literal l, Sig current, Sig parent, String got, String want, String why){
     assert current.m().equals(parent.m());
     var e= err()
-      .line("Invalid method signature for "+err().methodSig(current.rc().toStrSpace(), l, current.m())+".")
+      .line("Invalid signature for "+method(current.rc(), err().methodSig("", l, current.m()))+".")
       .line("The method "+methodSig(current.m())+" "+got+".")
-      .line("But "+methodSig(current.rc().toStrSpace()+err().tNameA(parent.origin()), current.m())+" "+want+".")
+      .line("But "+method(current.rc(), methodSig(err().tNameA(parent.origin()), current.m()))+" "+want+".")
       .line(why);
     return addExpFrame(l, e.ex(l).addSpan(current.span().inner));
   }
@@ -118,7 +118,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   private Err typeNotWellKindedSig(T.C t, E.Call c, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     var d= decs.apply(t.name());
     var s= Sources.findCanonical(d, c.name(), c.rc()).get();
-    var decName= err().methodSig(c.rc().toStrSpace(), d, c.name()); // p.A.m(...)
+    var decName= method(c.rc(), err().methodSig("", d, c.name())); // p.A.m(...)
     return typeArgBounds(err().callCannotTypecheck(d, c), decName, s.bs().get(index), c.targs().get(index), index, bounds, got);
   }
   private Err typeArgBounds(Err e, String targetRepr, B param, T bad, int index, EnumSet<RC> bounds, EnumSet<RC> got){
@@ -179,7 +179,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var s= got.sig();
     var e= err()
       .line("This object literal is missing a required method.")
-      .line("Missing: "+methodSig(s.rc()+" ", s.m())+".")
+      .line("Missing: "+theMethod(s.rc(), methodSig(s.m()))+".")
       .line(Join.of(requiredBy(at, s).stream().map(err()::tNameADisp), "Required by: ", " and ", "."));
     if (s.rc() == RC.mut){ e.line("This object literal is neither "+disp(RC.imm)+" nor "+disp(RC.read)+", so its "+disp(RC.mut)+" methods must be implemented."); }
     if (!(at instanceof Type t && foreignSealed(t.type().c().name()))){ return addExpFrame(at, e.line("Add an implementation for "+methodSig(s.m())+" inside the object literal.").ex(at)); }
@@ -225,9 +225,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     assert s.rc() == RC.mut;
     assert l.rc().isReadOrImm();
     var e= err()
-      .line("The method "+err().methodSig(s.rc().toStrSpace(), l, s.m())+" is dead code.")
+      .line(up(theMethod(s.rc(), err().methodSig("", l, s.m())))+" is dead code.")
       .line("The "+err().expRepr(l)+" is "+disp(l.rc())+", so it will never be seen as "+disp(RC.mut)+".");
-    if (!e.sigs(l, got, true)){ e.line("But it implements method "+methodSig(s.rc()+" ", s.m())+", which requires a "+disp(RC.mut)+" receiver."); }
+    if (!e.sigs(l, got, true)){ e.line("But it implements "+theMethod(s.rc(), methodSig(s.m()))+", which requires a "+disp(RC.mut)+" receiver."); }
     return addExpFrame(l, e.typeErr().addSpan(s.span().inner));
   }
   public FearlessException selfNameDeadCode(Literal l){ return addExpFrame(l, err().selfNameDeadCode(l.thisName(), err().expRepr(l)).typeErr()); }
@@ -237,14 +237,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///Raised when checking object literals
   public FearlessException notAffineIso(Literal l, M m, String name, boolean earlyErrOnMoreThenOnceDirectly, List<E.X> usages){
     assert !usages.isEmpty();
-    var ms= err().methodSig(m.sig().rc().toStrSpace(), l, m.sig().m());
+    var ms= method(m.sig().rc(), err().methodSig("", l, m.sig().m()));
     var p= pattern(l, m, name, usages.getFirst());
     var x= disp(p.map(FearlessErrFactory::patternRepr).orElse(usages.getFirst().src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : name));
     var t= m.sig().ts().get(m.xs().indexOf(name));
     var iso= t.explicitRC().equals(Optional.of(RC.iso));
     var e= err();
     if (!iso){ e.line("Parameter "+x+" of type "+err().typeRepr(false, t)+", which can be instantiated with "+disp(RC.iso)); }
-    e.line("The iso parameter "+x+" violates the single-use rule in method "+ms+" (line "+m.sig().span().inner.startLine()+").");
+    e.line("The iso parameter "+x+" violates the single-use rule in "+ms+" (line "+m.sig().span().inner.startLine()+").");
     if (earlyErrOnMoreThenOnceDirectly){
       var calls= p.map(d -> Join.of(d.extract().stream().map(ns -> disp(ns.getFirst().s())), "", " and ", ""));
       calls.ifPresent(cs -> e.line("The pattern "+x+" calls "+cs+" on it."));
@@ -283,9 +283,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   private void overloadHint(Err e, Literal l, M m){
     var written= srcM(l, m.sig()).flatMap(fearlessFullGrammar.M::sig).flatMap(fearlessFullGrammar.Sig::rc).isPresent();
-    var overloads= l.ms().stream().map(M::sig).filter(s -> !s.abs() && s.m().equals(m.sig().m())).map(s -> methodSig(s.rc()+" ", s.m())).toList();
-    if (written || overloads.size() < 2){ return; }
-    e.bullets("Method "+methodSig(m.sig().m())+" is overloaded; to implement a specific overload only, write one of the following:", overloads);
+    var rcs= l.ms().stream().map(M::sig).filter(s -> !s.abs() && s.m().equals(m.sig().m())).map(Sig::rc).toList();
+    if (written || rcs.size() < 2){ return; }
+    e.bullets(up(err().expRepr(l))+" has "+and(rcs.stream().map(Err::disp).toList())+" methods "+methodSig(m.sig().m())+";\nto implement only one of them, write one of the following:",
+      rcs.stream().map(rc -> methodSig(rc+" ", m.sig().m())).toList());
   }
 
 

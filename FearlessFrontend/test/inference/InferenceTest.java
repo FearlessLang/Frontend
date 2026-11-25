@@ -174,7 +174,7 @@ Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".use(_)".
-No supertype has a method named ".use(_)" with 1 parameter.
+No supertype has a method ".use(_)".
 Error 7 WellFormedness
 """, List.of(
 "A:{ .id:A->A; .id[X](x:A):A->x; .use:A->A; .use(x:A)->x.id(); }"));}
@@ -187,7 +187,7 @@ In file: [###].fear
 
 While inspecting type declaration "A"
 Cannot infer signature of method ".use(_)".
-No supertype has a method named ".use(_)" with 1 parameter.
+No supertype has a method ".use(_)".
 Error 7 WellFormedness
 """, List.of(
 "A:{ .use:A->A; .use(x)->x; }"));}
@@ -506,7 +506,7 @@ In file: [###].fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       A1.foo: A1
 -       A2.foo: A2
@@ -525,7 +525,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       A1.foo: A1
 -       A2.foo: A2
@@ -544,7 +544,7 @@ In file: [###].fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo(_,_)".
+Supertypes disagree on the signature of the "imm" method ".foo(_,_)".
 Signatures as inherited by type declaration "B":
 -       A1.foo(A1, A1): A1
 -       A2.foo(A1, A2): A1
@@ -562,7 +562,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo(_,_)".
+Supertypes disagree on the signature of the "imm" method ".foo(_,_)".
 Signatures as inherited by type declaration "B":
 -       A1.foo(A1, A1): A1
 -       A2.foo(A1, A2): A1
@@ -580,7 +580,7 @@ In file: [###].fear
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       A1.foo[X]: A1
 -       A2.foo: A1
@@ -599,7 +599,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       A1.foo[X]: A1
 -       A2.foo: A1
@@ -902,7 +902,7 @@ In file: [###].fear
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Supertypes disagree on the signature of method "imm .id(_)".
+Supertypes disagree on the signature of the "imm" method ".id(_)".
 Signatures as inherited by type declaration "D":
 -       A.id[X](Box[X]): X
 -       C.id[Y:read](Box[Y]): Y
@@ -923,7 +923,7 @@ In file: [###].fear
    |       ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "D"
-Supertypes disagree on the signature of method "imm .id(_)".
+Supertypes disagree on the signature of the "imm" method ".id(_)".
 Signatures as inherited by type declaration "D":
 -       A.id[X](Box[X]): X
 -       C.id[Y:read](Box[Y]): Y
@@ -945,7 +945,7 @@ In file: [###].fear
    |     ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "E"
-Invalid method signature for "E.m(_,_)".
+Invalid signature for method "E.m(_,_)".
 The method ".m(_,_)" declares 1 generic type parameter, but supertype "A" declares 2.
 Error 7 WellFormedness
 """, List.of("""
@@ -977,7 +977,7 @@ In file: [###].fear
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Supertypes disagree on the signature of method "imm .m(_)".
+Supertypes disagree on the signature of the "imm" method ".m(_)".
 Original signatures:
 -       A.m[X,Y](Twice[Pair[X,Y]]): X
 -       C.m[U,V](Twice[Pair[V,U]]): U

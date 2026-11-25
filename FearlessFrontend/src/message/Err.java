@@ -162,6 +162,8 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
   String methodSig(String pre, Literal l, MName m){ return methodSig(pre+bestLitName(l), m); }
   String methodSig(String pre, inference.E.Literal l, MName m){ return methodSig(pre+tNameA(bestName(l)), m); }
   static String methodSig(String pre, MName m){ return disp(Join.of(Collections.nCopies(m.arity(), "_"), pre+m.s()+"(", ",", ")", pre+m.s())); }
+  static String theMethod(RC rc, String sig){ return "the "+disp(rc)+" method "+sig; }
+  static String method(RC rc, String sig){ return rc == RC.imm ? "method "+sig : theMethod(rc, sig); }
   String text(){ return sb.toString().stripTrailing(); }
   Err line(String s){
     assert !s.isEmpty();
@@ -196,7 +198,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
     return line("- "+s.replace("\n", "\n  "));
   }
   Err callCannotTypecheck(Literal d, Call c){
-    return line("This call to method "+methodSig(c.rc().toStrSpace(), d, c.name())+" cannot typecheck.");
+    return line("This call to "+method(c.rc(), methodSig("", d, c.name()))+" cannot typecheck.");
   }
   Err callCannotTypecheck(Call c){
     return line("This call to method "+methodSig(c.name())+" cannot typecheck.");

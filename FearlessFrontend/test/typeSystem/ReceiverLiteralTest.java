@@ -111,7 +111,7 @@ A:{ .m: base.Void -> {}.foo }
 
 While inspecting object literal instance of "base.Bool" > method "A.m" (line 1)
 This object literal is missing a required method.
-Missing: "imm .and(_)".
+Missing: the "imm" method ".and(_)".
 Required by: "base.Bool".
 Sealed types can only be implemented in their own package.
 Type "base.Bool" is in package "base".
@@ -124,7 +124,7 @@ A:{ .m: base.Bool -> {}.not }
 
 While inspecting object literal instance of "base.Bool" > method "A.m" (line 1)
 This object literal is missing a required method.
-Missing: "imm .and(_)".
+Missing: the "imm" method ".and(_)".
 Required by: "base.Bool".
 Sealed types can only be implemented in their own package.
 Type "base.Bool" is in package "base".
@@ -137,7 +137,7 @@ A:{ .m: base.Bool -> base.Bool.not }
 
 While inspecting object literal instance of "S" > method "A.m" (line 1)
 This object literal is missing a required method.
-Missing: "imm .foo".
+Missing: the "imm" method ".foo".
 Required by: "S".
 Add an implementation for ".foo" inside the object literal.
 """, """
@@ -234,7 +234,7 @@ Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".get".
-No supertype has a method named ".get" with 0 parameters.
+No supertype has a method ".get".
 """, """
 A[X:*]:{ .x: X; #: X -> {.get -> this.x}.get }
 """);}
@@ -248,7 +248,7 @@ Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".foo".
-No supertype has a method named ".foo" with 0 parameters.
+No supertype has a method ".foo".
 """, """
 A[X:*]:{ #: X -> {.foo -> this}* }
 """);}

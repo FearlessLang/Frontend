@@ -457,7 +457,7 @@ Break:{ #: imm Break -> A#(imm Break) }
 While inspecting method call ".m(_)" > method "A.f(_)" (line 3)
 This call to method "Util.m(_)" cannot typecheck.
 Generic type argument 1 ("Z") does not satisfy the bounds
-for generic type parameter "Y" in "Util.m(_)".
+for generic type parameter "Y" in method "Util.m(_)".
 Here "Y" can only use capability "imm".
 But generic type argument "Z" can only use capability "mut".
 
@@ -480,7 +480,7 @@ A:{ .f[Z:imm](z: Z): Foo -> Util.m(z) }
 While inspecting method call ".m(_)" > method "A[_].f(_)" (line 3)
 This call to method "Util.m(_)" cannot typecheck.
 Generic type argument 1 ("Z") does not satisfy the bounds
-for generic type parameter "Y" in "Util.m(_)".
+for generic type parameter "Y" in method "Util.m(_)".
 Here "Y" can only use capability "imm".
 But generic type argument "Z" can only use capability "mut".
 
@@ -528,7 +528,7 @@ Break:{ .m(f: imm Foo): imm Foo -> A#(f) }
 While inspecting method call "#(_)" > method "Break.m(_)" (line 3)
 This call to method "A#(_)" cannot typecheck.
 Generic type argument 1 ("imm Foo") does not satisfy the bounds
-for generic type parameter "X" in "A#(_)".
+for generic type parameter "X" in method "A#(_)".
 Here "X" can only use capability "mut".
 """, List.of("""
 Foo:{}

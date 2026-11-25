@@ -162,7 +162,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .m".
+Supertypes disagree on the signature of the "imm" method ".m".
 Signatures as inherited by type declaration "B":
 -       a.A.m: a.A
 -       a.A2.m: a.A2
@@ -651,7 +651,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "a.S" > method "B.k" (line 1)
 This object literal is missing a required method.
-Missing: "imm .m".
+Missing: the "imm" method ".m".
 Required by: "a.S".
 Sealed types can only be implemented in their own package.
 Type "a.S" is in package "a".
@@ -1064,7 +1064,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "a.Box[a.A]" > method "B.m" (line 1)
 This object literal is missing a required method.
-Missing: "imm .get".
+Missing: the "imm" method ".get".
 Required by: "a.Box[_]".
 Add an implementation for ".get" inside the object literal.
 
@@ -1373,7 +1373,7 @@ Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".k".
-No supertype has a method named ".k" with 0 parameters.
+No supertype has a method ".k".
 
 """+noteA+"""
 
@@ -1393,7 +1393,7 @@ Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".k".
-No supertype has a method named ".k" with 0 parameters.
+No supertype has a method ".k".
 
 Name "X" stands for "a.A" because of "use a.A as X".
 """+noteA+"""
@@ -1948,7 +1948,7 @@ In file: [###].fear
 While inspecting method call "#(_)" > method "B.m(_,_)" (line 1)
 This call to method "a.G#(_)" cannot typecheck.
 Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "a.G#(_)".
+for generic type parameter "X" in method "a.G#(_)".
 Here "X" can only use capability "imm".
 
 Source code inside folders named "_b" uses package name "a"
@@ -1965,9 +1965,9 @@ In file: [###].fear
    | ------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid method signature for "B.g(_)".
+Invalid signature for method "B.g(_)".
 The method ".g(_)" accepts parameter 1 of type "a.Q".
-But "a.Parent.g(_)" requires "a.P", which is not a subtype of "a.Q".
+But method "a.Parent.g(_)" requires "a.P", which is not a subtype of "a.Q".
 It is instead a supertype: you are strengthening the parameter instead of weakening it.
 
 Source code inside folders named "_b" uses package name "a"
@@ -1984,9 +1984,9 @@ In file: [###].fear
    | ------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid method signature for "B.g(_)".
+Invalid signature for method "B.g(_)".
 The method ".g(_)" accepts parameter 1 of type "read a.P".
-But "a.Parent.g(_)" requires "imm a.P".
+But method "a.Parent.g(_)" requires "imm a.P".
 An overriding method can refine the types of its parameters and result,
 but not their reference capabilities.
 
@@ -2004,9 +2004,9 @@ In file: [###].fear
    | ---------^^^^^^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid method signature for "B.h".
+Invalid signature for method "B.h".
 The method ".h" returns type "read a.Q".
-But "a.Sup.h" returns type "imm a.Q".
+But method "a.Sup.h" returns type "imm a.Q".
 An overriding method can refine the types of its parameters and result,
 but not their reference capabilities.
 
@@ -2024,9 +2024,9 @@ In file: [###].fear
    | ---------^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid method signature for "B.h".
+Invalid signature for method "B.h".
 The method ".h" returns type "a.P".
-But "a.Sup.h" returns type "a.Q", which is not a supertype of "a.P".
+But method "a.Sup.h" returns type "a.Q", which is not a supertype of "a.P".
 It is instead a subtype: you are weakening the result instead of strengthening it.
 
 Source code inside folders named "_b" uses package name "a"
@@ -2043,9 +2043,9 @@ In file: [###].fear
    | -----^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid method signature for "B.h".
+Invalid signature for method "B.h".
 The method ".h" returns type "a.P".
-But "S.h" returns type "a.Q", which is not a supertype of "a.P".
+But method "S.h" returns type "a.Q", which is not a supertype of "a.P".
 It is instead a subtype: you are weakening the result instead of strengthening it.
 
 Name "S" stands for "a.Sup" because of "use a.Sup as S".
@@ -2084,7 +2084,7 @@ In file: [###].fear
    |     --------------------------------~~^^^^^^^^^~~
 
 While inspecting object literal instance of "a.M" > method "B.baz(_)" (line 1)
-The method "mut a.M.bar" is dead code.
+The "mut" method "a.M.bar" is dead code.
 The object literal instance of "a.M" is "read", so it will never be seen as "mut".
 Signature as inherited by object literal instance of "a.M":
 -   mut a.M.bar: mut a.M
@@ -2216,7 +2216,7 @@ In file: [###].fear
    |    --------------------^~~~
 
 While inspecting method "B.m(_)" (line 1)
-This call to method "mut a.R.go" cannot typecheck.
+This call to the "mut" method "a.R.go" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso".
 
@@ -2405,7 +2405,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .m(_)".
+Supertypes disagree on the signature of the "imm" method ".m(_)".
 Signatures as inherited by type declaration "B":
 -       a.A1.m(a.P): a.P
 -       a.A2.m(a.Q): a.P
@@ -2426,7 +2426,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .m".
+Supertypes disagree on the signature of the "imm" method ".m".
 Signatures as inherited by type declaration "B":
 -       a.A1.m: a.P
 -       a.A2.m: mut a.P
@@ -2448,7 +2448,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B[_]"
-Supertypes disagree on the signature of method "imm .id(_)".
+Supertypes disagree on the signature of the "imm" method ".id(_)".
 Original signatures:
 -       a.A1.id[X](X): X
 -       a.A2.id[Y:read](Y): Y
@@ -2473,7 +2473,7 @@ In file: [###].fear
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "a.Sup"
-Invalid method signature for "a.Sup.f(_)".
+Invalid signature for method "a.Sup.f(_)".
 The method ".f(_)" declares 2 generic type parameters, but supertype "a.Sup" declares 1.
 
 Source code inside folders named "_b" uses package name "a"
@@ -2490,7 +2490,7 @@ In file: [###].fear
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "a.Sup"
-Invalid method signature for "a.Sup.id(_)".
+Invalid signature for method "a.Sup.id(_)".
 The method ".id(_)" declares different capability bounds for generic type parameter 1
 than the supertypes.
 Local declaration: "X:imm,read".
@@ -3291,7 +3291,7 @@ Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".k".
-No supertype has a method named ".k" with 0 parameters.
+No supertype has a method ".k".
 
 """+noteA+"""
 
