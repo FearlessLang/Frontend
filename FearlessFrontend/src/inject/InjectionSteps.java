@@ -530,7 +530,7 @@ public record InjectionSteps(Methods meths, int cap){
     if (!(arg instanceof E.Call c) || expected.undecided() && !late){ return arg; }
     var receiver= switch (c.e()){
       case E.Literal l when !needsPrototypeAscription(l) -> l;
-      case E.Literal l when expected instanceof IT.RCC exp && implementable(exp.c().name()) && !declares(l, c.name()) -> l.withT(prototypeHead(exp, l.span()));
+      case E.Literal l when expected instanceof IT.RCC exp && implementable(exp.c().name(), l) && !declares(l, c.name()) -> l.withT(prototypeHead(exp, l.span()));
       case E.Literal l when l.ms().isEmpty() -> l;
       case E.Literal l -> itself(l);
       default -> prototypeAscribeRootReceiver(c.e(), expected, late);
@@ -540,11 +540,12 @@ public record InjectionSteps(Methods meths, int cap){
   private static boolean declares(E.Literal l, MName name){
     return l.ms().stream().map(M::sig).anyMatch(s -> s.m().equals(Optional.of(name)) && s.ret().isPresent() && s.ts().stream().allMatch(Optional::isPresent));
   }
-  private boolean implementable(TName head){
+  private boolean implementable(TName head, E.Literal l){
     var d= meths._from(head);
     if (d == null){ return false; }
     var foreign= !head.pkgName().equals(meths.p().name());
-    var foreignForbidden= foreign && (!head.isPublic() || LiteralDeclarations.has(d.cs(), LiteralDeclarations.sealed));
+    var sealed= !l.ms().isEmpty() && LiteralDeclarations.has(d.cs(), LiteralDeclarations.sealed);
+    var foreignForbidden= foreign && (!head.isPublic() || sealed);
     return !foreignForbidden;
   }
   private E.Literal itself(E.Literal l){

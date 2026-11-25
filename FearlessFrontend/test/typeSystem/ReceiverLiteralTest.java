@@ -63,6 +63,96 @@ Capture an immutable copy instead, or move this use outside the object literal.
 """, """
 A[X:*]:{ mut .x: mut X; mut #: mut X -> {.get: mut X -> this.x}.get }
 """);}
+@Test void emptyLiteralWithAForeignSealedExpectedTypeIsThatType(){ok("""
+A:{ .m: base.Nat -> {} + base.Zero }
+""");}
+@Test void foreignSealedTypeByName(){ok("""
+A:{ .m: base.Nat -> base.Nat + base.Zero }
+""");}
+@Test void foreignSealedTypeByNameWithEmptyCurlyBraces(){ok("""
+A:{ .m: base.Nat -> base.Nat{} + base.Zero }
+""");}
+@Test void emptyLiteralWithASealedExpectedTypeOfTheSamePackage(){ok("""
+S:base.Sealed{ .foo: S -> this } A:{ .m: S -> {}.foo }
+""");}
+@Test void sealedTypeOfTheSamePackageByName(){ok("""
+S:base.Sealed{ .foo: S -> this } A:{ .m: S -> S.foo }
+""");}
+@Test void emptyLiteralWithAnExpectedTypeWithNoAbstractMethods(){ok("""
+S:{ .foo: S -> this } A:{ .m: S -> {}.foo }
+""");}
+@Test void literalWithMethodsAndAForeignSealedExpectedTypeIsItsOwnType(){fail("""
+001| A:{ .m: base.Nat -> {.k: base.Nat -> base.Zero} + base.Zero }
+   |     ----------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+
+While inspecting method "A.m" (line 1)
+This call to method "+(_)" cannot typecheck.
+Method "+(_)" is not declared on "{...}".
+
+Available methods on "{...}":
+-       .k: base.Nat
+""", """
+A:{ .m: base.Nat -> {.k: base.Nat -> base.Zero} + base.Zero }
+""");}
+@Test void emptyLiteralWithAForeignSealedExpectedTypeWithoutTheMethod(){fail("""
+001| A:{ .m: base.Void -> {}.foo }
+   |     -----------------~~^^^^
+
+While inspecting method "A.m" (line 1)
+This call to method ".foo" cannot typecheck.
+Method ".foo" is not declared on type "base.Void".
+Type "base.Void" does not have any methods.
+""", """
+A:{ .m: base.Void -> {}.foo }
+""");}
+@Test void emptyLiteralWithAForeignSealedExpectedTypeWithAbstractMethods(){fail("""
+001| A:{ .m: base.Bool -> {}.not }
+   |     -----------------^^----
+
+While inspecting object literal instance of "base.Bool" > method "A.m" (line 1)
+This object literal is missing a required method.
+Missing: "imm .and(_)".
+Required by: "base.Bool".
+Sealed types can only be implemented in their own package.
+Type "base.Bool" is in package "base".
+""", """
+A:{ .m: base.Bool -> {}.not }
+""");}
+@Test void foreignSealedTypeWithAbstractMethodsByName(){fail("""
+001| A:{ .m: base.Bool -> base.Bool.not }
+   |     -----------------^^^^^^^^^----
+
+While inspecting object literal instance of "base.Bool" > method "A.m" (line 1)
+This object literal is missing a required method.
+Missing: "imm .and(_)".
+Required by: "base.Bool".
+Sealed types can only be implemented in their own package.
+Type "base.Bool" is in package "base".
+""", """
+A:{ .m: base.Bool -> base.Bool.not }
+""");}
+@Test void emptyLiteralWithAnExpectedTypeWithAnAbstractMethod(){fail("""
+001| S:{ .foo: S } A:{ .m: S -> {}.foo }
+   |                   ---------^^----
+
+While inspecting object literal instance of "S" > method "A.m" (line 1)
+This object literal is missing a required method.
+Missing: "imm .foo".
+Required by: "S".
+Add an implementation for ".foo" inside the object literal.
+""", """
+S:{ .foo: S } A:{ .m: S -> {}.foo }
+""");}
+@Test void emptyLiteralWithAGenericForeignSealedExpectedType(){failWf("""
+001| A:{ .m: base.Block[base.Nat] -> {}.done }
+   |                                 ^^
+
+While inspecting object literal instance of "base.Block[_]"
+Type inference concluded that this object literal implements "base.Block[?]",
+but it could not infer generic type argument 1 for generic type parameter "R" of "base.Block[_]".
+""", """
+A:{ .m: base.Block[base.Nat] -> {}.done }
+""");}
 @Test void undeclaredOperatorMethodWithAGenericExpectedType(){fail("""
 001| A[X:*]:{ #: X -> {.foo: A[X] -> this}* }
    |          --------~~~~~~~~~~~~~~~~~~~~^
