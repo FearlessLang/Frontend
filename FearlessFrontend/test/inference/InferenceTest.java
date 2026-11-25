@@ -880,6 +880,25 @@ Error 7 WellFormedness
 F[A,B]:{}
 User:{ .m(x:F[User]):User->this }
 """));}
+@Test void tooManyOrTooFewGenericTypeArguments(){fail("""
+In file: [###].fear
+
+003| User:{ .m(x:F[User,User]):User->this }
+   |             ^
+
+While inspecting a type name
+Type "F" is not declared with 2 generic type parameters in package "p".
+Type "F" is only declared with other numbers of generic type parameters.
+Candidates:
+- "F[_]"
+- "F[_,_,_]"
+There may be too many or too few generic type arguments.
+Error 7 WellFormedness
+""", List.of("""
+F[A]:{}
+F[A,B,C]:{}
+User:{ .m(x:F[User,User]):User->this }
+"""));}
 @Test void inferMini3Err(){fail("""
 In file: [###].fear
 

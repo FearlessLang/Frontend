@@ -2228,6 +2228,18 @@ Signature as inherited by object literal instance of "B":
 B:{ mut .bar:mut B }
 A:{ mut .baz(b: mut B):read B-> { .bar->b}; }
 """));}
+@Test void uncallableMethodWithWholeSignatureFail(){fail("""
+002| A:{ mut .baz(b: mut B):read B-> { mut .bar: mut B -> b}; }
+   |     ----------------------------~~^^^^^^^^^^^^^^^^^^^^~
+
+While inspecting object literal instance of "B" > method "A.baz(_)" (line 2)
+The "mut" method "B.bar" is dead code.
+The object literal instance of "B" is "read", so it will never be seen as "mut".
+But it implements the "mut" method ".bar", which requires a "mut" receiver.
+""", List.of("""
+B:{ mut .bar:mut B }
+A:{ mut .baz(b: mut B):read B-> { mut .bar: mut B -> b}; }
+"""));}
 @Test void immLiteralTwoSupersLeaveSameMutAbstract(){ok(List.of("""
 A:{ mut .m: A }
 B:{ mut .m: A }

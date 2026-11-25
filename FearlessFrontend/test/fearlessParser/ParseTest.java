@@ -3554,7 +3554,8 @@ In file: [###].fear
 001| A:{ .m: A -> }
 [###]
 Missing method body after "->".
-[###]
+The body of a method is the expression after "->".
+Error 2 UnexpectedToken
 """, """
 A:{ .m: A -> }
 """);}
