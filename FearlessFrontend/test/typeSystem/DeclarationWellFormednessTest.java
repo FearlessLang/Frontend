@@ -435,7 +435,7 @@ BreakOuter[Y:*,Z:*]:{ #: BreakInner[Y] -> BreakInner[Y:*]:{ .z: A[Z] -> A[Z] } }
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Name "Z" is already used by a generic type parameter
 declared outside the type declaration "BreakInner".
-Generic type parameters declared inside "BreakInner" can not reuse the name "Z",
+Generic type parameters declared inside "BreakInner" cannot reuse the name "Z",
 even though "Z" is not in scope there.
 """, List.of("""
 A[X:*]:{}
@@ -449,7 +449,7 @@ BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z[Z:*](z: Z): Z -> z } }
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Name "K" is already used by a generic type parameter
 declared outside the type declaration "Low".
-Generic type parameters declared inside "Low" can not reuse the name "K",
+Generic type parameters declared inside "Low" cannot reuse the name "K",
 even though "K" is not in scope there.
 """, List.of("""
 A:{}
@@ -1273,7 +1273,7 @@ B: base.Final[".b"], A{ .b: B -> this; .a: A -> this }
 """));}
 @Test void twoRankFiles(){typeFailRaw("""
 Ambiguous rank file for package "p".
-Found 2 files that look like rank head candidates:
+Found 2 rank files:
 - fear:/___DBG___/_rank_app999.fear
 - fear:/___DBG___/_rank_other000.fear
 There must be exactly one source file whose name represents this package rank.
@@ -1284,7 +1284,8 @@ The rank file is the file whose name matches the rank name.
 
 For example, for an application you would typically have a file named
   "_rank_app.fear"
-Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear"; with explicit rank number.
+Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear",
+where 175 is an explicit rank number.
 As a rule of thumb: final applications use appNNN;
 shared libraries often use workerNNN or frameworkNNN.
 Error 7 WellFormedness""", SourceOracle.debugBuilder().put(0, "A:{}").putURI(URI.create("fear:/___DBG___/_rank_other000.fear"), "B:{}").build());}
@@ -1298,7 +1299,8 @@ The rank file is the file whose name matches the rank name.
 
 For example, for an application you would typically have a file named
   "_rank_app.fear"
-Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear"; with explicit rank number.
+Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear",
+where 175 is an explicit rank number.
 As a rule of thumb: final applications use appNNN;
 shared libraries often use workerNNN or frameworkNNN.
 Error 7 WellFormedness""", SourceOracle.debugBuilder().put(1, "A:{}").build());}

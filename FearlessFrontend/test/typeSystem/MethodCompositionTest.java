@@ -634,7 +634,7 @@ User:{ #:D->D:P,Q{} }
 While inspecting object literal "D" > method "User#" (line 7)
 This object literal is missing a required method.
 Missing: the "imm" method ".m".
-Required by: "P" and "K" and "X".
+Required by: "P", "K" and "X".
 Add an implementation for ".m" inside the object literal.
 """, List.of("""
 R:{}
