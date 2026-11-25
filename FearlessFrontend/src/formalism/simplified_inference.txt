@@ -1,0 +1,200 @@
+Text:
+This design is the inference of a simplified Fearless.
+P is a program in the surface language.
+X is a type variable, C is the 'name' of a literal, Par is a parameter and MName is the name of a method.
+MName[Xs](Par1:T1 .. Parn:Tn):T 'declares' the X of Xs and Par1..Parn; C[Xs]:CTs{TMs} declares the X of Xs.
+The inference of a method body fails when P.elaborate is undefined for that method.
+The typing P; G |- CE : CT of the core language has no Notation in this design.
+
+Grammar:
+#this in Par
+P ::= Top1 .. Topn
+Top ::= C "[" Xs "]:" CTs "{" TMs "}"
+TM ::= CSig SBody
+CE ::= Par | CL | CE "." MName "[" CTs "](" CEs ")"
+CL ::= C "[" Xs "]:" CTs "{" CMs "}"
+CM ::= CSig CBody
+CBody ::= ";" | "->" CE ";"
+CSig ::= MName "[" Xs "](" Par1 ":" CT1 .. Parn ":" CTn "):" CT
+CT ::= X | C "[" CTs "]"
+E ::= Bare ":" T
+Bare ::= Par | L | E "." MName Targs "(" Es ")"
+Targs ::= "[" Ts "]" | ""
+L ::= C "[" Xs "]:" Ts "{" Ms "}" | "{" Ms "}"
+M ::= Sig Body
+Body ::= ";" | "->" E ";"
+Sig ::= MName "[" Xs "](" Par1 ":" T1 .. Parn ":" Tn "):" T
+T ::= "?" | X | C "[" Ts "]"
+SE ::= Par | SL | SE "." MName STargs "(" SEs ")"
+STargs ::= "[" STs "]" | ""
+SL ::= C "[" Xs "]:" CTs "{" SMs "}" | "{" SMs "}"
+SM ::= SSig SBody
+SBody ::= ";" | "->" SE ";"
+SSig ::= MName "[" Xs "](" Par1 ":" ST1 .. Parn ":" STn "):" ST
+ST ::= CT | "?"
+G ::= Par1 ":" T1 .. Parn ":" Tn
+Xs ::= X1 .. Xn
+CTs ::= CT1 .. CTn
+Ts ::= T1 .. Tn
+STs ::= ST1 .. STn
+CEs ::= CE1 .. CEn
+Es ::= E1 .. En
+SEs ::= SE1 .. SEn
+TMs ::= TM1 .. TMn
+CMs ::= CM1 .. CMn
+Ms ::= M1 .. Mn
+SMs ::= SM1 .. SMn
+
+Well formedness:
+in P: no two elements of P.SLs of form C[Xs]:CTs{SMs} have the same name
+in P: there are no C1..Cn with n >= 1 and C(n+1) = C1 where, for each i in 1..n, Ci[_Xs]:_CTs C(i+1)[_CTs] _CTs{_SMs} is in P.SLs
+in P: if C[_Xs]:_CTs{_SMs} is in P.SLs and is not one of the Tops of P, then no _C[_Xs]:_CTs C[_CTs] _CTs{_SMs} is in P.SLs
+in P: if CSig and CSig' are in P.sigs(C[X1 .. Xk]) and CSig.MName = CSig'.MName, then CSig ~ CSig'
+in Top: an SSig inside the SBody of an SM declares no X and no Par that the SSig of that SM declares, and no X that Top declares
+in Top: in an SL of form C[Xs]:CTs{SMs} inside an SBody, every X of Xs is declared by Top or by an SSig with that SL inside its SBody
+in Top: in an SL of form C[Xs]:CTs{SMs} inside an SBody, every X inside CTs{SMs} is in Xs or is declared by an SSig inside SMs
+in SL: if SL is C[_Xs]:CT1 .. CTn{_SMs}, then every CTi is of form C[CTs]
+in SMs: SMs is SM1 .. SMn with SM1.MName .. SMn.MName disjoint
+in SSig: SSig is _MName[X1 .. Xk](Par1:_ST .. Parn:_ST):_ST with X1..Xk disjoint, Par1..Parn disjoint, and no Pari = #this
+in G: G is Par1:_T .. Parn:_T with Par1..Parn disjoint
+
+Notation: typeOf(_Bare:T) = T
+
+Notation: ? ⊓ T = T
+Notation: T ⊓ ? = T
+Notation: X ⊓ X = X
+Notation: C[Ts] ⊓ C[Ts'] = C[Ts⊓Ts']
+Notation: T1 .. Tn ⊓ T'1 .. T'n = T1⊓T'1 .. Tn⊓T'n
+Notation: meet() = ?
+Notation: meet(T Ts) = T ⊓ meet(Ts)
+Notation: Bare:T ⊓ T' = Bare:T'' where:
+- T'' = T ⊓ T'
+
+Notation: ?[Xs=Ts] = ?
+Notation: X[X1 .. Xn=T1 .. Tn] = Ti where:
+- X = Xi
+Notation: X[Xs=Ts] = X where:
+- X not in Xs
+Notation: C[T1 .. Tn][Xs=Ts] = C[T1[Xs=Ts] .. Tn[Xs=Ts]]
+
+Notation: refine(X; X; T) = T
+Notation: refine(X; X'; T) = ? where:
+- X != X'
+Notation: refine(X; C[CT1 .. CTn]; C[T1 .. Tn]) = meet(refine(X;CT1;T1) .. refine(X;CTn;Tn))
+Notation: refine(X; C[CT1 .. CTn]; T) = ? where:
+- there are no T1..Tn with T = C[T1 .. Tn]
+Notation: refines(X1 .. Xk; CT0 .. CTn; T0 .. Tn) = T'1 .. T'k where:
+- for each h in 1..k: T'h = meet(refine(Xh;CT0;T0) .. refine(Xh;CTn;Tn))
+
+Notation: close(Xs; ?) = ?
+Notation: close(Xs; X) = ? where:
+- X in Xs
+Notation: close(Xs; X) = X where:
+- X not in Xs
+Notation: close(Xs; C[T1 .. Tn]) = C[close(Xs;T1) .. close(Xs;Tn)]
+
+Notation: MName[Xs](Par1:T1 .. Parn:Tn):T0 ~ MName[Xs'](Par1:T1[Xs=Xs'] .. Parn:Tn[Xs=Xs']):T0[Xs=Xs'] where:
+- Xs' has as many elements as Xs, and the elements of Xs' are disjoint
+- each X of Xs' is in Xs or occurs in none of T0..Tn
+
+Notation: MName[Xs'](Par1:T1[Xs=Ts] .. Parn:Tn[Xs=Ts]):T0[Xs=Ts] in P.sigs(C[Ts]) where:
+- C[Xs]:_CTs{_SMs SSig _SBody _SMs} in P.SLs
+- SSig ~ MName[Xs'](Par1:T1 .. Parn:Tn):T0
+- Xs has as many elements as Ts
+- no X of Xs' is in Xs or occurs in Ts
+Notation: Sig in P.sigs(C[Ts]) where:
+- C[Xs]:_CTs CT _CTs{_SMs} in P.SLs
+- Sig in P.sigs(CT[Xs=Ts])
+
+Notation: P.header(C[_Ts], MName) = X1 .. Xk; CSig where:
+- X1..Xk are disjoint
+- CSig in P.sigs(C[X1 .. Xk])
+- CSig.MName = MName
+
+Notation: inferenceOf(Par) = Par:?
+Notation: inferenceOf(SE0.MName STargs(SE1 .. SEn)) = inferenceOf(SE0).MName STargs(inferenceOf(SE1) .. inferenceOf(SEn)):?
+Notation: inferenceOf(C[Xs]:CTs{SM1 .. SMn}) = C[Xs]:CTs{inferenceOf(SM1) .. inferenceOf(SMn)}:?
+Notation: inferenceOf({SM1 .. SMn}) = {inferenceOf(SM1) .. inferenceOf(SMn)}:?
+Notation: inferenceOf(SSig;) = SSig;
+Notation: inferenceOf(SSig->SE;) = SSig->inferenceOf(SE);
+
+Notation: P.lower(Xs; Par:_CT) = Par
+Notation: P.lower(Xs; E0.MName[CTs](E1 .. En):_CT) = P.lower(Xs;E0).MName[CTs](P.lower(Xs;E1) .. P.lower(Xs;En))
+Notation: P.lower(Xs; C[Xs']:CTs{M1 .. Mn}:_CT) = C[Xs']:CTs{P.lower(Xs;M1) .. P.lower(Xs;Mn)}
+Notation: P.lower(Xs; {M1 .. Mn}:C[CTs]) = C'[Xs]:C[CTs]{P.lower(Xs;M1) .. P.lower(Xs;Mn)} where:
+- C' is the name of no literal of P and of no other literal that P.lower makes
+Notation: P.lower(Xs; CSig;) = CSig;
+Notation: P.lower(Xs; MName[Xs'](Par1:CT1 .. Parn:CTn):CT0->E;) = MName[Xs'](Par1:CT1 .. Parn:CTn):CT0->P.lower(Xs Xs';E);
+
+//(x)
+Notation: P; G Par:T G' |- Par:T' ==> G Par:T'' G' |- Par:T'' where:
+- T'' = T ⊓ T'
+//(callNope)
+Notation: P; G0 |- E0.MName Targs(E1 .. En):T ==> G(n+1) |- E'0.MName Targs(E'1 .. E'n):T where:
+- P.header(typeOf(E0), MName) is undefined
+- for each i in 0..n: P; Gi |- Ei ==>* G(i+1) |- E'i
+//(callI)
+Notation: P; G |- E0.MName(Es):T ==> G |- E0.MName[?1 .. ?k](Es):T where:
+- P.header(typeOf(E0), MName) = _Xs; MName[X1 .. Xk](_):_
+//(callR)
+Notation: P; G0 |- E0.MName[Ts2](E1 .. En):T ==> \
+  G(n+1) |- E'0⊓C[Ts3].MName[Ts4](E'1⊓CT1[Xs1 Xs2=Ts3 Ts4] .. E'n⊓CTn[Xs1 Xs2=Ts3 Ts4]):meet(T CT0[Xs1 Xs2=Ts3 Ts4]) where:
+- P.header(typeOf(E0), MName) = Xs1; MName[Xs2](_Par:CT1 .. _Par:CTn):CT0
+- for each i in 0..n: P; Gi |- Ei ==>* G(i+1) |- E'i
+- typeOf(E'0) = C[Ts1]
+- Ts3 Ts4 = Ts1 Ts2 ⊓ refines(Xs1 Xs2; CT0 CT1 .. CTn; T typeOf(E'1) .. typeOf(E'n))
+- Ts3 has as many elements as Ts1
+//(anon)
+Notation: P; G1 |- {M1 .. Mn}:C[Ts1] ==> G(n+1) |- {M'1 .. M'n}:C[Ts(n+1)] where:
+- for each i in 1..n: P; Gi; C[Tsi] |- Mi ==> G(i+1); C[Ts(i+1)] |- M'i
+//(named)
+Notation: P; G1 |- C[Xs]:Ts{M1 .. Mn}:T ==> G(n+1) |- C[Xs]:Ts{M'1 .. M'n}:T⊓C[Xs] where:
+- for each i in 1..n: P; Gi; C[Xs] |- Mi ==> G(i+1); C[Xs] |- M'i
+//(meth)
+Notation: P; G; C[Ts] |- MName[Xs](Par1:T1 .. Parn:Tn):T0->E; ==> G'; close(Xs; C[Ts']) |- \
+  MName[Xs](Par1:meet(T''1 CT1[Xs'=Ts']) .. Parn:meet(T''n CTn[Xs'=Ts'])):meet(T''0 CT0[Xs'=Ts'])->E'⊓CT0[Xs'=Ts']; where:
+- P.header(C[Ts], MName) = Xs'; MName[Xs](_Par:CT1 .. _Par:CTn):CT0
+- for each i in 0..n: T'i = meet(Ti CTi[Xs'=Ts])
+- P; G Par1:T'1 .. Parn:T'n |- E⊓T'0 ==>* G' Par1:T''1 .. Parn:T''n |- E'
+- T''0 = typeOf(E')
+- Ts' = Ts ⊓ refines(Xs'; CT0 .. CTn; T''0 .. T''n)
+//(methAbs)
+Notation: P; G; C[Ts] |- MName[Xs](Par1:T1 .. Parn:Tn):T0; ==> G; C[Ts] |- \
+  MName[Xs](Par1:meet(T1 CT1[Xs'=Ts]) .. Parn:meet(Tn CTn[Xs'=Ts])):meet(T0 CT0[Xs'=Ts]); where:
+- P.header(C[Ts], MName) = Xs'; MName[Xs](_Par:CT1 .. _Par:CTn):CT0
+//(methNew)
+Notation: P; G; C[Ts] |- MName[Xs](Par1:CT1 .. Parn:CTn):CT0->E; ==> G'; C[Ts] |- MName[Xs](Par1:CT1 .. Parn:CTn):CT0->E'; where:
+- P.header(C[Ts], MName) is undefined
+- P; G Par1:CT1 .. Parn:CTn |- E⊓CT0 ==>* G' Par1:CT1 .. Parn:CTn |- E'
+//(methNewAbs)
+Notation: P; G; C[Ts] |- CSig; ==> G; C[Ts] |- CSig; where:
+- P.header(C[Ts], CSig.MName) is undefined
+
+Notation: P; G |- E ==>* G |- E where:
+- there are no G', E' where P; G |- E ==> G' |- E' and G' |- E' is not G |- E
+Notation: P; G |- E ==>* G'' |- E'' where:
+- P; G |- E ==> G' |- E'
+- G' |- E' is not G |- E
+- P; G' |- E' ==>* G'' |- E''
+
+Notation: P.elaborate(C[Xs]; MName[Xs'](Par1:CT1 .. Parn:CTn):CT0->SE;) = MName[Xs'](Par1:CT1 .. Parn:CTn):CT0->CE; where:
+- G = #this:C[Xs] Par1:CT1 .. Parn:CTn
+- P; G |- inferenceOf(SE)⊓CT0 ==>* _G |- E
+- CE = P.lower(Xs Xs'; E)
+- P; G |- CE : CT0
+//TODO: formally define angelicElaborate and the statement
+//program |- angelicElaborate(G,SE,T,CE)
+//TODO: read https://kelloggm.github.io/martinjkellogg.com/papers/ase2023-camera-ready.pdf
+//if there is a unique elaboration, my system finds it
+//{Ms}: F[A,B] MyF[A,B]
+//MyF[A,B]:F[A,B]{}
+//{Ms}:? if this cannot be unlocked, we never enter into the Es of Ms
+//Optimizing (avoiding) re entries://not quite working?
+//Once a G |- E ==>* G' |- E' completed,
+//we know that G'' |- E' ==>* G'' |- E' if: //that is, no progress
+//  G0 = FV(E') //gets a G since syntax has Par:T
+//  for each Par in dom(G0): G0(Par) = G''(Par)
+//This also means that
+//Once a G |- E ==>* G' |- Ev completed, G'' |- Ev ==>* G1 |- Ev' can be emulated by:
+// G0 = FV(Ev) and Ev = Ev'
+// G1 = G0 ⊓ G''
