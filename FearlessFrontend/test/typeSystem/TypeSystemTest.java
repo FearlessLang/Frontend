@@ -555,7 +555,7 @@ While inspecting type declaration "User"
 The type "A[mut B]" is invalid.
 Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
-Here "X" can only use capabilities "imm" or "mutH" or "readH".
+Here "X" can only use capabilities "imm", "mutH" or "readH".
 """, List.of("""
 A[X:imm,readH,mutH]:{}
 B:{}
@@ -4171,9 +4171,9 @@ User:{ .m: base.BaseId[Person,Customer] -> {::} }
 """));}
 @Test void baseIdNotIdentity(){fail("""
 003| MyId:base.BaseId[Customer,Person]{ #(x)->Person }
-   |                                          ^^^^^^
+   | -----------------------------------------^^^^^^--
 
-While inspecting the file
+While inspecting type declaration "MyId"
 Type declaration "MyId" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
@@ -4184,9 +4184,9 @@ MyId:base.BaseId[Customer,Person]{ #(x)->Person }
 """));}
 @Test void baseIdWrongReceiver(){fail("""
 004| MyId:base.BaseId[base.MList[Customer],base.MList[Person]]{ #(x)->Other.cs.as{::} }
-   |                                                                  ^^^^^^^^^^^^^^^
+   | -----------------------------------------------------------------^^^^^^^^^^^^^^^--
 
-While inspecting the file
+While inspecting type declaration "MyId"
 Type declaration "MyId" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
@@ -6136,7 +6136,8 @@ D[Y:*]:{ .m(y: read/imm Y): base.Void -> F2#(y) }
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "X".
-"X" is a generic type parameter; object literals can only implement nominal types.
+"X" is a generic type parameter;
+object literals can only implement nominal types.
 """, List.of("""
 G:{ #[T:*](x:T):T -> x }
 H[X:*]:{ .m: X -> G#[X]({}) }
@@ -6148,9 +6149,9 @@ U:{ .m:base.Void -> F3#(A{}) }
 """));}
 @Test void baseIdReturningThisNamesItsParameter(){fail("""
 001| I: base.BaseId[I,I]{ #(y)->this }
-   |                            ^^^^
+   | ---------------------------^^^^--
 
-While inspecting the file
+While inspecting type declaration "I"
 Type declaration "I" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "y" or "y.as{...}".
 Only those two shapes are the identity function.
@@ -6159,9 +6160,9 @@ I: base.BaseId[I,I]{ #(y)->this }
 """));}
 @Test void baseIdAsOnANonContainerNamesItsParameter(){fail("""
 002| I: base.BaseId[Box,Box]{ #(y)->y.as{ #(z)->z } }
-   |                                ^^^^^^^^^^^^^^^
+   | -------------------------------^^^^^^^^^^^^^^^--
 
-While inspecting the file
+While inspecting type declaration "I"
 Type declaration "I" implements "base.BaseId[_,_]".
 The body of "#(_)" calls ".as(_)" on parameter "y".
 Calling ".as(_)" counts as the identity function only when
@@ -6173,9 +6174,9 @@ I: base.BaseId[Box,Box]{ #(y)->y.as{ #(z)->z } }
 """));}
 @Test void baseIdReturningThis(){fail("""
 001| I: base.BaseId[I,I]{ #(x)->this }
-   |                            ^^^^
+   | ---------------------------^^^^--
 
-While inspecting the file
+While inspecting type declaration "I"
 Type declaration "I" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
@@ -6184,9 +6185,9 @@ I: base.BaseId[I,I]{ #(x)->this }
 """));}
 @Test void baseIdCallingItself(){fail("""
 001| I: base.BaseId[I,I]{ #(x)->this#(x) }
-   |                            ^^^^^^^^
+   | ---------------------------^^^^^^^^--
 
-While inspecting the file
+While inspecting type declaration "I"
 Type declaration "I" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
@@ -6240,9 +6241,9 @@ Impl:{ #(x:I):I -> x }
 """));}
 @Test void baseIdAsOnANonContainer(){fail("""
 002| I: base.BaseId[Box,Box]{ #(x)->x.as{ #(y)->y } }
-   |                                ^^^^^^^^^^^^^^^
+   | -------------------------------^^^^^^^^^^^^^^^--
 
-While inspecting the file
+While inspecting type declaration "I"
 Type declaration "I" implements "base.BaseId[_,_]".
 The body of "#(_)" calls ".as(_)" on parameter "x".
 Calling ".as(_)" counts as the identity function only when
@@ -6305,9 +6306,9 @@ U:{ .m: A -> { .foo(x: A): A -> x }.foo(A) }
 """));}
 @Test void baseIdCallingItselfOnItsArgument(){fail("""
 001| I: base.BaseId[I,I]{ #(x)->x#(x) }
-   |                            ^^^^^
+   | ---------------------------^^^^^--
 
-While inspecting the file
+While inspecting type declaration "I"
 Type declaration "I" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
@@ -6316,9 +6317,9 @@ I: base.BaseId[I,I]{ #(x)->x#(x) }
 """));}
 @Test void baseIdAsOnATypeParameterArgument(){fail("""
 001| I[X:*]: base.BaseId[X,I[X]]{ #(x)->x.as[I[X]](this) }
-   |                                    ^^^^^^^^^^^^^^^^
+   | -----------------------------------^^^^^^^^^^^^^^^^--
 
-While inspecting the file
+While inspecting type declaration "I[_]"
 Type declaration "I[_]" implements "base.BaseId[_,_]".
 The body of "#(_)" calls ".as(_)" on parameter "x".
 Calling ".as(_)" counts as the identity function only when

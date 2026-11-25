@@ -52,16 +52,16 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var e= err().line(up(err().expRepr(l))+" implements "+err().tNameADisp(LiteralDeclarations.baseId)+".");
     var span= m.e().get().span().inner;
     var asOnX= m.e().get() instanceof Call c && c.e() instanceof X(var recv, _) && recv.equals(x) && c.name().equals(new MName(".as", 1));
-    if (!asOnX){ return e
+    if (!asOnX){ return addExpFrame(l, e
       .line("The body of "+methodSig(m.sig().m())+" must be "+disp(x)+" or "+disp(x+".as{...}")+".")
       .line("Only those two shapes are the identity function.")
-      .typeErr().addSpan(span);
+      .typeErr().addSpan(span));
     }
-    return e
+    return addExpFrame(l, e
       .line("The body of "+methodSig(m.sig().m())+" calls "+methodSig(new MName(".as", 1))+" on parameter "+disp(x)+".")
       .line("Calling "+methodSig(new MName(".as", 1))+" counts as the identity function only when\nthe receiver has a type implementing "+err().tNameADisp(LiteralDeclarations.baseContainer)+".")
       .line("Parameter "+disp(x)+" has type "+err().typeRepr(true, m.sig().ts().getFirst())+".")
-      .typeErr().addSpan(span);
+      .typeErr().addSpan(span));
   }
   static Optional<fearlessFullGrammar.M> srcM(Literal l, Sig s){
     List<fearlessFullGrammar.M> ms= switch (l.src().inner){
@@ -114,7 +114,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var span= toErr.span().inner.contained(target.span().inner) ? target.span().inner : toErr.span().inner;
     return addExpFrame(toErr, e.ex(toErr).addSpan(span));
   }
-  private static String caps(EnumSet<RC> rcs){ return (rcs.size() == 1 ? "capability " : "capabilities ")+Join.of(rcs.stream().map(Err::disp).sorted(), "", " or ", ""); }
+  private static String caps(EnumSet<RC> rcs){ return (rcs.size() == 1 ? "capability " : "capabilities ")+or(rcs.stream().map(Err::disp).sorted().toList()); }
   private Err typeNotWellKindedSig(T.C t, E.Call c, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     var d= decs.apply(t.name());
     var s= Sources.findCanonical(d, c.name(), c.rc()).get();
@@ -360,7 +360,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     }
     var sameArity= sameName.stream().filter(s -> s.m().arity() == c.es().size()).toList();
     if (sameArity.isEmpty()){
-      var avail= Join.of(sameName.stream().map(s -> s.m().arity()).distinct().sorted().map(String::valueOf), "", " or ", "");
+      var avail= or(sameName.stream().map(s -> s.m().arity()).distinct().sorted().map(String::valueOf).toList());
       var forms= sameName.stream().map(s -> methodSig(s.m())).distinct().sorted().toList();
       return withCallSpans(err()
         .callCannotTypecheck(c)
@@ -427,7 +427,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var e= err()
       .callCannotTypecheck(d, c)
       .line("The receiver (the expression before the method name) has capability "+disp(recvRc)+".")
-      .line(Join.of(byRc.keySet().stream().map(Err::disp), "This call requires a receiver with capability ", " or ", "."));
+      .line("This call requires a receiver with capability "+or(byRc.keySet().stream().map(Err::disp).toList())+".");
     if (c.e() instanceof X x && g.bind(x.name()).current() instanceof Change.Keep w){ e.line(Reason.adaptation(this, isSelfName(s, x.name()), x, w)); }
     if (c.e() instanceof X x && g.bind(x.name()).current() instanceof Change.Same(T.RCC t) && t.rc() == RC.imm && !isSelfName(s, x.name())){
       e.line(up(err().expRepr(x))+" has type "+err().typeRepr(false, t)+": a type written without a capability, as "+err().typeRepr(true, t)+", is \"imm\".");

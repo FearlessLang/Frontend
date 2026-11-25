@@ -88,7 +88,8 @@ Ambiguous rank file for package "p".
 Found 2 rank files:
 - fear:/p/_rank_app.fear
 - fear:/p/_rank_app2.fear
-There must be exactly one source file whose name represents this package rank.
+Each package must have exactly one source file whose name is its rank,
+in some folder inside the project folder.
 Rename or remove the extra files so that only one file name is of form "_rank_*.fear".
 Every package must declare its rank:
 base, core, driver, worker, framework, accumulator, tool, or app.
@@ -1314,7 +1315,7 @@ In file: [###]/in_memory1.fear
    |   ^
 
 While inspecting generic type parameter "X"
-Generic type parameter "X" is declared in package "p".
+Generic type parameter "X" is declared inside type declaration "Y[_]" of package "p".
 Name "X" is also used as a type name.
 Error 7 WellFormedness
 """,

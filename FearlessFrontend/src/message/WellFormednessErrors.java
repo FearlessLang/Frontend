@@ -122,7 +122,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return badRank(err()
       .line("Ambiguous rank file for package "+disp(pkgName)+".")
       .bullets("Found "+heads.size()+" rank files:", names)
-      .line("There must be exactly one source file whose name represents this package rank.")
+      .line("Each package must have exactly one source file whose name is its rank,")
+      .line("in some folder inside the project folder.")
       .line("Rename or remove the extra files so that only one file name is of form \"_rank_*.fear\".")).wf();
   }
   public FearlessException mapConflict(String in, List<String> bests){
@@ -325,8 +326,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var n= allXs.values().stream().flatMap(Set::stream)
       .filter(x -> allNames.contains(x.name()) || use.contains(x.name()))
       .findFirst().get();
+    var dec= allXs.entrySet().stream().filter(d -> d.getValue().contains(n)).findFirst().get().getKey();
     return err()
-      .line("Generic type parameter "+disp(n.name())+" is declared in package "+disp(pkgName)+".")
+      .line("Generic type parameter "+disp(n.name())+" is declared inside type declaration "+err().tNameADisp(dec)+" of package "+disp(pkgName)+".")
       .line("Name "+disp(n.name())+" is also used "+(use.contains(n.name()) ? "in a \"use\" directive." : "as a type name."))
       .wf()
       .addFrame("generic type parameter "+disp(n.name()), n.span().inner);
@@ -547,7 +549,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var xs= Err.disp(b.x());
     var within= common.stream().filter(t -> t.rc().map(b.rcs()::contains).orElse(true)).toList();
     var e= err().line("The generic type argument "+xs+" of "+of+" cannot be inferred:\nit is needed "+Join.of(cs, "as ", ", as ", "")+".");
-    if (!within.isEmpty()){ e.line(up(xs)+" could be "+Join.of(within.stream().map(err()::typeRepr), "", " or ", "")+":\neach is a supertype of "+and(cs)+".\nThe choice is ambiguous."); }
+    if (!within.isEmpty()){ e.line(up(xs)+" could be "+or(within.stream().map(err()::typeRepr).toList())+":\neach is a supertype of "+and(cs)+".\nThe choice is ambiguous."); }
     return wf(e.line("Write the generic type argument explicitly, in place of \"_\" in "+disp(example)+"."), at);
   }
   private String example(E e){ return switch (e){
@@ -573,7 +575,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var x= OneOr.of("Type parameters", t.ftv());
     var e= err(y -> y, decs, List.of())
       .line(up(err().expRepr(at))+" cannot implement "+err().typeRepr(t)+".")
-      .line(disp(x)+" is a generic type parameter; object literals can only implement nominal types.");
+      .line(disp(x)+" is a generic type parameter;\nobject literals can only implement nominal types.");
     TypeSystemErrors.declaring(s, x).ifPresent(m -> e.sigs(m.l(), m.m(), true));
     return wf(e, at);
   }

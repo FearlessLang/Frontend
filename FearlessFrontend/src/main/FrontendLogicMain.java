@@ -83,7 +83,7 @@ public class FrontendLogicMain{
       // What to do if two different rank files with the SAME RANK give the SAME MAPPING? Here we are tolerant.
       var conflicting= bests.stream().map(x -> x.m().out()).distinct().count() != 1;
       var err= new WellFormednessErrors(m.target());
-      if (conflicting){ throw err.mapConflict(m.in(), bests.stream().map(Object::toString).toList()); }
+      if (conflicting){ throw err.mapConflict(m.in(), bests.stream().map(Object::toString).sorted().toList()); }
       if (m.target().equals("base")){ throw err.mapInBase(best.toString()); }
       if (!ranks.containsKey(m.target())){ throw err.mapToMissingFolder("applies to source code inside", m.target(), best.toString(), ranks.keySet().stream().sorted().toList()); }
       if (pkgs.contains(m.in())){ throw err.mapOfAnExistingPackage(m.in(), best.toString()); }
