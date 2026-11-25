@@ -240,7 +240,8 @@ Break:{ #(b: B[Foo]): A[Foo,Default] -> b }
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "X".
-"X" is a generic type parameter; object literals can only implement nominal types.
+"X" is a generic type parameter;
+object literals can only implement nominal types.
 """, List.of("""
 A[X:*]:{ #: X -> {} }
 """));}
@@ -250,7 +251,8 @@ A[X:*]:{ #: X -> {} }
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "X".
-"X" is a generic type parameter; object literals can only implement nominal types.
+"X" is a generic type parameter;
+object literals can only implement nominal types.
 """, List.of("""
 A[X:*]:{ #: X -> {this} }
 """));}
@@ -260,7 +262,8 @@ A[X:*]:{ #: X -> {this} }
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "mut X".
-"X" is a generic type parameter; object literals can only implement nominal types.
+"X" is a generic type parameter;
+object literals can only implement nominal types.
 """, List.of("""
 A[X:*]:{ #: mut X -> {} }
 """));}
@@ -270,7 +273,8 @@ A[X:*]:{ #: mut X -> {} }
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "read/imm X".
-"X" is a generic type parameter; object literals can only implement nominal types.
+"X" is a generic type parameter;
+object literals can only implement nominal types.
 """, List.of("""
 A[X:*]:{ read #: read/imm X -> {} }
 """));}
@@ -316,7 +320,8 @@ B[R5:*,R6:*]: { mut .loop(f: mut Flow[R5,R6]): mut B[R5,R6] -> f.match{ .return(
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "X".
-"X" is a generic type parameter; object literals can only implement nominal types.
+"X" is a generic type parameter;
+object literals can only implement nominal types.
 """, List.of("""
 A[X:*]:{ .m(x: X): X -> x; .k: X -> this.m({}) }
 """));}
@@ -548,7 +553,7 @@ The type "Foo[Y]" is invalid.
 Generic type argument 1 ("Y") does not satisfy the bounds
 for generic type parameter "X" in "Foo[_]".
 Here "X" can only use capability "mut".
-But generic type argument "Y" can only use capabilities "imm" or "mut" or "read".
+But generic type argument "Y" can only use capabilities "imm", "mut" or "read".
 """, List.of("""
 Foo[X:mut]:{}
 A:{ .bar[Y:mut,read,imm]: imm Foo[Y] -> imm Foo[Y] }
@@ -641,7 +646,7 @@ The type "Person[N]" is invalid.
 Generic type argument 1 ("N") does not satisfy the bounds
 for generic type parameter "N" in "Person[_]".
 Here "N" can only use capability "imm".
-But generic type argument "N" can only use capabilities "imm" or "mut" or "read".
+But generic type argument "N" can only use capabilities "imm", "mut" or "read".
 """, List.of("""
 Person[N:imm]:{ .name: Str; .age: N }
 FPerson:{ #[N:*](name: Str, age: imm N): Person[N] -> {
@@ -676,7 +681,7 @@ The type "Person[N]" is invalid.
 Generic type argument 1 ("N") does not satisfy the bounds
 for generic type parameter "N" in "Person[_]".
 Here "N" can only use capability "imm".
-But generic type argument "N" can only use capabilities "imm" or "mut" or "read".
+But generic type argument "N" can only use capabilities "imm", "mut" or "read".
 """, List.of("""
 Person[N:imm]:{ .name: Str; .age: N }
 FPerson:{ #[N:*](name: Str, age: imm N): Person[imm N] -> Fresh[N:*]:Person[N]{
@@ -849,7 +854,8 @@ A:{ .m[X:imm,mut](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get ->
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "_AX".
-"_AX" is a generic type parameter; object literals can only implement nominal types.
+"_AX" is a generic type parameter;
+object literals can only implement nominal types.
 Original signature:
 -       Sup.m[X:*]: X
 Signature as inherited by type declaration "B[_]":
@@ -864,7 +870,8 @@ B[X:*]:Sup{ .m -> {} }
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "_AX".
-"_AX" is a generic type parameter; object literals can only implement nominal types.
+"_AX" is a generic type parameter;
+object literals can only implement nominal types.
 Original signature:
 -       Sup.m[X:*]: K[X]
 Signature as inherited by type declaration "B[_]":
@@ -880,7 +887,8 @@ B[X:*]:Sup{ .m -> { .k -> {} } }
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "_AY".
-"_AY" is a generic type parameter; object literals can only implement nominal types.
+"_AY" is a generic type parameter;
+object literals can only implement nominal types.
 Original signature:
 -       Mid.m[Y:*]: Y
 Signature as inherited by type declaration "B[_]":
@@ -896,7 +904,8 @@ B[Y:*]:Mid{ .m -> {} }
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "_AY".
-"_AY" is a generic type parameter; object literals can only implement nominal types.
+"_AY" is a generic type parameter;
+object literals can only implement nominal types.
 Original signature:
 -       Mid.m[Y:*]: Y
 Signature as inherited by type declaration "B[_]":
@@ -913,7 +922,8 @@ B[Y:*]:Top,Mid{ .m -> {} }
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "_AX".
-"_AX" is a generic type parameter; object literals can only implement nominal types.
+"_AX" is a generic type parameter;
+object literals can only implement nominal types.
 Original signatures:
 -       S1.m[X:*]: X
 -       S2.m[Z:*]: Z
@@ -932,7 +942,8 @@ B[X:*]:C1,S2{ .m -> {} }
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "Y".
-"Y" is a generic type parameter; object literals can only implement nominal types.
+"Y" is a generic type parameter;
+object literals can only implement nominal types.
 Original signature:
 -       Sup.m[X:*,Y:*]: Y
 Signature as inherited by type declaration "B[_]":
@@ -947,7 +958,8 @@ B[X:*]:Sup{ .m -> {} }
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "Z".
-"Z" is a generic type parameter; object literals can only implement nominal types.
+"Z" is a generic type parameter;
+object literals can only implement nominal types.
 Original signature:
 -       Sup.m[X:*]: X
 Signature as inherited by type declaration "B[_]":
@@ -962,7 +974,8 @@ B[X:*]:Sup{ .m[Z:*] -> {} }
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "_AX".
-"_AX" is a generic type parameter; object literals can only implement nominal types.
+"_AX" is a generic type parameter;
+object literals can only implement nominal types.
 Original signature:
 -       Mid.m[X:*]: K2[X]
 Signature as inherited by type declaration "B[_]":
@@ -980,7 +993,8 @@ B[X:*]:Top,Mid{ .m -> { .k -> {} } }
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "X".
-"X" is a generic type parameter; object literals can only implement nominal types.
+"X" is a generic type parameter;
+object literals can only implement nominal types.
 """, List.of("""
 Box[X:*]:{ .get: X; }
 Sup:{ .m[X:*]: Box[X]; }
@@ -992,7 +1006,8 @@ B:Sup{ .m[X:*] -> Fresh[X:*]:Box[X]{ .get -> {} } }
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "Y".
-"Y" is a generic type parameter; object literals can only implement nominal types.
+"Y" is a generic type parameter;
+object literals can only implement nominal types.
 Signature as inherited by object literal instance of "K":
 -       K.k[Y:*]: Y
 """, List.of("""
@@ -1084,7 +1099,8 @@ B:Sup{ .m -> Fresh:K{ .k -> Foo{} } }
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "Z".
-"Z" is a generic type parameter; object literals can only implement nominal types.
+"Z" is a generic type parameter;
+object literals can only implement nominal types.
 Signature as inherited by type declaration "B":
 -       Mid.m[Z:*]: Z
 """, List.of("""

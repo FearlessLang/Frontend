@@ -1203,7 +1203,7 @@ A:{}
    |   ^
 
 While inspecting generic type parameter "X"
-Generic type parameter "X" is declared in package "p".
+Generic type parameter "X" is declared inside type declaration "A[_]" of package "p".
 Name "X" is also used in a "use" directive.
 """, List.of("""
 use base.Nat as X;
@@ -1276,7 +1276,8 @@ Ambiguous rank file for package "p".
 Found 2 rank files:
 - fear:/___DBG___/_rank_app999.fear
 - fear:/___DBG___/_rank_other000.fear
-There must be exactly one source file whose name represents this package rank.
+Each package must have exactly one source file whose name is its rank,
+in some folder inside the project folder.
 Rename or remove the extra files so that only one file name is of form "_rank_*.fear".
 Every package must declare its rank:
 base, core, driver, worker, framework, accumulator, tool, or app.

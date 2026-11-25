@@ -2303,9 +2303,9 @@ B:{ read .m(x:mut a.D):mut a.D -> read a.Get{ x } }
 In file: [###].fear
 
 001| I:bb.BaseId[I,I]{ #(x) -> this }
-   |                           ^^^^
+   | --------------------------^^^^--
 
-While inspecting the file
+While inspecting type declaration "I"
 Type declaration "I" implements "bb.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
@@ -2338,7 +2338,7 @@ In file: [###].fear
    |        ^
 
 While inspecting generic type parameter "X"
-Generic type parameter "X" is declared in package "b".
+Generic type parameter "X" is declared inside type declaration "B" of package "b".
 Name "X" is also used in a "use" directive.
 Error 7 WellFormedness
 """, Map.of("c", cA), mapA, """

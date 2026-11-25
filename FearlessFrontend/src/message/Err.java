@@ -132,9 +132,11 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
     var sig= cp().sig(s);
     return sig.substring(0, CompactPrinter.rcWidth)+cp().msgT(new T.RCC(RC.imm, h, h.span()))+sig.substring(CompactPrinter.rcWidth);
   }
-  static String and(List<String> xs){
+  static String and(List<String> xs){ return series(xs, " and "); }
+  static String or(List<String> xs){ return series(xs, " or "); }
+  private static String series(List<String> xs, String last){
     if (xs.size() == 1){ return xs.getFirst(); }
-    return Join.of(xs.subList(0, xs.size()-1), "", ", ", "")+" and "+xs.getLast();
+    return Join.of(xs.subList(0, xs.size()-1), "", ", ", "")+last+xs.getLast();
   }
   String expRepr(E toErr){ return switch (toErr){
     case Call c -> "method call "+methodSig(c.name());
@@ -209,7 +211,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,Literal> _decs, F
   }
   Err standalone(){ return line("A type is standalone if it is declared at top level, or if it implements "+tNameADisp(LiteralDeclarations.captureFree)+"."); }
   String gotMsg(boolean skipImm, String label, List<T> got, T expected){
-    return label+" has type "+Join.of(got.stream().map(t -> typeRepr(skipImm, t)), "", " or ", "")
+    return label+" has type "+or(got.stream().map(t -> typeRepr(skipImm, t)).toList())
       +" instead of a subtype of "+typeRepr(skipImm, expected)+".";
   }
   FearlessException ex(E e){ return ex(e, e); }
