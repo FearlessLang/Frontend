@@ -1017,6 +1017,51 @@ Foo:{}
 Sup:{ .m[X:*]: X; }
 B[X:*]:Sup{ .m -> Foo{} }
 """));}
+@Test void typedLiteralCannotBeOfAReadTypeVariable(){fail("""
+003| B:Sup{ .m -> Foo{} }
+   |        ------^^^^^
+
+While inspecting object literal instance of "Foo" > method "B.m" (line 3)
+Object literal instance of "Foo" is required to be of type "read X".
+"X" is a generic type parameter;
+an object literal is always of a nominal type.
+Signature as inherited by type declaration "B":
+-       Sup.m[X:*]: read X
+""", List.of("""
+Foo:{}
+Sup:{ .m[X:*]: read X; }
+B:Sup{ .m -> Foo{} }
+"""));}
+@Test void typedLiteralCannotBeOfAMutTypeVariable(){fail("""
+003| B:Sup{ .m -> Foo{} }
+   |        ------^^^^^
+
+While inspecting object literal instance of "Foo" > method "B.m" (line 3)
+Object literal instance of "Foo" is required to be of type "mut X".
+"X" is a generic type parameter;
+an object literal is always of a nominal type.
+Signature as inherited by type declaration "B":
+-       Sup.m[X:*]: mut X
+""", List.of("""
+Foo:{}
+Sup:{ .m[X:*]: mut X; }
+B:Sup{ .m -> Foo{} }
+"""));}
+@Test void typedLiteralCannotBeOfAReadImmTypeVariable(){fail("""
+003| B:Sup{ .m -> Foo{} }
+   |        ------^^^^^
+
+While inspecting object literal instance of "Foo" > method "B.m" (line 3)
+Object literal instance of "Foo" is required to be of type "read/imm X".
+"X" is a generic type parameter;
+an object literal is always of a nominal type.
+Signature as inherited by type declaration "B":
+-       Sup.m[X:*]: read/imm X
+""", List.of("""
+Foo:{}
+Sup:{ .m[X:*]: read/imm X; }
+B:Sup{ .m -> Foo{} }
+"""));}
 @Test void typedLiteralInANamedLiteralCannotBeOfItsOwnTypeVariable(){fail("""
 004| B:Sup{ .m -> Fresh:K{ .k -> Foo{} } }
    |        ---------------~~~~~~^^^^^--
