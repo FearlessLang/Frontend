@@ -2417,6 +2417,7 @@ In file: [###].fear
    | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^-
 
 While inspecting header element > file header > full file
+Unexpected "_foo_v3".
 Expected: ";".
 Error 4 ExtraTokenInGroup
 """, """
@@ -3363,6 +3364,7 @@ In file: [###].fear
 003| }
 
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
+Unexpected "h".
 Expected one of:
 - ","
 - ":"
@@ -3675,7 +3677,8 @@ In file: [###].fear
 While inspecting generic bounds declaration > type declaration > full file
 Missing generic type parameter name.
 Found instead: "base.Nat".
-Expected: type name.
+Expected: generic type parameter (like "T", "E", "Key").
+Or: generic type parameter with bounds (like "T:*", "E: **", "Key: imm,mut").
 Error 2 UnexpectedToken
 """, """
 A[base.Nat]:{}
@@ -3856,6 +3859,83 @@ Otherwise expected: "]".
 Error 0 Unclosed
 """, """
 A[X:foo]:{}
+""");}
+@Test void typeNameAloneInAFile(){fail("""
+In file: [###].fear
+
+001| A
+   | ^
+
+While inspecting type declaration > full file
+Missing type declaration colon.
+Expected: ":".
+Error 2 UnexpectedToken
+""", """
+A
+""");}
+@Test void twoTypeNamesAloneInAFile(){fail("""
+In file: [###].fear
+
+001| A B
+   | --^
+
+While inspecting type declaration > full file
+Missing type declaration colon.
+Found instead: "B".
+Expected: ":".
+Error 2 UnexpectedToken
+""", """
+A B
+""");}
+@Test void typeNameBeforeATypeDeclaration(){fail("""
+In file: [###].fear
+
+001| A B:{}
+   | --^---
+
+While inspecting type declaration > full file
+Missing type declaration colon.
+Found instead: "B".
+Expected: ":".
+Error 2 UnexpectedToken
+""", """
+A B:{}
+""");}
+@Test void supertypesWithoutComma(){fail("""
+In file: [###].fear
+
+001| A:B C{}
+   | ----^--
+
+While inspecting type declaration > full file
+Unexpected "C".
+Error 4 ExtraTokenInGroup
+""", """
+A:B C{}
+""");}
+@Test void genericTypeArgumentsWithoutComma(){fail("""
+In file: [###].fear
+
+001| A:{ .m: A[B C] -> this }
+   |     ~~~~~~~~^~--------
+
+While inspecting method signature > method declaration > type declaration body > type declaration > full file
+Unexpected "C".
+Error 4 ExtraTokenInGroup
+""", """
+A:{ .m: A[B C] -> this }
+""");}
+@Test void boundsWithoutComma(){fail("""
+In file: [###].fear
+
+001| A[X:imm mut]:{}
+   | --~~~~~~^^^----
+
+While inspecting generic bounds declaration > type declaration > full file
+Unexpected "mut".
+Error 4 ExtraTokenInGroup
+""", """
+A[X:imm mut]:{}
 """);}
 @Test void equalsInsteadOfArrow(){fail("""
 In file: [###].fear

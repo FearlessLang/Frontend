@@ -347,7 +347,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///Raised when checking method calls.
   public FearlessException methodNotDeclared(TypeScope scope, Call c, Literal d, T.RCC recv){
     var subj= err().theTypeOrObjectLiteral(d);
-    var on= c.e().equals(d) ? err().anonOrInstanceOf(d) : subj;
+    var on= c.e().equals(d) && d.infName() ? err().anonOrInstanceOf(d) : subj;
     var name= c.name().s();
     var candidates= d.ms().stream().map(M::sig).toList();
     var sameName= candidates.stream().filter(s -> s.m().s().equals(name)).toList();
