@@ -149,7 +149,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   private Err badRank(Err e){
     return e
-      .line("Every package must declare its rank:\nbase, core, driver, worker, framework, accumulator, tool, or app.")
+      .line("Every package must declare its rank:\nbase, core, driver, worker, framework, accumulator, tool or app.")
       .line("The rank file is the file whose name matches the rank name.")
       .blank()
       .line("For example, for an application you would typically have a file named")
@@ -726,7 +726,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var t= err().tNameADisp(LiteralDeclarations.baseFloat);
     var e= err()
       .line("Type "+disp(raw)+" is not exactly representable as "+t+".")
-      .line(t+" must be representable exactly as a 64-bit IEEE 754 double.");
+      .line(t+" must be exactly representable as a 64-bit IEEE 754 double.");
     var at= lit.approxSpan().inner;
     if (!Double.isFinite(d)){ return e.line(disp(raw)+" overflows; the nearest representable value is "+disp(near)+".").line(numHint()).wf().addSpan(at); }
     return e.line("If rounded, the nearest representable value is "+disp(near)+".")

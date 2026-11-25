@@ -362,7 +362,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       Token hiddenFragment, Token hiddenContainer, Tokenizer tokenizer){
     assert nonNull(open, stop, expectedClosers, hiddenFragment, hiddenContainer, tokenizer);
     var file= tokenizer.fileName();
-    var msg= "Unopened "+disp(stop.content())+".\n"+BadTokens.foundInside(hiddenContainer, "a matching opener hidden", "before this point", "opener");
+    var msg= "Unopened "+disp(stop.content())+".\n"+BadTokens.foundInside(hiddenContainer, "a matching opener", "before this point", "opener");
     var primary= metaParser.Token.makeSpan(file, hiddenFragment, stop);
     var secondary= metaParser.Token.makeSpan(file, hiddenContainer, stop);
     return Code.Unopened.of(msg).addSpan(primary).addFrame("groups of parenthesis", secondary);

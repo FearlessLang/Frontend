@@ -1575,7 +1575,7 @@ In file: [###].fear
 005|     */
 
 While inspecting comments
-Unopened block comment close "*/".
+Unopened block comment closer "*/".
 Found a "/*" inside a type name in quotes before this point.
 The opener may belong outside the type name in quotes.
 Error 2 UnexpectedToken
@@ -1596,7 +1596,7 @@ In file: [###].fear
    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting comments
-Unopened block comment close "*/".
+Unopened block comment closer "*/".
 Found a "/*" inside a type name in quotes before this point.
 The opener may belong outside the type name in quotes.
 Error 2 UnexpectedToken
@@ -1616,7 +1616,7 @@ In file: [###].fear
 008|     */
 
 While inspecting comments
-Unopened block comment close "*/".
+Unopened block comment closer "*/".
 Found a "/*" inside a type name in quotes before this point.
 The opener may belong outside the type name in quotes.
 Error 2 UnexpectedToken
@@ -1641,7 +1641,7 @@ In file: [###].fear
 004|     */
 
 While inspecting comments
-Unopened block comment close "*/".
+Unopened block comment closer "*/".
 Found a "/*" inside a line comment "//" before this point.
 The opener may belong outside the line comment "//".
 Error 2 UnexpectedToken
@@ -1661,7 +1661,7 @@ In file: [###].fear
    |     ^^
 
 While inspecting comments
-Unopened block comment close "*/".
+Unopened block comment closer "*/".
 Remove it, or add a matching "/*" earlier on.
 Error 2 UnexpectedToken
 """, """
@@ -1853,7 +1853,7 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 Unopened ")".
-Found a matching opener hidden inside a type name in quotes before this point.
+Found a matching opener inside a type name in quotes before this point.
 The opener may belong outside the type name in quotes.
 Error 1 Unopened
 """, """
@@ -1868,7 +1868,7 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 Unopened ")".
-Found a matching opener hidden inside a line comment "//" before this point.
+Found a matching opener inside a line comment "//" before this point.
 The opener may belong outside the line comment "//".
 Error 1 Unopened
 """, """
@@ -1884,7 +1884,7 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 Unopened "]".
-Found a matching opener hidden inside a block comment "/* ... */" before this point.
+Found a matching opener inside a block comment "/* ... */" before this point.
 The opener may belong outside the block comment "/* ... */".
 Error 1 Unopened
 """, """
@@ -1899,7 +1899,7 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 Unopened "}".
-Found a matching opener hidden inside a type name in quotes before this point.
+Found a matching opener inside a type name in quotes before this point.
 The opener may belong outside the type name in quotes.
 Error 1 Unopened
 """, """
@@ -1914,7 +1914,7 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 Unopened ")".
-Found a matching opener hidden inside a block comment "/* ... */" before this point.
+Found a matching opener inside a block comment "/* ... */" before this point.
 The opener may belong outside the block comment "/* ... */".
 Error 1 Unopened
 """, """

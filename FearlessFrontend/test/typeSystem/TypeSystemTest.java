@@ -1576,6 +1576,29 @@ User:{
 }
 """)); }
 
+@Test void methodNotDeclared_wrongArity_listsThreeArities(){fail("""
+008|   read .m(m:Mixer, a:A):A->
+009|     m.mix(a, a, a, a);
+   |     -^^^^------------
+
+While inspecting method "User.m(_,_)" (line 8)
+This call to method ".mix(_,_,_,_)" cannot typecheck.
+There are methods ".mix(_)", ".mix(_,_)" and ".mix(_,_,_)" on type "Mixer",
+but with a different number of arguments.
+This call supplies 4, but available methods take 1, 2 or 3.
+""", List.of("""
+A:{}
+Mixer:{
+  read .mix(x:A):A->x;
+  read .mix(x:A, y:A):A->x;
+  read .mix(x:A, y:A, z:A):A->x;
+}
+User:{
+  read .m(m:Mixer, a:A):A->
+    m.mix(a, a, a, a);
+}
+""")); }
+
 @Test void methodNotDeclared_wrongArity_listsAritiesInNumericOrder(){fail("""
 007|   read .m(m:Mixer, a:A):A->
 008|     m.mix(a);
@@ -1710,6 +1733,33 @@ Id:{
 User:{
   read .m(i:Id,a:mut A):mut A->
     i.id[mut A,mut B,mut C](a);
+}
+"""));}
+
+@Test void rcvBlocksCallWithThreeReceiverCapabilities(){fail("""
+004|   read .m(a:A):A->
+005|     this.zap(a);
+   |     ^^^^-------
+
+While inspecting method "User.m(_)" (line 4)
+This call to the "mut" method "User.zap(_)" cannot typecheck.
+The receiver (the expression before the method name) has capability "read".
+This call requires a receiver with capability "mut", "iso" or "mutH".
+The capability of the methods changes the type of parameter "this":
+- "mut User" becomes "read User" inside the "read" method ".m(_)" (line 4).
+Capture adaptation trace:
+"mut User" --setToRead(line 4)--> "read User".
+
+Receiver required by each promotion:
+- "mut" (As declared)
+- "iso" (Strengthen result, Allow readH arguments, Allow mutH argument 1, Strengthen hygienic result)
+- "mutH" (Allow mutH receiver)
+""", List.of("""
+A:{}
+User:{
+  mut .zap(x:readH A):A->A;
+  read .m(a:A):A->
+    this.zap(a);
 }
 """));}
 
@@ -2530,7 +2580,7 @@ In file: [###].fear
 
 While inspecting the file
 Type "+1.0e309" is not exactly representable as "base.Float".
-"base.Float" must be representable exactly as a 64-bit IEEE 754 double.
+"base.Float" must be exactly representable as a 64-bit IEEE 754 double.
 "+1.0e309" overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
 If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
@@ -2545,7 +2595,7 @@ In file: [###].fear
 
 While inspecting the file
 Type "+1.0e99999999999" is not exactly representable as "base.Float".
-"base.Float" must be representable exactly as a 64-bit IEEE 754 double.
+"base.Float" must be exactly representable as a 64-bit IEEE 754 double.
 "+1.0e99999999999" overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
 If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
@@ -2560,7 +2610,7 @@ In file: [###].fear
 
 While inspecting the file
 Type "+1.0e-99999999999" is not exactly representable as "base.Float".
-"base.Float" must be representable exactly as a 64-bit IEEE 754 double.
+"base.Float" must be exactly representable as a 64-bit IEEE 754 double.
 If rounded, the nearest representable value is "+0.0".
 Write "+1.0e-99999999999soft" to accept that rounding.
 If you need arbitrary precision numbers, use "base.Num".
@@ -2644,7 +2694,7 @@ In file: [###].fear
 
 While inspecting the file
 Type "+1.0e-400" is not exactly representable as "base.Float".
-"base.Float" must be representable exactly as a 64-bit IEEE 754 double.
+"base.Float" must be exactly representable as a 64-bit IEEE 754 double.
 If rounded, the nearest representable value is "+0.0".
 Write "+1.0e-400soft" to accept that rounding.
 If you need arbitrary precision numbers, use "base.Num".
@@ -2660,7 +2710,7 @@ In file: [###].fear
 
 While inspecting the file
 Type "+0.1" is not exactly representable as "base.Float".
-"base.Float" must be representable exactly as a 64-bit IEEE 754 double.
+"base.Float" must be exactly representable as a 64-bit IEEE 754 double.
 If rounded, the nearest representable value is "+0.1000000000000000055511151231257827021181583404541015625".
 Write "+0.1soft" to accept that rounding.
 If you need arbitrary precision numbers, use "base.Num".
@@ -2676,7 +2726,7 @@ In file: [###].fear
 
 While inspecting the file
 Type "+0.2" is not exactly representable as "base.Float".
-"base.Float" must be representable exactly as a 64-bit IEEE 754 double.
+"base.Float" must be exactly representable as a 64-bit IEEE 754 double.
 If rounded, the nearest representable value is "+0.200000000000000011102230246251565404236316680908203125".
 Write "+0.2soft" to accept that rounding.
 If you need arbitrary precision numbers, use "base.Num".
@@ -2721,7 +2771,7 @@ In file: [###].fear
 
 While inspecting the file
 Type "+1.0e309soft" is not exactly representable as "base.Float".
-"base.Float" must be representable exactly as a 64-bit IEEE 754 double.
+"base.Float" must be exactly representable as a 64-bit IEEE 754 double.
 "+1.0e309soft" overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
 If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
