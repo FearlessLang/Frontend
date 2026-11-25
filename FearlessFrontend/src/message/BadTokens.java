@@ -34,10 +34,6 @@ A "[" must come right after a type name or a method name.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 """, "common ambiguities")
-      .putStr(BadUppercaseId, Code.UnexpectedToken::of, """
-Package names are restricted to be valid filenames on all operating systems.
-Names like "aux", "nul", "lpt2" are invalid on Windows.
-""", "package names")
       .put(BadSStrQuote, (_, t, tz) -> singleQuoteString(t, tz))
       .put(BadDotName, BadTokens::uppercaseMethodName)
       .putStr(BadDot, Code.UnexpectedToken::of, """

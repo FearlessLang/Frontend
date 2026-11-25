@@ -52,7 +52,7 @@ import java.util.stream.*;
     Dot("\\._*[a-z]"+K.id),Up("(?:"+K.pk+"\\.)?_*[A-Z]"+K.id),
     Low("_*[a-z]"+K.id),Bad("'(?:(?!//|/\\*)[^'\\n\"`])*'(?![_a-z])"),Op("(?:(?!/\\*|\\*/|//)["+K.op+"])+"),
     End,Start,Curly,Square,Round;
-    static final String pk="(?!(?:con|prn|aux|nul|(?:com|lpt)[1-9])(?![a-z0-9_]))[a-z][a-z0-9_]*",id="[A-Za-z0-9_]*'*",
+    static final String pk="[a-z][a-z0-9_]*",id="[A-Za-z0-9_]*'*",
       op="\\\\/#*\\-+%<>=!&^~?|",nat="[0-9](?:[0-9_]*[0-9])?",flt=nat+"\\."+nat+"(?:[eE][+-]?"+nat+")?(?:soft)?";
     Pattern p;
     K(String regex){p=Pattern.compile(regex);}K(){this("");}
