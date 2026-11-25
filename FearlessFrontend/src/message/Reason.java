@@ -43,7 +43,9 @@ public final class Reason{
   public static Reason callResultCannotHaveRequiredType(TypeSystem ts, List<B> bs, Literal d, Call call, TRequirement req, List<T> got, Sig sig){
     var es= ts.reasonE();
     var show= got.stream().anyMatch(g -> onlyRC(ts, bs, g, req.t()));
-    return new Reason(got.getFirst(), show, es.err().gotMsg(!show, "Method call "+es.err().methodSig(call.rc().toStrSpace(), d, call.name()), got, req.t()), es.printed(),
+    var name= es.err().methodSig("", d, call.name());
+    var callRepr= call.rc() == RC.imm ? "Method call "+name : "The call to "+Err.theMethod(call.rc(), name);
+    return new Reason(got.getFirst(), show, es.err().gotMsg(!show, callRepr, got, req.t()), es.printed(),
       () -> baseFooterE(ts.scope(), sig.ret().withRC(RC.imm), req.t().withRC(RC.imm)));
   }
   public static Reason parameterDoesNotHaveRequiredTypeHere(

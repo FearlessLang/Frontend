@@ -504,7 +504,7 @@ Bs:{ #: B -> B: A{'b .foo -> b } }
 
 While inspecting object literal "B" > method "Bs#" (line 2)
 This object literal is missing a required method.
-Missing: "imm .foo".
+Missing: the "imm" method ".foo".
 Required by: "A".
 Add an implementation for ".foo" inside the object literal.
 """, List.of("""
@@ -522,7 +522,7 @@ Bs:{ #: B -> B{'b .foo -> b } }
 
 While inspecting object literal instance of "B" > method "Bs#" (line 3)
 This object literal is missing a required method.
-Missing: "imm .foo".
+Missing: the "imm" method ".foo".
 Required by: "A".
 Add an implementation for ".foo" inside the object literal.
 """, List.of("""

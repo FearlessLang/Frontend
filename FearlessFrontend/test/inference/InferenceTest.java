@@ -506,7 +506,7 @@ In file: [###].fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       A1.foo: A1
 -       A2.foo: A2
@@ -525,7 +525,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       A1.foo: A1
 -       A2.foo: A2
@@ -544,7 +544,7 @@ In file: [###].fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo(_,_)".
+Supertypes disagree on the signature of the "imm" method ".foo(_,_)".
 Signatures as inherited by type declaration "B":
 -       A1.foo(A1, A1): A1
 -       A2.foo(A1, A2): A1
@@ -562,7 +562,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo(_,_)".
+Supertypes disagree on the signature of the "imm" method ".foo(_,_)".
 Signatures as inherited by type declaration "B":
 -       A1.foo(A1, A1): A1
 -       A2.foo(A1, A2): A1
@@ -580,7 +580,7 @@ In file: [###].fear
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       A1.foo[X]: A1
 -       A2.foo: A1
@@ -599,7 +599,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       A1.foo[X]: A1
 -       A2.foo: A1
@@ -902,7 +902,7 @@ In file: [###].fear
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Supertypes disagree on the signature of method "imm .id(_)".
+Supertypes disagree on the signature of the "imm" method ".id(_)".
 Signatures as inherited by type declaration "D":
 -       A.id[X](Box[X]): X
 -       C.id[Y:read](Box[Y]): Y
@@ -923,7 +923,7 @@ In file: [###].fear
    |       ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "D"
-Supertypes disagree on the signature of method "imm .id(_)".
+Supertypes disagree on the signature of the "imm" method ".id(_)".
 Signatures as inherited by type declaration "D":
 -       A.id[X](Box[X]): X
 -       C.id[Y:read](Box[Y]): Y
@@ -977,7 +977,7 @@ In file: [###].fear
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Supertypes disagree on the signature of method "imm .m(_)".
+Supertypes disagree on the signature of the "imm" method ".m(_)".
 Original signatures:
 -       A.m[X,Y](Twice[Pair[X,Y]]): X
 -       C.m[U,V](Twice[Pair[V,U]]): U

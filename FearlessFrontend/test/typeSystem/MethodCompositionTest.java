@@ -42,7 +42,7 @@ B:A{ .foo(b:A):B }
 While inspecting type declaration "B"
 Invalid method signature for "B.foo(_)".
 The method ".foo(_)" accepts parameter 1 of type "B".
-But "A.foo(_)" requires "A", which is not a subtype of "B".
+But method "A.foo(_)" requires "A", which is not a subtype of "B".
 It is instead a supertype: you are strengthening the parameter instead of weakening it.
 """, List.of("""
 Str:{} Int:{}
@@ -56,7 +56,7 @@ B:A{ .foo(b:B):Int }
 While inspecting type declaration "A"
 Invalid method signature for "A.foo(_)".
 The method ".foo(_)" accepts parameter 1 of type "A".
-But "B.foo(_)" requires "B", which is not a subtype of "A".
+But method "B.foo(_)" requires "B", which is not a subtype of "A".
 It is instead a supertype: you are strengthening the parameter instead of weakening it.
 """, List.of("""
 A:B,C{ .foo(a:A):A }
@@ -79,7 +79,7 @@ B:{ .m: Int }
 While inspecting type declaration "A"
 Invalid method signature for "A.m".
 The method ".m" returns type "Str".
-But "B.m" returns type "Int", which is not a supertype of "Str".
+But method "B.m" returns type "Int", which is not a supertype of "Str".
 The two types are unrelated.
 """, List.of("""
 Int:{} Str:{}
@@ -96,7 +96,7 @@ C:{ .m: C }
    | ^^^^^^^
 
 While inspecting type declaration "A"
-Supertypes disagree on the signature of method "imm .m".
+Supertypes disagree on the signature of the "imm" method ".m".
 Signatures as inherited by type declaration "A":
 -       B.m: B
 -       C.m: C
@@ -113,7 +113,7 @@ C:{ .m: C }
    | ^^^^^^^^
 
 While inspecting type declaration "AA"
-Supertypes disagree on the signature of method "imm .m".
+Supertypes disagree on the signature of the "imm" method ".m".
 Signatures as inherited by type declaration "AA":
 -       B.m: B
 -       C.m: C
@@ -134,7 +134,7 @@ C:{ .m: C }
    | ^^^^^^^^
 
 While inspecting type declaration "AA"
-Supertypes disagree on the signature of method "imm .m".
+Supertypes disagree on the signature of the "imm" method ".m".
 Signatures as inherited by type declaration "AA":
 -       B.m: B
 -       C.m: C
@@ -178,7 +178,7 @@ D:{ .m: D }
 While inspecting type declaration "A"
 Invalid method signature for "A.m".
 The method ".m" returns type "D".
-But "B.m" returns type "B", which is not a supertype of "D".
+But method "B.m" returns type "B", which is not a supertype of "D".
 It is instead a subtype: you are weakening the result instead of strengthening it.
 """, List.of("""
 A:B,C,D{ .m: D }
@@ -193,7 +193,7 @@ D:{ .m: B }
 While inspecting type declaration "A[_]"
 Invalid method signature for "A[_].m(_)".
 The method ".m(_)" returns type "A".
-But "A[_,_].m(_)" returns type "A[X,X]", which is not a supertype of "A".
+But method "A[_,_].m(_)" returns type "A[X,X]", which is not a supertype of "A".
 The two types are unrelated.
 """, List.of("""
 A:A[A],A[A,A]{ .m(a:A):A }
@@ -283,7 +283,7 @@ List[T:*]:{}
    | ^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Supertypes disagree on the signature of method "imm .kk".
+Supertypes disagree on the signature of the "imm" method ".kk".
 Signatures as inherited by type declaration "A":
 -       B[A].kk: A
 -       C[List[A]].kk: List[A]
@@ -354,7 +354,7 @@ C:{ .m[Z:*]: Foo }
 While inspecting type declaration "A"
 Cannot infer signature of method ".m(_)".
 No supertype has a method named ".m(_)" with 1 parameter.
-"::" in the body is the parameter of ".m(_)".
+"::" in the body is the parameter of method ".m(_)".
 """, List.of("""
 A:{ .m -> ::.foo }
 """));}
@@ -412,7 +412,7 @@ Bi[AA:*,BB:*]:{}
 While inspecting type declaration "A"
 Invalid method signature for "A.m".
 The method ".m" returns type "Break[A]".
-But "B.m" returns type "Break[B]", which is not a supertype of "Break[A]".
+But method "B.m" returns type "Break[B]", which is not a supertype of "Break[A]".
 The two types are unrelated.
 """, List.of("""
 A:B{ .m: Break[A] }
@@ -426,7 +426,7 @@ Break[X:*]:{}
 While inspecting type declaration "A"
 Invalid method signature for "A.m".
 The method ".m" returns type "Break[B]".
-But "B.m" returns type "Break[A]", which is not a supertype of "Break[B]".
+But method "B.m" returns type "Break[A]", which is not a supertype of "Break[B]".
 The two types are unrelated.
 """, List.of("""
 A:B{ .m: Break[B] }
@@ -440,7 +440,7 @@ Break[X:*]:{}
 While inspecting type declaration "A"
 Invalid method signature for "A.m".
 The method ".m" returns type "Break[A]".
-But "B.m" returns type "Break[B]", which is not a supertype of "Break[A]".
+But method "B.m" returns type "Break[B]", which is not a supertype of "Break[A]".
 The two types are unrelated.
 """, List.of("""
 A:B{ .m: Break[A] }
@@ -454,7 +454,7 @@ Break[X:*]:{ .b: X }
 While inspecting type declaration "A"
 Invalid method signature for "A.m".
 The method ".m" returns type "Break[B]".
-But "B.m" returns type "Break[A]", which is not a supertype of "Break[B]".
+But method "B.m" returns type "Break[A]", which is not a supertype of "Break[B]".
 The two types are unrelated.
 """, List.of("""
 A:B{ .m: Break[B] }
@@ -468,7 +468,7 @@ Break[X:*]:{ .b: X }
 While inspecting type declaration "A"
 Invalid method signature for "A.m".
 The method ".m" returns type "Break[A]".
-But "B.m" returns type "Break[B]", which is not a supertype of "Break[A]".
+But method "B.m" returns type "Break[B]", which is not a supertype of "Break[A]".
 The two types are unrelated.
 """, List.of("""
 A:B{ .m: Break[A] }
@@ -482,7 +482,7 @@ Break[X:*]:{ .b: Break[X] }
 While inspecting type declaration "A"
 Invalid method signature for "A.m".
 The method ".m" returns type "Break[B]".
-But "B.m" returns type "Break[A]", which is not a supertype of "Break[B]".
+But method "B.m" returns type "Break[A]", which is not a supertype of "Break[B]".
 The two types are unrelated.
 """, List.of("""
 A:B{ .m: Break[B] }
@@ -518,7 +518,7 @@ Bar[X:*]:{ .m: Foo[X] -> Foo[X:*]:{} }
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Supertypes disagree on the signature of method "imm .m(_)".
+Supertypes disagree on the signature of the "imm" method ".m(_)".
 Signatures as inherited by type declaration "D":
 -       B.m(base.Int): base.Int
 -       C.m(base.Float): base.Float
@@ -558,7 +558,7 @@ C:B,D{}
 
 While inspecting object literal "C" > method "User#" (line 4)
 This object literal is missing a required method.
-Missing: "imm .m".
+Missing: the "imm" method ".m".
 Required by: "B".
 Add an implementation for ".m" inside the object literal.
 """, List.of("""
@@ -579,7 +579,7 @@ C:D,B{}
 
 While inspecting object literal "D" > method "User#" (line 7)
 This object literal is missing a required method.
-Missing: "imm .m".
+Missing: the "imm" method ".m".
 Required by: "C".
 Add an implementation for ".m" inside the object literal.
 """, List.of("""
@@ -633,7 +633,7 @@ User:{ #:D->D:P,Q{} }
 
 While inspecting object literal "D" > method "User#" (line 7)
 This object literal is missing a required method.
-Missing: "imm .m".
+Missing: the "imm" method ".m".
 Required by: "P" and "K" and "X".
 Add an implementation for ".m" inside the object literal.
 """, List.of("""
@@ -651,7 +651,7 @@ User:{ #:D->D:P,Q{} }
 
 While inspecting object literal "D" > method "User#" (line 6)
 This object literal is missing a required method.
-Missing: "imm .m".
+Missing: the "imm" method ".m".
 Required by: "A1" and "A2".
 Add an implementation for ".m" inside the object literal.
 """, List.of("""
@@ -756,7 +756,7 @@ User:{ #:mut D->D:X,B{} }
 
 While inspecting object literal "C" > method "User#" (line 3)
 This object literal is missing a required method.
-Missing: "imm .m".
+Missing: the "imm" method ".m".
 Required by: "B".
 Add an implementation for ".m" inside the object literal.
 """, List.of("""
@@ -770,7 +770,7 @@ User:{ #:C->C:A,B{} }
 
 While inspecting object literal "C" > method "User#" (line 3)
 This object literal is missing a required method.
-Missing: "imm .m".
+Missing: the "imm" method ".m".
 Required by: "B".
 Add an implementation for ".m" inside the object literal.
 """, List.of("""
@@ -819,9 +819,9 @@ User:{ .viaSup(s: Sup[Baz]): Baz -> s.h(Baz); .use: Baz -> this.viaSup(Sub[Baz])
    | ---------^^^^^^^^^^^^^--
 
 While inspecting type declaration "Sub"
-Invalid method signature for "mut Sub.h".
+Invalid method signature for the "mut" method "Sub.h".
 The method ".h" returns type "iso P".
-But "mut Sup.h" returns type "mut P".
+But the "mut" method "Sup.h" returns type "mut P".
 An overriding method can refine the types of its parameters and result,
 but not their reference capabilities.
 """, List.of("""
@@ -836,7 +836,7 @@ Sub:Sup{ mut .h: iso P }
 While inspecting type declaration "Sub"
 Invalid method signature for "Sub.g(_)".
 The method ".g(_)" accepts parameter 1 of type "read P".
-But "Sup.g(_)" requires "mut P".
+But method "Sup.g(_)" requires "mut P".
 An overriding method can refine the types of its parameters and result,
 but not their reference capabilities.
 """, List.of("""
@@ -851,7 +851,7 @@ Sub:Sup{ .g(x: read P): P }
 While inspecting type declaration "Sub"
 Invalid method signature for "Sub.g(_)".
 The method ".g(_)" accepts parameter 1 of type "readH P".
-But "Sup.g(_)" requires "mutH P".
+But method "Sup.g(_)" requires "mutH P".
 An overriding method can refine the types of its parameters and result,
 but not their reference capabilities.
 """, List.of("""
@@ -866,7 +866,7 @@ Sub:Sup{ .g(x: readH P): P }
 While inspecting type declaration "Sub[_]"
 Invalid method signature for "Sub[_].h(_)".
 The method ".h(_)" returns type "X".
-But "Sup[_].h(_)" returns type "read/imm X".
+But method "Sup[_].h(_)" returns type "read/imm X".
 An overriding method can refine the types of its parameters and result,
 but not their reference capabilities.
 """, List.of("""
@@ -878,9 +878,9 @@ Sub[X:*]:Sup[X]{ .h(x: X): X }
    |        --------------~~~~~~~~~^^^^^^^^^^^^^^^^^^~~
 
 While inspecting object literal instance of "Sup" > method "User#" (line 3)
-Invalid method signature for "mut Sup.h".
+Invalid method signature for the "mut" method "Sup.h".
 The method ".h" returns type "iso P".
-But "mut Sup.h" returns type "mut P".
+But the "mut" method "Sup.h" returns type "mut P".
 An overriding method can refine the types of its parameters and result,
 but not their reference capabilities.
 """, List.of("""
@@ -908,7 +908,7 @@ A:Foo[Bar],Foo[Beer]{ .get: Both -> Both }
 While inspecting type declaration "A"
 Invalid method signature for "A.get".
 The method ".get" returns type "imm Both".
-But "Foo[_].get" returns type "mut Beer".
+But method "Foo[_].get" returns type "mut Beer".
 An overriding method can refine the types of its parameters and result,
 but not their reference capabilities.
 """, List.of("""
@@ -923,7 +923,7 @@ A:Foo[imm Bar],Foo[mut Beer]{ .get: Both -> Both }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Supertypes disagree on the signature of method "imm .get".
+Supertypes disagree on the signature of the "imm" method ".get".
 Signatures as inherited by type declaration "A":
 -       Foo[Bar].get: Bar
 -       Foo[mut Beer].get: mut Beer
@@ -943,7 +943,7 @@ A:Foo[imm Bar],Foo[mut Beer]{}
 While inspecting type declaration "Sub[_]"
 Invalid method signature for "Sub[_].h(_)".
 The method ".h(_)" returns type "X".
-But "Sup[_].h(_)" returns type "imm X".
+But method "Sup[_].h(_)" returns type "imm X".
 An overriding method can refine the types of its parameters and result,
 but not their reference capabilities.
 """, List.of("""
@@ -955,7 +955,7 @@ Sub[X:*]:Sup[X]{ .h(x: X): X }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Supertypes disagree on the signature of method "imm .get".
+Supertypes disagree on the signature of the "imm" method ".get".
 Signatures as inherited by type declaration "A[_]":
 -       Foo[Y].get: Y
 -       Foo[imm Y].get: imm Y
@@ -990,7 +990,7 @@ A[Y:imm]:Foo[Y],Bar[Y]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Supertypes disagree on the signature of method "imm .get".
+Supertypes disagree on the signature of the "imm" method ".get".
 Signatures as inherited by type declaration "A[_]":
 -       Foo[Y].get: Y
 -       Foo[Bar].get: Bar
@@ -1007,7 +1007,7 @@ A[Y:imm]:Foo[Y],Foo[Bar]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Supertypes disagree on the signature of method "imm .get".
+Supertypes disagree on the signature of the "imm" method ".get".
 Signatures as inherited by type declaration "A[_]":
 -       Foo[Y].get: Y
 -       Foo[Bar].get: Bar
@@ -1046,7 +1046,7 @@ User:{ .asFoo(a: A[Baz]): Foo[Baz] -> a; .get(a: A[Baz]): Baz -> a.get; .make: A
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Supertypes disagree on the signature of method "imm .get".
+Supertypes disagree on the signature of the "imm" method ".get".
 Signatures as inherited by type declaration "A[_]":
 -       Foo[Y].get: Y
 -       Bar[Y].get: read/imm Y
@@ -1069,7 +1069,7 @@ A:Foo,Bar{}
    | ^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Supertypes disagree on the signature of method "imm .get".
+Supertypes disagree on the signature of the "imm" method ".get".
 Signatures as inherited by type declaration "A":
 -       Foo.get[T:mut]: T
 -       Bar.get[T:mut]: read/imm T
@@ -1118,7 +1118,7 @@ C:A{.m[Y:imm,X:imm](x:Y,y:X):Y->x}
    |                         ^^^^^^^^^^^^^^^^
 
 While inspecting object literal "Both"
-Supertypes disagree on the signature of method "imm .id(_)".
+Supertypes disagree on the signature of the "imm" method ".id(_)".
 Original signatures:
 -       Sup1.id[X](X): X
 -       Sup2.id[X:read](X): X
@@ -1138,7 +1138,7 @@ A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
    |                         ^^^^^^^^^^^^^^^^
 
 While inspecting object literal "Both"
-Supertypes disagree on the signature of method "imm .get".
+Supertypes disagree on the signature of the "imm" method ".get".
 Original signatures:
 -       Sup1.get[X]: Sup2
 -       Sup2.get[X]: X
@@ -1158,7 +1158,7 @@ A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
    |                         ^^^^^^^^^^^^^^^^
 
 While inspecting object literal "Both"
-Supertypes disagree on the signature of method "imm .get".
+Supertypes disagree on the signature of the "imm" method ".get".
 Original signatures:
 -       Sup1.get[X]: Sup1
 -       Sup2.get[Y]: Y
@@ -1178,7 +1178,7 @@ A:{ .m[Y](y:Y): Sup1 -> Both:Sup1,Sup2{} }
    |                         ^^^^^^^^^^^^^^^^
 
 While inspecting object literal "Both"
-Supertypes disagree on the signature of method "imm .get".
+Supertypes disagree on the signature of the "imm" method ".get".
 Original signatures:
 -       Sup1.get[X]: X
 -       Sup2.get[X]: Sup1
@@ -1198,7 +1198,7 @@ A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       S1.foo: Q1
 -       S2.foo: Q2
@@ -1217,7 +1217,7 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       S1.foo: mut Q1
 -       S2.foo: mut Q2
@@ -1240,7 +1240,7 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo(_)".
+Supertypes disagree on the signature of the "imm" method ".foo(_)".
 Signatures as inherited by type declaration "B":
 -       S1.foo(Q1): S1
 -       S2.foo(Q2): S1
@@ -1260,7 +1260,7 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo(_)".
+Supertypes disagree on the signature of the "imm" method ".foo(_)".
 Signatures as inherited by type declaration "B":
 -       S1.foo(Q1): S1
 -       S2.foo(Q2): S1
@@ -1279,7 +1279,7 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo(_)".
+Supertypes disagree on the signature of the "imm" method ".foo(_)".
 Signatures as inherited by type declaration "B":
 -       S1.foo(Q1): Q1
 -       S2.foo(Q2): Q2
@@ -1301,7 +1301,7 @@ B:S1,S2{}
    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo(_)".
+Supertypes disagree on the signature of the "imm" method ".foo(_)".
 Signatures as inherited by type declaration "B":
 -       S1.foo(Q1): Q1
 -       S2.foo(Q2): Q2
@@ -1330,7 +1330,7 @@ B:S1,S2{ .foo(x: Q0): Q12 -> this.foo(x) }
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       S1.foo: base.Nat
 -       S2.foo: base.Str
@@ -1347,11 +1347,11 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "mut .foo".
+Supertypes disagree on the signature of the "mut" method ".foo".
 Signatures as inherited by type declaration "B":
 -   mut S1.foo: Q1
 -   mut S2.foo: Q2
-"B" must declare method "mut .foo".
+"B" must declare the "mut" method ".foo".
 "B.foo" return type must be a subtype of "Q1" and "Q2".
 No such type is currently visible.
 """, List.of("""
@@ -1366,7 +1366,7 @@ B:S1,S2{}
    | ^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .id(_)".
+Supertypes disagree on the signature of the "imm" method ".id(_)".
 Signatures as inherited by type declaration "B":
 -       Sup1.id[X,Y](X): X
 -       Sup2.id[X,Y:read](X): X
@@ -1383,7 +1383,7 @@ B:Sup1,Sup2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo(_)".
+Supertypes disagree on the signature of the "imm" method ".foo(_)".
 Signatures as inherited by type declaration "B":
 -       S1.foo(mut Q): S1
 -       S2.foo(read Q): S1
@@ -1401,7 +1401,7 @@ B:S1,S2{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Supertypes disagree on the signature of method "imm .set(_)".
+Supertypes disagree on the signature of the "imm" method ".set(_)".
 Signatures as inherited by type declaration "A[_]":
 -       Foo[Y].set(Y): Bar
 -       Foo[Bar].set(Bar): Bar
@@ -1418,7 +1418,7 @@ A[Y:imm]:Foo[Y],Foo[Bar]{}
    |          ^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo(_)".
+Supertypes disagree on the signature of the "imm" method ".foo(_)".
 Signatures as inherited by type declaration "B":
 -       S1.foo(Q1): Q1
 -       S2.foo(Q2): Q2
@@ -1440,7 +1440,7 @@ B:S1,S2{ .foo(x) -> this.foo(x) }
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       S1.foo: Q
 -       S2.foo: base.Nat
@@ -1458,7 +1458,7 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       S1.foo: base.Bool
 -       S2.foo: base.True
@@ -1475,7 +1475,7 @@ B:S1,S2{}
    | ^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "D[_]"
-Supertypes disagree on the signature of method "imm .id(_)".
+Supertypes disagree on the signature of the "imm" method ".id(_)".
 Original signatures:
 -       Sup.id[X](X): X
 -       Other.id[Y:read](Y): Y
@@ -1496,7 +1496,7 @@ D[Y:*]:Mid[Y],Other{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo(_)".
+Supertypes disagree on the signature of the "imm" method ".foo(_)".
 Signatures as inherited by type declaration "B":
 -       S1.foo(Q1): S1
 -       S2.foo(Q2): S1
@@ -1515,7 +1515,7 @@ S2:{ .foo(x: Q2): S1 }
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       S1.foo: Foo[Q1]
 -       S2.foo: Foo[Q2]
@@ -1535,7 +1535,7 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       S1.foo: Foo[Q1]
 -       S2.foo: Foo[Q2]
@@ -1556,7 +1556,7 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       S1.foo: Foo[Q1]
 -       S2.foo: Foo[Q2]
@@ -1580,7 +1580,7 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       S1.foo: Foo[Q1]
 -       S2.foo: Bar
@@ -1601,7 +1601,7 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       S1.foo: Foo[mut Q1]
 -       S2.foo: Bar
@@ -1622,7 +1622,7 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       S1.foo: Foo[Q1]
 -       S2.foo: Bar
@@ -1643,7 +1643,7 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       S1.foo: Q1
 -       S2.foo: Q2
@@ -1663,7 +1663,7 @@ B:S1,S2{}
    | ^^^^^^^^^^^^^^
 
 While inspecting type declaration "B[_]"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B[_]":
 -       A1.foo: A1
 -       A2.foo: A2
@@ -1680,7 +1680,7 @@ B[Y:*]:A1,A2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       S1.foo: Q1
 -       S2.foo: Q2
@@ -1700,7 +1700,7 @@ B:S1,S2{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Supertypes disagree on the signature of method "imm .get".
+Supertypes disagree on the signature of the "imm" method ".get".
 Signatures as inherited by type declaration "A[_]":
 -       Foo[Y].get: Y
 -       Bar[Y].get: read/imm Y
@@ -1717,7 +1717,7 @@ A[Y:imm,read]:Foo[Y],Bar[Y]{}
    |                       ^^^^^^^^^^^^^^^^
 
 While inspecting object literal "Both"
-Supertypes disagree on the signature of method "imm .id(_)".
+Supertypes disagree on the signature of the "imm" method ".id(_)".
 Original signatures:
 -       T1.id[X](X): X
 -       T2.id[Y](Y): Y
@@ -1740,7 +1740,7 @@ A:{ .m[X](x:X): T1 -> Both:Mid,Other{} }
    | ^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B[_]"
-Supertypes disagree on the signature of method "imm .id(_)".
+Supertypes disagree on the signature of the "imm" method ".id(_)".
 Original signatures:
 -       T1.id[X](X): X
 -       Other.id[Z:read](Z): Z
@@ -1761,7 +1761,7 @@ B[X:*]:Mid[X],Other{}
    | ^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B[_]"
-Supertypes disagree on the signature of method "imm .id(_)".
+Supertypes disagree on the signature of the "imm" method ".id(_)".
 Original signatures:
 -       Sup1.id[X](Sup1): Sup1
 -       Sup2.id[Y:read](Sup1): Sup1
@@ -1782,7 +1782,7 @@ B[Y:*]:Mid[Y],Sup2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       S1.foo: Q1
 -       S2.foo: Q2
@@ -1815,7 +1815,7 @@ B:S1,S2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo(_)".
+Supertypes disagree on the signature of the "imm" method ".foo(_)".
 Signatures as inherited by type declaration "B":
 -       S1.foo(Q1): S1
 -       S2.foo(Q2): S1
@@ -1838,7 +1838,7 @@ B:S1,S2{}
    | ^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Supertypes disagree on the signature of method "imm .foo".
+Supertypes disagree on the signature of the "imm" method ".foo".
 Signatures as inherited by type declaration "B":
 -       S1.foo: Q1
 -       S2.foo: Q2
@@ -1860,7 +1860,7 @@ B:S1,S2,S3{}
    |                         ^^^^^^^^^^^^^^^^
 
 While inspecting object literal "Both"
-Supertypes disagree on the signature of method "imm .get(_)".
+Supertypes disagree on the signature of the "imm" method ".get(_)".
 Original signatures:
 -       Sup1.get[X](X): Foo[X]
 -       Sup2.get[Y](Y): Bar[Y]
@@ -1882,7 +1882,7 @@ A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
    |                         ^^^^^^^^^^^^^^^^
 
 While inspecting object literal "Both"
-Supertypes disagree on the signature of method "imm .id(_)".
+Supertypes disagree on the signature of the "imm" method ".id(_)".
 Original signatures:
 -       Sup1.id[X](Sup1): Sup1
 -       Sup2.id(Sup1): Sup1
@@ -1925,9 +1925,9 @@ A:{ .use(x: A); }
    | -----^^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Missing return type for method "imm .m".
-Cannot infer signature of method "imm .m".
-No supertype has a method named "imm .m" with 0 parameters.
+Missing return type for the "imm" method ".m".
+Cannot infer signature of the "imm" method ".m".
+No supertype has an "imm" method named ".m" with 0 parameters.
 Did you mean "mut .m" ?
 """, List.of("""
 A:{ mut .m: A }

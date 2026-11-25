@@ -37,7 +37,7 @@ B:{}
 
 While inspecting method call ".b" > method "A.doThing" (line 1)
 The body of method ".doThing" of type declaration "A" is an expression returning "mutH B".
-Method call "read A.b" has type "mutH B" instead of a subtype of "mut B".
+The call to the "read" method "A.b" has type "mutH B" instead of a subtype of "mut B".
 """, List.of("""
 A:{ read .b: mutH B -> {}; read .doThing: mut B -> this.b }
 B:{}
@@ -133,7 +133,7 @@ A:{ mut .me: mut F -> mut F{ read .get -> this } }
    |     ---------------------^~~--
 
 While inspecting method "F#" (line 3) > method "A.m(_)" (line 3)
-This call to method "mut B.x" cannot typecheck.
+This call to the "mut" method "B.x" cannot typecheck.
 The receiver (the expression before the method name) has capability "imm".
 This call requires a receiver with capability "mut" or "iso".
 Capturing changes the type of parameter "b":
@@ -154,7 +154,7 @@ A:{ .m(b: iso B): F -> { b.x } }
    |     --------------^^^^~~~
 
 While inspecting method "A.m" (line 1)
-This call to method "mut A.mm" cannot typecheck.
+This call to the "mut" method "A.mm" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso".
 The capability of the methods changes the type of parameter "this":
@@ -190,7 +190,7 @@ A:{ .m[X:*](x: mut X): mut Get[mut X] -> mut Get[mut X]{ read .get: mut X -> x }
    |                      ------------------^^^^^^~~~~----
 
 While inspecting method "A.doThing" (line 2)
-This call to method "mut B.foo" cannot typecheck.
+This call to the "mut" method "B.foo" cannot typecheck.
 The receiver (the expression before the method name) has capability "imm".
 This call requires a receiver with capability "mut" or "iso".
 
@@ -207,7 +207,7 @@ B:{ mut .foo: mut B -> this; mut .ret: Void -> {} }
    |                        ------------------^^^^^^~~~~----
 
 While inspecting method "A.doThing" (line 2)
-This call to method "mut B.foo" cannot typecheck.
+This call to the "mut" method "B.foo" cannot typecheck.
 The receiver (the expression before the method name) has capability "imm".
 This call requires a receiver with capability "mut" or "iso".
 
@@ -224,7 +224,7 @@ B:{ mut .foo: mut B -> this; mut .ret: Void -> {} }
    |                       ------------------^^^^^^~~~~----
 
 While inspecting method "A.doThing" (line 2)
-This call to method "mut B.foo" cannot typecheck.
+This call to the "mut" method "B.foo" cannot typecheck.
 The receiver (the expression before the method name) has capability "imm".
 This call requires a receiver with capability "mut" or "iso".
 
@@ -289,7 +289,7 @@ User:{ .m({.d, .e}: P, {.a, .b, .c}: mutH P): P -> e }
 
 While inspecting method call ".absMeth" > method "C#" (line 4)
 The body of method "#" of type declaration "C" is an expression returning "imm B".
-Method call "read L[_].absMeth" has type "imm B" instead of a subtype of "mutH B".
+The call to the "read" method "L[_].absMeth" has type "imm B" instead of a subtype of "mutH B".
 """, List.of("""
 B:{}
 L[X:*]:{ read .absMeth: read/imm X }
@@ -422,7 +422,7 @@ Ref[X:*]:{ read .get: read/imm X; mut .set(x: X): Void }
 
 While inspecting method call ".name" > method "Usage.mutate(_)" (line 3)
 The body of method ".mutate(_)" of type declaration "Usage" is an expression returning "mutH Ref[Name]".
-Method call "mut Person.name" has type "mutH Ref[Name]" instead of a subtype of "iso Ref[Name]".
+The call to the "mut" method "Person.name" has type "mutH Ref[Name]" instead of a subtype of "iso Ref[Name]".
 """, List.of("""
 Void:{} Name:{}
 Person:{ mut .name: mut Ref[Name] }
@@ -513,7 +513,7 @@ Test:{ #(r: readH Box[Foo]): readH Foo -> r.get }
 
 While inspecting method call ".get" > method "Test#(_)" (line 3)
 The body of method "#(_)" of type declaration "Test" is an expression returning "readH Foo".
-Method call "read Box[_].get" has type "readH Foo" instead of a subtype of "imm Foo".
+The call to the "read" method "Box[_].get" has type "readH Foo" instead of a subtype of "imm Foo".
 """, List.of("""
 Foo:{}
 Box[X:*]:{ mut .get: X; read .get: read X }
@@ -549,7 +549,8 @@ The body of method ".m1" of type declaration "B" is an expression returning "mut
 Parameter "this" has type "mut B" instead of a subtype of "imm A".
 Signature as inherited by type declaration "B":
 -   mut A.m1: A
-Method ".m1" is overloaded; to implement a specific overload only, write one of the following:
+Type declaration "B" has "imm" and "mut" methods ".m1";
+to implement only one of them, write one of the following:
 - "imm .m1"
 - "mut .m1"
 """, List.of("""
@@ -578,7 +579,7 @@ Test:{
 
 While inspecting method call ".m1" > method "Test.aRead(_)" (line 4)
 The body of method ".aRead(_)" of type declaration "Test" is an expression returning "read B".
-Method call "read A.m1" has type "read B" instead of a subtype of "mut A".
+The call to the "read" method "A.m1" has type "read B" instead of a subtype of "mut A".
 """, List.of("""
 A:{ read .m1: read B -> {}; mut .m1: mut A -> this }
 B:{}
@@ -608,7 +609,7 @@ A:{ mut .m1: mut A -> this; .call(a: mutH A): mutH A -> a.m1 }
 
 While inspecting method call ".m1" > method "A.call(_)" (line 1)
 The body of method ".call(_)" of type declaration "A" is an expression returning "mutH A".
-Method call "mut A.m1" has type "mutH A" instead of a subtype of "mut A".
+The call to the "mut" method "A.m1" has type "mutH A" instead of a subtype of "mut A".
 """, List.of("""
 A:{ mut .m1: mut A -> this; .call(a: mutH A): mut A -> a.m1 }
 """));}
@@ -657,7 +658,7 @@ A:{
    |   ----------------------------~~~~~~~~~~~~~~~~~~~^~~~~~~~~
 
 While inspecting method "A.call(_)" (line 3)
-This call to method "mut A.m1(_,_,_,_)" cannot typecheck.
+This call to the "mut" method "A.m1(_,_,_,_)" cannot typecheck.
 Argument 3 has type "mutH A".
 Parameter "a" has type "mutH A" instead of a subtype of "iso A".
 
@@ -748,13 +749,13 @@ B[X:*]:{
   }
 """));}
 @Test void genericReadHBoxReadImmGetIsNotRead(){fail("""
-[###]Method call "read Box[_].get" has type "readH Y" instead of a subtype of "read Y".
+[###]The call to the "read" method "Box[_].get" has type "readH Y" instead of a subtype of "read Y".
 """, List.of("""
 Box[X:*]:{ mut .get: X; read .get: read/imm X }
 Test:{ #[Y:mut](r: readH Box[Y]): read Y -> r.get }
 """));}
 @Test void genericReadHBoxReadImmGetOfReadHIsNotRead(){fail("""
-[###]Method call "read Box[_].get" has type "readH Y" instead of a subtype of "read Y".
+[###]The call to the "read" method "Box[_].get" has type "readH Y" instead of a subtype of "read Y".
 """, List.of("""
 Box[X:**]:{ mut .get: X; read .get: read/imm X }
 Test:{ #[Y:readH](r: readH Box[Y]): read Y -> r.get }
@@ -840,7 +841,7 @@ User:{
 
 While inspecting object literal instance of "B" > method "A.b" (line 2)
 This object literal is missing a required method.
-Missing: "mut .m".
+Missing: the "mut" method ".m".
 Required by: "B".
 This object literal is neither "imm" nor "read", so its "mut" methods must be implemented.
 Add an implementation for ".m" inside the object literal.

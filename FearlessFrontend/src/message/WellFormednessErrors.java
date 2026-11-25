@@ -90,7 +90,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private FearlessException wf(Err e, Agreement at){ return e.wf().addFrame(err().expRepr(at.lit()), at.span()); }
   private FearlessException wf(Err e, M.Sig s, E.Literal origin){ return e.wf().addSpan(s.span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
   private FearlessException wfUse(Err e, TName tn){ return e.wf().addFrame("package header", TSpan.fromPos(tn.pos(), tn.s().length()).inner); }
-  private Err invalidMethImpl(Agreement at){ return err().line("Invalid method signature for "+err().methodSig(at.rc().toStrSpace(), at.lit(), at.mName())+"."); }
+  private Err invalidMethImpl(Agreement at){ return err().line("Invalid method signature for "+sigOf(at.rc(), err().methodSig("", at.lit(), at.mName()))+"."); }
   public FearlessException notClean(FileFull f){
     var e= err()
       .line("Package directives outside of rank file.")
@@ -401,18 +401,20 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private static String supSig(core.Sig s){ return methodSig(s.rc().toStrSpace(), s.m()); }
   private Err missingTypes(M m, boolean addReturnType){
     var s= m.sig();
-    var name= methodSig(s.rc().map(r -> r.toStrSpace(false)).orElse(""), s.m().get());
+    var sig= methodSig(s.m().get());
+    var name= s.rc().map(r -> theMethod(r, sig)).orElse("method "+sig);
+    var aName= s.rc().map(r -> (r.isIsoOrImm() ? "an " : "a ")+disp(r)).orElse("a")+" method named "+sig+" with "+count(s.ts().size(), "parameter");
     var allParHasType= s.ts().stream().allMatch(Optional::isPresent);
     var e= err();
-    if (allParHasType){ e.line("Missing return type for method "+name+"."); }
+    if (allParHasType){ e.line("Missing return type for "+name+"."); }
     if (allParHasType && addReturnType && m.impl().isEmpty()){ e.line("Add an explicit return type at the end of the signature."); }
     if (allParHasType && addReturnType && m.impl().isPresent()){ e
       .line("Add an explicit return type before \"->\".")
       .line("Alternatively (less common), if you intended to override and omit the signature,")
       .line("the signature must be inherited from a supertype.");
     }
-    e.line("Cannot infer signature of method "+name+".")
-      .line("No supertype has a method named "+name+" with "+count(s.ts().size(), "parameter")+".");
+    e.line("Cannot infer signature of "+name+".")
+      .line("No supertype has "+aName+".");
     if (m.impl().filter(i -> usesImplicit(i.e())).isPresent()){ e.line("\"::\" in the body is the parameter of "+name+"."); }
     return e;
   }
@@ -438,7 +440,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     if (!impossible.isEmpty()){ impossible.forEach(e::line); return cannotImplement(e, at); }
     e.line(at.written().isPresent()
       ? err().methodSig("", at.lit(), at.mName())+" must declare "+and(ps.stream().map(i -> "the "+what(ss, i)).toList())+"."
-      : err().tNameADisp(at.lit().name())+" must declare method "+methodSig(at.rc().toStrSpace(), at.mName())+".");
+      : err().tNameADisp(at.lit().name())+" must declare "+method(at.rc(), methodSig(at.mName()))+".");
     ps.forEach(i -> requirement(e, meths, at, bs, ss, i));
     return wf(e, at);
   }
@@ -482,8 +484,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return disp(rc.map(RC::toStrSpace).orElse("")+err().cp().t.of(c.name())+Join.of(ts, "[", ",", "]", ""));
   }
   private Err sigBlock(Methods meths, Agreement at, List<M.Sig> ss){
-    var sig= methodSig(at.rc().toStrSpace(false), at.mName());
-    var e= err(y -> y, meths::from, List.of()).line("Supertypes disagree on the signature of method "+sig+".");
+    var e= err(y -> y, meths::from, List.of()).line("Supertypes disagree on the signature of "+theMethod(at.rc(), methodSig(at.mName()))+".");
     var sources= meths.sources(at.lit(), ss.getFirst());
     assert sources.size() == ss.size();
     e.sigs(err().expRepr(at.lit()), TypeRename.itcToTC(sources), ss.stream().map(WellFormednessErrors::coreSig).toList(), true);
