@@ -1690,21 +1690,9 @@ B:{ .m:in.Nat -> 5; .s:in.Str -> "hi"; .i:in.Int -> +5 }
 map con1 as _com0 in _lpt10 instead of _nul_, _aux2;
 B:{.m(x:con1.A):con1.A->x.fromC}
 """); }
-  @Test void aReservedFolderNameInAMapLine(){ fail("""
-In file: [###].fear
-
-001| map a as _com1 in _b;
-   | ~~~~~~~~~^^^^^~~~~~~-
-002| B:{}
-
-While inspecting header element > file header > full file
-Missing folder name.
-Found instead: "_com1".
-Expected: folder name: the _ symbol followed by a package name.
-Error 2 UnexpectedToken
-""", Map.of(), Map.of(), """
-map a as _com1 in _b;
-B:{}
+  @Test void deviceNamesInAMapLine(){ ok(Map.of("c", cA), Map.of("com1", "c"), """
+map com1 as _con in _lpt9 instead of _nul, _aux;
+B:{.m(x:com1.A):com1.A->x.fromC}
 """); }
   @Test void anInsteadOfListWithoutSpacesAndWithComments(){ ok(Map.of("c", cA), Map.of("a", "c"), """
 map a as _c /*folder*/ in _b instead of _d,_e //older

@@ -52,7 +52,6 @@ public enum TokenKind implements metaParser.TokenKind{
   BadDot("\\.(?=\\s)"),
   BadChar("[@$]"),
   UppercaseId("(?:"+core.TName.pkgNameRegex+"\\x2E)?_*[A-Z][A-Za-z0-9_]*'*", typeNameLabel()),//correctly allows only one '.' since packages are not nested inside each others
-  BadUppercaseId("(?:[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*'*"),
   LowercaseId("_*[a-z][A-Za-z0-9_]*'*", "parameter name"),
   BadSStrQuote("'(?:(?!//|/\\x2A)[^'\\x0A\\x22`])*'(?![_a-z])"),
    //\  /  #  *   -   +   %  <  >  =  !  &   ^   ~   ?     |
@@ -62,7 +61,7 @@ public enum TokenKind implements metaParser.TokenKind{
   Op        ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])+", methodNameLabel()),
   // tokens that are never considered for matching, but useful for asserts and for labelling special cases
   _XId("_*[A-Z][A-Za-z0-9_]*'*", "type name"),
-  _pkgName(core.TName.pkgNameRegex,//"(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*"
+  _pkgName(core.TName.pkgNameRegex,//"[a-z][a-z0-9_]*"
     "id starting with a-z followed by any amount of a-z0-9 or the _ symbol"),
   _folderName("_"+core.TName.pkgNameRegex, "folder name: the _ symbol followed by a package name"),
   _use("use"),

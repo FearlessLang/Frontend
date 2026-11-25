@@ -2323,69 +2323,6 @@ package _foo
 A:{}
 """); }
 
-@Test void pkgName_reserved_con_fail(){ fail("""
-[###]
-""", """
-package con
-A:{}
-"""); }
-
-@Test void pkgName_reserved_prn_fail(){ fail("""
-[###]
-""", """
-package prn
-A:{}
-"""); }
-
-@Test void pkgName_reserved_aux_fail(){ fail("""
-[###]
-""", """
-package aux
-A:{}
-"""); }
-
-@Test void pkgName_reserved_nul_fail(){ fail("""
-[###]
-""", """
-package nul
-A:{}
-"""); }
-
-@Test void pkgName_reserved_com1_fail(){ fail("""
-[###]
-""", """
-package com1
-A:{}
-"""); }
-
-@Test void pkgName_reserved_lpt9_fail(){ fail("""
-[###]
-""", """
-package lpt9
-A:{}
-"""); }
-
-@Test void pkgName_reserved_con_withBlockComments_fail(){ fail("""
-[###]
-""", """
-package /* pre */ con /* post */
-A:{}
-"""); }
-
-@Test void pkgName_reserved_com9_tightComments_fail(){ fail("""
-[###]
-""", """
-package/*x*/com9/*y*/
-A:{}
-"""); }
-
-@Test void pkgName_reserved_nul_withLineCommentAfter_fail(){ fail("""
-[###]
-""", """
-package nul // device name on Windows
-A:{}
-"""); }
-
 @Test void pkgDupMap(){ fail("""
 In file: [###].fear
 
@@ -2517,19 +2454,11 @@ Error 2 UnexpectedToken
 """, """
 map foo _foo_v5 in _lib;
 """); }
-@Test void pkgMapOfAReservedPackageName(){ fail("""
-In file: [###].fear
-
-001| map con as _foo_v5 in _lib;
-   | ~~~~^^^~~~~~~~~~~~~~~~~~~~-
-
-While inspecting header element > file header > full file
-Missing package name.
-Found instead: "con".
-Expected: id starting with a-z followed by any amount of a-z0-9 or the _ symbol.
-Error 2 UnexpectedToken
+@Test void pkgMapOfDeviceNames(){ ok("""
+FileFull[maps=[map con as _com1 in _lpt9 instead of _prn, _nul],uses=[use aux.Foo as Foo],decs=[]]
 """, """
-map con as _foo_v5 in _lib;
+map con as _com1 in _lpt9 instead of _prn, _nul;
+use aux.Foo as Foo;
 """); }
 @Test void pkgMapOfAnUppercaseName(){ fail("""
 In file: [###].fear
@@ -2558,20 +2487,6 @@ Error 2 UnexpectedToken
 """, """
 map foo.bar as _foo_v5 in _lib;
 """); }
-@Test void pkgMapToAReservedFolderName(){ fail("""
-In file: [###].fear
-
-001| map foo as _con in _lib;
-   | ~~~~~~~~~~~^^^^~~~~~~~~-
-
-While inspecting header element > file header > full file
-Missing folder name.
-Found instead: "_con".
-Expected: folder name: the _ symbol followed by a package name.
-Error 2 UnexpectedToken
-""", """
-map foo as _con in _lib;
-"""); }
 @Test void pkgMapToAFolderNameWithTwoUnderscores(){ fail("""
 In file: [###].fear
 
@@ -2585,20 +2500,6 @@ Expected: folder name: the _ symbol followed by a package name.
 Error 2 UnexpectedToken
 """, """
 map foo as __foo in _lib;
-"""); }
-@Test void pkgMapInsteadOfAReservedFolderName(){ fail("""
-In file: [###].fear
-
-001| map foo as _foo_v5 in _lib instead of _foo_v4, _nul;
-   | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^-
-
-While inspecting header element > file header > full file
-Missing folder name.
-Found instead: "_nul".
-Expected: folder name: the _ symbol followed by a package name.
-Error 2 UnexpectedToken
-""", """
-map foo as _foo_v5 in _lib instead of _foo_v4, _nul;
 """); }
 @Test void pkgMapAndUseOfTheSameName(){ ok("""
 FileFull[maps=[map foo as _foo_v5 in _lib],uses=[use foo.Foo as Foo],decs=[]]
@@ -2815,19 +2716,10 @@ Error 2 UnexpectedToken
 foo.A:{  }
 """); }
 
-@Test void badTName(){ fail("""
-In file: [###].fear
-
-001| A:{ .foo:con.Bar }
-   |          ^^^^^^^
-
-While inspecting package names
-Unrecognized text "con.Bar".
-Package names are restricted to be valid filenames on all operating systems.
-Names like "aux", "nul", "lpt2" are invalid on Windows.
-Error 2 UnexpectedToken
+@Test void deviceNamedPackages(){ ok("""
+[###]con.Bar[###]com1.Bar[###]lpt9.Bar[###]
 """, """
-A:{ .foo:con.Bar }
+A:{ .foo:con.Bar; .bar:com1.Bar; .baz:lpt9.Bar }
 """); }
 
 @Test void mutMethOk(){ ok("""
