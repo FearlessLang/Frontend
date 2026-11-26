@@ -869,6 +869,41 @@ Only a type implementing "base.InMemoryLog[_]" can be used as a value.
 """, List.of("""
 A: { .m[X]: base.InMemoryLog[X] -> base.InMemoryLog[X] }
 """));}
+@Test void aDeclaredDataTypeIsAValue(){ok(List.of("""
+Pub: base.DataRead{}
+Notes: base.DataEdit{}
+A: { .read: base.DataRead -> Pub; .edit: base.DataEdit -> Notes; .editAsRead: base.DataRead -> Notes; }
+"""));}
+@Test void dataReadAsValue(){fail("""
+001| A: { .m: base.DataRead -> base.DataRead }
+   |      ---------------------^^^^^^^^^^^^^
+
+While inspecting object literal instance of "base.DataRead" > method "A.m" (line 1)
+The type "base.DataRead" cannot be used as a value.
+Only a type implementing "base.DataRead" can be used as a value.
+""", List.of("""
+A: { .m: base.DataRead -> base.DataRead }
+"""));}
+@Test void dataEditAsValue(){fail("""
+001| A: { .m: base.DataRead -> base.DataEdit }
+   |      ---------------------^^^^^^^^^^^^^
+
+While inspecting object literal instance of "base.DataEdit" > method "A.m" (line 1)
+The type "base.DataEdit" cannot be used as a value.
+Only a type implementing "base.DataEdit" can be used as a value.
+""", List.of("""
+A: { .m: base.DataRead -> base.DataEdit }
+"""));}
+@Test void emptyLiteralAsDataEdit(){fail("""
+001| A: { .m: base.DataEdit -> {} }
+   |      ---------------------^^
+
+While inspecting object literal instance of "base.DataEdit" > method "A.m" (line 1)
+The type "base.DataEdit" cannot be used as a value.
+Only a type implementing "base.DataEdit" can be used as a value.
+""", List.of("""
+A: { .m: base.DataEdit -> {} }
+"""));}
 @Test void openWithWithoutMain(){failWf("""
 001| Assoc: base.OpenWith[Icon,"foo"]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -217,7 +217,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("Only a standalone type can be implemented or mentioned by name.").standalone()
       .ex(at));
   }
-  public FearlessException logAsValue(Type at){
+  public FearlessException notAValue(Type at){
     var name= err().tNameADisp(at.type().c().name());
     return addExpFrame(at, err()
       .line("The type "+name+" cannot be used as a value.")

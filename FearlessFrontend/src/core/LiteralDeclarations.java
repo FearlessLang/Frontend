@@ -26,7 +26,8 @@ public final class LiteralDeclarations{
   public static final TName infoMain= new TName("base.InfoMain", 0, Pos.unknown);
   public static final TName dataRead= new TName("base.DataRead", 0, Pos.unknown);
   public static final TName inMemoryLog= new TName("base.InMemoryLog", 1, Pos.unknown);
-  public static final List<TName> logs= List.of(fileLog, inMemoryLog);
+  public static final TName dataEdit= new TName("base.DataEdit", 0, Pos.unknown);
+  public static final List<TName> notValues= List.of(dataRead, dataEdit, fileLog, inMemoryLog);
   public static final List<TName> concreteNotGeneric= List.of(attenuator, infoMain, dataRead, fileLog, inMemoryLog);
   public static final TName finalMethods= new TName("base.Final", 1, Pos.unknown);
   public static final List<TName> claims= List.of(new TName("base.OpenWith", 1, Pos.unknown), new TName("base.OpenWith", 2, Pos.unknown), new TName("base.Shortcut", 1, Pos.unknown), new TName("base.Shortcut", 2, Pos.unknown), new TName("base.PreLoadIcon", 1, Pos.unknown));
