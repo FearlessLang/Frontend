@@ -824,6 +824,51 @@ Steps: base.InMemoryLog[Steps]{ .name -> base.Nope! }
 Shape[X]: base.InMemoryLog[X]{ .extra: X }
 Box: { .mk[X]: base.InMemoryLog[Steps] -> { .name -> base.Nope! } }
 """));}
+@Test void aDeclaredLogIsAValue(){ok(List.of("""
+MyLog: base.FileLog{ .name -> base.Nope! }
+Steps: base.InMemoryLog[Steps]{ .name -> base.Nope! }
+A: { .file: base.FileLog -> MyLog; .memory: base.InMemoryLog[Steps] -> Steps; }
+"""));}
+@Test void fileLogAsValue(){fail("""
+001| A: { .m: base.FileLog -> base.FileLog }
+   |      --------------------^^^^^^^^^^^^
+
+While inspecting object literal instance of "base.FileLog" > method "A.m" (line 1)
+The type "base.FileLog" cannot be used as a value.
+Only a type implementing "base.FileLog" can be used as a value.
+""", List.of("""
+A: { .m: base.FileLog -> base.FileLog }
+"""));}
+@Test void inMemoryLogAsValue(){fail("""
+001| A: { .m: base.InMemoryLog[A] -> base.InMemoryLog[A]{} }
+   |      ---------------------------^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "base.InMemoryLog[A]" > method "A.m" (line 1)
+The type "base.InMemoryLog[_]" cannot be used as a value.
+Only a type implementing "base.InMemoryLog[_]" can be used as a value.
+""", List.of("""
+A: { .m: base.InMemoryLog[A] -> base.InMemoryLog[A]{} }
+"""));}
+@Test void emptyLiteralAsInMemoryLog(){fail("""
+001| A: { .m: base.InMemoryLog[A] -> {} }
+   |      ---------------------------^^
+
+While inspecting object literal instance of "base.InMemoryLog[A]" > method "A.m" (line 1)
+The type "base.InMemoryLog[_]" cannot be used as a value.
+Only a type implementing "base.InMemoryLog[_]" can be used as a value.
+""", List.of("""
+A: { .m: base.InMemoryLog[A] -> {} }
+"""));}
+@Test void inMemoryLogAsValueInAGenericMethod(){fail("""
+001| A: { .m[X]: base.InMemoryLog[X] -> base.InMemoryLog[X] }
+   |      ------------------------------^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "base.InMemoryLog[X]" > method "A.m" (line 1)
+The type "base.InMemoryLog[_]" cannot be used as a value.
+Only a type implementing "base.InMemoryLog[_]" can be used as a value.
+""", List.of("""
+A: { .m[X]: base.InMemoryLog[X] -> base.InMemoryLog[X] }
+"""));}
 @Test void openWithWithoutMain(){failWf("""
 001| Assoc: base.OpenWith[Icon,"foo"]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

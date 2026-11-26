@@ -217,6 +217,13 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("Only a standalone type can be implemented or mentioned by name.").standalone()
       .ex(at));
   }
+  public FearlessException logAsValue(Type at){
+    var name= err().tNameADisp(at.type().c().name());
+    return addExpFrame(at, err()
+      .line("The type "+name+" cannot be used as a value.")
+      .line("Only a type implementing "+name+" can be used as a value.")
+      .ex(at));
+  }
   ///Implemented method can never be called for any receiver obtained from the literal.
   ///Its body is statically dead code (typically a mut method on an imm/read literal).
   ///Raised when checking object literals
