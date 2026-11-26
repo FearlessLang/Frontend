@@ -249,7 +249,7 @@ import java.util.stream.*;
   N str=base("Str",0),nat=base("Nat",0),integer=base("Int",0),floating=base("Float",0),
     widen=base("WidenTo",1),sealed=base("Sealed",0),cf=base("CaptureFree",0),identity=base("BaseId",2),log=base("FileLog",0),
     container=base("BaseContainer",1),main=base("Main",0),fin=base("Final",1);
-  List<N>concrete=list(base("SystemAttenuator",0),base("InfoMain",0),base("DataRead",0),log,base("InMemoryLog",1));
+  List<N>concrete=list(base("SystemAttenuator",0),base("InfoMain",0),base("DataRead",0),log,base("InMemoryLog",1),base("DataEdit",0));
   List<N>claims=list(base("OpenWith",1),base("OpenWith",2),base("Shortcut",1),base("Shortcut",2),base("PreLoadIcon",1));
   static Set<RC>caps(RC first,RC...rest){return EnumSet.of(first,rest);}
   Set<RC>ii=caps(iso,imm),plain=caps(iso,imm,mut,read),allRC=EnumSet.allOf(RC.class);
@@ -570,7 +570,7 @@ import java.util.stream.*;
       var bs=cat(methodFree(g,l.ms),supFree(l.cs),w.ftv()).distinct().map(x->B.get(b,x)).toList();var name1=name.arity(bs.size());
       var cap=w.r==null?null:w.r.h();var instance=instance(l);
       var own=w.c.name.equals(name);no(!own&&!w.c.name.visible()&&!w.c.name.pk().equals(p.name));
-      l=new Literal(cap,name1,bs,distinct(bs,own?parents(w.c):push(w.c,parents(w.c))),l.self,map(l.ms,mi->mi.o(name,name1)),w,true,true);no(instance&&concrete.indexOf(w.c.name)>2);if(!instance)magic(l);
+      l=new Literal(cap,name1,bs,distinct(bs,own?parents(w.c):push(w.c,parents(w.c))),l.self,map(l.ms,mi->mi.o(name,name1)),w,true,true);no(instance&&concrete.indexOf(w.c.name)>1);if(!instance)magic(l);
       if(own)l=l.t(l.self(cap));register(l);var s=sup(w,widen);yield !instance?l:l.t(new R(cap,s!=null&&s.c.types.get(0) instanceof R q?q.c:w.c));
       }
       case Call c->{var e1=solve(b,g,c.e);MS m;
